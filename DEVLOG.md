@@ -1,0 +1,824 @@
+# DEVLOG — TEUcontador
+
+Arquivo de log de todas as alterações feitas pelo Claude.
+**Atualizado a cada mudança.** Use este arquivo para contextualizar novas conversas.
+
+---
+
+## Estrutura do Projeto
+
+| Caminho | Descrição |
+|--------|-----------|
+| `app/src/features/accounting/AccountingPage.tsx` | Lançamentos contábeis |
+| `app/src/features/obligations/ObligationsPage.tsx` | Obrigações fiscais |
+| `app/src/features/reconciliation/ReconciliationPage.tsx` | Conciliação bancária |
+| `app/src/features/clients/ClientsPage.tsx` | Clientes |
+| `app/src/features/reports/ReportsPage.tsx` | Relatórios |
+| `app/src/features/payroll/PayrollPage.tsx` | Folha de pagamento |
+| `app/src/features/chart-of-accounts/ChartOfAccountsPage.tsx` | Plano de contas |
+| `app/src/features/settings/SettingsPage.tsx` | Configurações |
+| `app/src/types/index.ts` | Tipos TypeScript globais |
+| `supabase/functions/chat/index.ts` | Edge Function — proxy Claude API |
+
+---
+
+## Sessão — 2026-03-14
+
+### Responsividade global — todas as páginas adaptadas para mobile
+
+**Objetivo:** Tornar todo o sistema utilizável em celulares e tablets.
+
+**Mudanças aplicadas por página:**
+
+#### AppLayout.tsx (já estava parcialmente responsivo — mantido)
+- Sidebar com hamburger funcional a ≤768px
+- Content com padding reduzido no mobile
+
+#### AccountingPage, ObligationsPage, PayrollPage, ReconciliationPage, ClientsPage, ChartOfAccountsPage:
+- `PageHeader`: adicionado `flex-wrap: wrap; gap: 12px;` — título e botões empilham no mobile
+- `HeaderActions` / `BtnRow`: adicionado `flex-wrap: wrap;`
+- `SearchBox`: adicionado `@media (max-width: 600px) { width: 100%; flex: 1; min-width: 0; }` — busca ocupa largura total
+- `StatsRow` sem breakpoints (ObligationsPage 3 cols, ReconciliationPage e PayrollPage 4 cols): adicionados `@media (max-width: 900px)` → 2 colunas e `@media (max-width: 480px)` → 1 coluna
+- AccountingPage `StatsRow`: adicionado `@media (max-width: 480px) { grid-template-columns: 1fr; }`
+- `Overlay` (modal): adicionado `@media (max-width: 600px) { align-items: flex-end; padding: 0; }` — modal vira bottom-sheet
+- `Modal`: adicionado `@media (max-width: 600px) { border-radius: 20px 20px 0 0; max-height: 95vh; }` — bottom-sheet
+- AccountingPage `Pagination`: adicionado `flex-wrap: wrap; gap: 8px;`
+- Tabelas: já tinham `<div style={{ overflowX: 'auto' }}>` — mantido
+
+#### DashboardPage:
+- `QaGrid` (3 colunas): adicionado `@media (max-width: 480px) { grid-template-columns: 1fr 1fr; }`
+- `ModalOverlay` / `ModalBox` (modal de tarefas): adicionado bottom-sheet no mobile
+- `CardHead`: adicionado `flex-wrap: wrap; gap: 8px;`
+- `DreItem`: removida borda-right e adicionada borda-bottom no `@media (max-width: 700px)` para layout 2-colunas
+
+#### ClientePortalPage:
+- `TopBar`: `@media (max-width: 600px) { padding: 0 16px; gap: 10px; }`
+- `Content`: `@media (max-width: 600px) { padding: 16px 14px; }`
+- `Card`: `@media (max-width: 768px) { overflow-x: auto; -webkit-overflow-scrolling: touch; }` — tabelas do portal ficam rolável horizontalmente
+- `KpiGrid` já tinha breakpoints 4→2→1 — mantido
+
+#### LoginPage / ClienteLoginPage:
+- Painel esquerdo já some a ≤900px — mantido
+- `Right`: `@media (max-width: 600px) { padding: 24px 20px; align-items: flex-start; }`
+- `PlanGrid` (3 cols): `@media (max-width: 480px) { grid-template-columns: 1fr; }`
+- `TwoCol` (2 cols): `@media (max-width: 400px) { grid-template-columns: 1fr; }`
+
+#### LandingPage: já totalmente responsiva — nenhuma alteração necessária.
+
+**`npx tsc --noEmit` — zero erros**
+
+### Bug fix — Sidebar tomando toda a tela no mobile
+
+**Causa:** `Sidebar = styled(motion.aside)` com `animate={{ x: 0, opacity: 1 }}` — framer-motion define `transform: translateX(0px)` como **estilo inline**, que tem prioridade maior que a regra CSS `transform: translateX(-100%)` do media query `@media (max-width: 768px)`. Resultado: sidebar sempre visível em cima do conteúdo no mobile.
+
+**Correção em `AppLayout.tsx`:**
+- `Sidebar`: de `styled(motion.aside)` → `styled.aside`
+- Keyframe CSS `sidebarIn` (`from: opacity:0; translateX(-12px)`) substitui a animação framer-motion no desktop
+- `@media (max-width: 768px)`: `animation: none; transition: transform 0.28s cubic-bezier(...)` — o `transform` CSS controla abertura/fechamento sem interferência do framer-motion
+- Removidos `initial`, `animate`, `transition` do JSX `<Sidebar>`
+
+---
+
+### Bug fix global: modais fechando sozinhos ao preencher campos
+**Causa:** `Overlay = styled(motion.div)` em todas as páginas — framer-motion registra handlers `pointerdown` internos no Overlay que disparam mesmo quando o `Modal` filho chama `e.stopPropagation()` (que só bloqueia o evento `click`, não o `pointerdown` interno do framer-motion). Resultado: qualquer clique dentro do modal (em input, select, botão) também disparava o `onClick` do Overlay e fechava o modal.
+
+**Páginas corrigidas:** AccountingPage, ReconciliationPage, ClientsPage, ObligationsPage, ChartOfAccountsPage, PayrollPage, DashboardPage (ModalOverlay/ModalBox).
+
+**Correção aplicada em todas:**
+- `Overlay` / `Modal` / `ModalOverlay` / `ModalBox`: de `styled(motion.div)` → `styled.div`
+- Animações CSS via `keyframes` (`overlayIn` fade, `modalIn` scale+fade) substituem as do framer-motion
+- Removidos props `initial`, `animate`, `exit` dos JSX
+- Removido `<AnimatePresence>` dos wrappers (desnecessário sem `exit` animations)
+- Componentes `motion.div` que NÃO são overlays (StatCard, KpiCard, Card, etc.) foram mantidos intactos
+
+### AccountingPage.tsx + ReconciliationPage.tsx — Bug fix definitivo: "Salvando..." infinitamente
+
+**Causa raiz (AccountingPage):** `SaveBtn = styled(motion.button)` — framer-motion registra `pointerdown` handlers independentes de eventos DOM normais. O `disabled` CSS e `pointer-events: none` não bloqueiam esses handlers internos do framer-motion, permitindo dupla execução de `handleSave`.
+
+**Causa raiz (ReconciliationPage):** `Overlay = styled(motion.div)` com `onClick` — framer-motion captura `pointerdown` no Overlay, e quando o usuário clica "Salvar" dentro do Modal, o framer-motion do Overlay também dispara seu `onClick` (fechando o modal), mesmo com `e.stopPropagation()` no Modal (que só para eventos `click`, não `pointerdown` interno do framer-motion). Resultado: modal fecha, usuário reabre, vê "Salvando..." do save anterior ainda em andamento.
+
+**Correções:**
+- `AccountingPage`: `SaveBtn` alterado de `styled(motion.button)` para `styled.button`. Removidos `whileTap` dos dois botões Salvar.
+- `ReconciliationPage`: `Overlay`, `Modal`, `ConfirmOverlay`, `ConfirmBox` alterados de `styled(motion.div)` para `styled.div` com animações CSS via `keyframes`. Removidos todos os props framer-motion (`initial`, `animate`, `exit`) dos JSX dessas componentes.
+- Keyframes `overlayIn` e `modalIn` adicionados no topo do arquivo (CSS fade + scale).
+
+### ClientePortalPage.tsx — Modo escuro + tooltip do gráfico corrigido
+**Problemas:**
+1. Tooltip do gráfico ApexCharts aparecia branco (sem estilo) — ilegível
+2. Portal do cliente não tinha suporte a modo escuro
+
+**Correções:**
+- Importado `useTheme` de `ThemeProvider` (já disponível pois `ThemeProvider` envolve toda a app em `main.tsx`)
+- Adicionado `const { isDark, toggleTheme } = useTheme()` no componente
+- Todos os styled components: cores hardcoded (`#fff`, `#1a1a1a`, `#e5e7eb`, etc.) substituídas por tokens do tema (`theme.surface`, `theme.text`, `theme.border`, etc.)
+- Badges de status/tipo/conciliação: usam `theme.posBg/pos`, `theme.negBg/neg`, `theme.warnBg/warn`
+- `ConcilRow` conciliada: usa `theme.greenLight` (escuro: `#052e16`, claro: `#eaf6f0`)
+- `chartOptions`: `tooltip.theme` = `isDark ? 'dark' : 'light'` — tooltip agora legível em ambos os modos
+- Eixos e grid do gráfico: cores responsivas ao tema
+- `key={isDark ? 'dark' : 'light'}` no `ReactApexChart` para forçar re-render ao trocar tema
+- Botão de toggle modo escuro/claro adicionado na `TopBar` do portal (ícone Sol/Lua)
+
+### ReconciliationPage.tsx — Bug fix: "Importando..." infinitamente
+**Causa:** Mesma raiz do bug em AccountingPage — sem guarda síncrona, estado podia ficar travado se houvesse duplo clique ou exception inesperada. O `SaveBtn` também não tinha `pointer-events: none` no estado disabled.
+
+**Correção em `ReconciliationPage.tsx`:**
+- Adicionados `importingRef`, `savingRef`, `conciliandoRef` (todos `useRef(false)`)
+- `confirmarImportOFX`: guarda `if (importingRef.current) return`, reset no `finally`. Trocado `if (error) return` por `throw new Error(error.message)` para cair no `catch` e garantir que `setImporting(false)` rode mesmo em erros inesperados
+- `confirmarConciliar`: guarda `conciliandoRef` + reset no `finally`
+- `handleSave`: guarda `savingRef` + reset no `finally`
+- `SaveBtn` CSS: adicionado `&:disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }`
+
+### AccountingPage.tsx — Bug fix: "Salvando..." infinitamente (2ª ocorrência)
+**Causa:** `SaveBtn = styled(motion.button)` com `whileTap={{ scale: 0.97 }}` — framer-motion registra listeners de `pointerdown` que disparam antes do React re-renderizar o botão como `disabled`. Resultado: `handleSave`/`saveModelo` podia ser chamado duas vezes antes de `saving=true` ser refletido no DOM.
+
+**Correção em `AccountingPage.tsx`:**
+- Adicionado `useRef` ao import
+- Adicionado `savingRef = useRef(false)` como guarda síncrono
+- `handleSave` e `saveModelo`: checam `if (savingRef.current) return` antes de qualquer validação
+- `savingRef.current = true` antes do `setSaving(true)`
+- `savingRef.current = false` no bloco `finally`, junto com `setSaving(false)`
+- `SaveBtn` CSS: adicionado `pointer-events: none` no `&:disabled`
+
+---
+
+## Sessão — 2026-03-13
+
+### AccountingPage.tsx
+- Adicionado `useAuthStore` + filtro `escritorio_id` em todas as queries e inserts
+- Adicionado export PDF via `jsPDF` + `autoTable`
+- Adicionado export Excel via `xlsx`
+- Adicionados botões rápidos ✓/✗ aprovar/rejeitar lançamentos pendentes *(removidos depois — coluna `status` não existe no banco)*
+
+### ObligationsPage.tsx
+- Adicionado `useAuthStore` + filtro `escritorio_id` em queries e insert
+
+### ReconciliationPage.tsx
+- Adicionado `useAuthStore` + filtro `escritorio_id` em queries
+- Bug fix: removida coluna `conciliada` (não existe no banco) — ver abaixo
+
+---
+
+### Bug fix — Editar lançamento dava erro ao salvar
+**Causa:** O `update` do Supabase não tinha `.eq('escritorio_id', escId)` no filtro, e o `escritorio_id` estava no payload do update (violava RLS).
+
+**Correção em `AccountingPage.tsx`:**
+```ts
+// Antes
+supabase.from('lancamentos').update(payload).eq('id', editingId)
+
+// Depois
+const { escritorio_id: _eid, ...updatePayload } = payload
+supabase.from('lancamentos').update(updatePayload).eq('id', editingId).eq('escritorio_id', escId!)
+```
+
+---
+
+### Bug fix — Coluna `centro_custo` não existe na tabela `lancamentos`
+**Causa:** O campo foi adicionado ao formulário/payload mas não existe no schema do Supabase.
+
+**Removido de:** `blankForm`, `blankModelo`, payload do save, `openEdit`, duplicar, aplicar modelo, `saveAsModelo`, filtro de busca, cabeçalho e células da tabela, export Excel, modal de lançamento, modal de modelo.
+
+---
+
+### Bug fix — Coluna `status` não existe na tabela `lancamentos`
+**Causa:** O campo foi adicionado ao formulário/payload mas não existe no schema do Supabase.
+
+**Removido de:** `blankForm`, `filterStatus`, `useMemo` deps, card "Pendentes" (substituído por card "Lançamentos"), subtítulo do header, payload do save, `openEdit`, `handleQuickStatus` (função inteira removida), botões ✓/✗ da tabela, coluna Status na tabela, exports Excel e PDF, campo Status no modal.
+
+---
+
+### ReconciliationPage.tsx — botão Desfazer conciliação
+- Adicionado botão "Desfazer" para transações já conciliadas (seta `conciliada = false`)
+- Transações não conciliadas continuam mostrando botão "Conciliar"
+- SQL necessário: `supabase/add_conciliada_column.sql` (rodar no Supabase antes de usar)
+
+### Bug fix — Coluna `conciliada` não existe na tabela `transacoes_bancarias`
+**Causa:** O campo `conciliada` foi usado em update/filtro/display mas não existe no schema do Supabase.
+
+**Removido de:** `ReconciliationPage.tsx` — `handleConciliar` (função inteira), cards "Conciliadas"/"Pendentes" (substituídos por "Transações"/"Filtradas"), subtítulo do card, coluna Status e coluna Ação da tabela (substituídas por coluna "Lançamento" mostrando `lancamento_id`).
+**Removido de:** `app/src/types/index.ts` — campo `conciliada?: boolean` da interface `TransacaoBancaria`.
+
+---
+
+## Colunas confirmadas na tabela `lancamentos`
+
+| Coluna | Tipo |
+|--------|------|
+| `id` | uuid |
+| `escritorio_id` | uuid |
+| `data_lanc` | date |
+| `historico` | text |
+| `conta_debito` | text |
+| `conta_credito` | text |
+| `valor` | numeric |
+| `tipo` | text (`credito` / `debito`) |
+| `cliente_id` | uuid (nullable) |
+| `numero_doc` | text (nullable) |
+
+> **Colunas que NÃO existem (não usar):** `centro_custo`, `status`
+
+## Colunas confirmadas na tabela `transacoes_bancarias`
+
+| Coluna | Tipo |
+|--------|------|
+| `id` | uuid |
+| `escritorio_id` | uuid |
+| `cliente_id` | uuid (nullable) |
+| `data_transacao` | date |
+| `descricao` | text |
+| `valor` | numeric |
+| `tipo` | text (`credito` / `debito`) |
+| `lancamento_id` | uuid (nullable) |
+| `created_at` | timestamp |
+
+> **Colunas que NÃO existem (não usar):** `conciliada`
+
+---
+
+### Otimizações de performance — 2026-03-13
+- **App.tsx**: todas as páginas convertidas para `React.lazy` + `Suspense` (code-splitting — cada página só carrega quando acessada)
+- **DashboardPage.tsx**: adicionado `.limit(200)` em `lancamentos` e `.limit(500)` em `colaboradores`; `barOptions` e `donutOptions` movidos para `useMemo`; `totalReg` memoizado
+- **Impacto esperado**: carregamento inicial muito mais rápido; dashboard não trava em escritórios com muitos lançamentos
+
+### Bug fix — Check constraint `obrigacoes_status_check` ao concluir obrigação
+**Causa:** O frontend enviava `'concluida'` mas o banco só aceita `'concluido'` (sem acento).
+**Corrigido em:** `ObligationsPage.tsx` (todas as ocorrências) e `types/index.ts` (`Obrigacao.status`).
+**SQL gerado:** `supabase/fix_obrigacoes_status.sql` — corrige registros antigos com valor errado.
+
+> Valores aceitos pelo constraint `obrigacoes_status_check`: `'pendente'`, `'atrasado'`, `'transmitido'`
+> O frontend exibe "Concluído" para o usuário mas envia `'transmitido'` para o banco.
+
+### LandingPage.tsx — Animações com react-countup e react-type-animation — 2026-03-13
+- **Hero title**: substituída linha estática "Contabilidade inteligente" por `TypeAnimation` (wrapper `span`, estilo italic/verde) alternando 4 frases em loop infinito
+- **HeroStats** (4 cards): valores estáticos substituídos por `CountUp` com `enableScrollSpy` + `scrollSpyOnce` (2s duration)
+- **StatsSection** (4 itens): números estáticos substituídos por `CountUp` com `enableScrollSpy` + `scrollSpyOnce` (2.5s duration)
+- Removido import inválido `{ useInView } from 'react-countup'` (não é named export)
+- `npx tsc --noEmit` — zero erros
+
+### Bug fix — DashboardPage não puxava dados (escritorio_id ausente)
+**Causa:** Todas as 7 queries do `Promise.all` no `loadData` estavam sem filtro `.eq('escritorio_id', escId)`. Com RLS ativo no Supabase, as queries retornavam vazio. Além disso a query de `escritorios` não tinha `.eq('user_id', user.id)`, podendo disparar inserts duplicados.
+
+**Corrigido em `DashboardPage.tsx`:**
+- Query de `escritorios`: adicionado `.eq('user_id', user!.id)`
+- Adicionado `if (!esc) return` logo após buscar o escritório (evita queries inúteis se não houver escritório)
+- Todas as queries do `Promise.all` agora usam `.eq('escritorio_id', esc.id)`:
+  - `clientes` (count total)
+  - `clientes` (count pendentes)
+  - `clientes` (lista)
+  - `colaboradores`
+  - `lancamentos`
+  - `obrigacoes`
+  - `clientes` (regimes)
+
+### Bug fix — Coluna `admissao` não existe na tabela `colaboradores`
+**Removido de:** `blank()` (estado inicial), PDF export, modal de edição (campo "Data de Admissão"), modal de visualização, `types/index.ts`.
+
+> **Colunas que NÃO existem em `colaboradores` (não usar):** `admissao`
+
+### Bug fix — SDK `@supabase/supabase-js` incompatível (406 Not Acceptable)
+**Causa:** npm instalou `2.99.1` via `^2.49.2`. Nessa versão, `.single()` envia `Accept: ...nulls=stripped` que o PostgREST do projeto rejeita com 406. Auth quebrava → `user` nulo → dashboard não carregava.
+**Correção:**
+- Versão fixada em `2.99.1` (sem `^`) no `package.json`
+- `authStore.loadEscritorio`: `.single()` → `.limit(1)` nos dois pontos (busca e insert)
+- `DashboardPage.loadData`: `.single()` → `.limit(1)` (já corrigido antes)
+
+### Bug fix — `invalid input syntax for type uuid: ""` ao salvar colaborador
+**Causa:** `cliente_id: ''` (string vazia) era enviado ao Supabase como UUID. PostgreSQL rejeita string vazia em coluna UUID.
+**Corrigido em `PayrollPage.tsx`:** payload agora usa `cliente_id: selected.cliente_id || null`.
+**Observação:** `AccountingPage` e `ObligationsPage` já faziam `|| null` corretamente.
+
+### ReconciliationPage — Import OFX real + Nova Transação manual
+**Problema:** botão "Importar OFX" era placeholder que só mostrava toast.
+**Implementado:**
+- Import OFX real: file picker (`.ofx/.qfx/.ofc`) → parser extrai `<STMTTRN>` (suporta XML e SGML legado) → insere em `transacoes_bancarias` com data, descrição, valor e tipo
+- Botão "Nova Transação": modal com campos descrição, valor, tipo e data para lançamento manual
+- Status conciliação: substituído `conciliada` (não existe no banco) por `lancamento_id` (coluna existente)
+
+### Migração de dados — escritorio_id antigo → novo
+**Causa:** Código antigo associava registros ao UUID `bdf91105-4582-41fc-8470-26590ccaeb99` (escritório criado sem filtro `user_id`). App atual usa `59e9b892-8b0b-4267-bee7-8b64549517d9`.
+**SQL rodado no Supabase:**
+```sql
+UPDATE clientes      SET escritorio_id = '59e9b892-...' WHERE escritorio_id = 'bdf91105-...';
+UPDATE lancamentos   SET escritorio_id = '59e9b892-...' WHERE escritorio_id = 'bdf91105-...';
+UPDATE colaboradores SET escritorio_id = '59e9b892-...' WHERE escritorio_id = 'bdf91105-...';
+UPDATE obrigacoes    SET escritorio_id = '59e9b892-...' WHERE escritorio_id = 'bdf91105-...';
+UPDATE plano_contas  SET escritorio_id = '59e9b892-...' WHERE escritorio_id = 'bdf91105-...';
+```
+**Resultado:** 3 clientes, 19 lançamentos, 1 colaborador, 3 obrigações e 129 contas migradas.
+
+> **escritorio_id ativo:** `59e9b892-8b0b-4267-bee7-8b64549517d9`
+> **escritorio_id antigo (abandonado):** `bdf91105-4582-41fc-8470-26590ccaeb99`
+
+### Bug fix — FK violation ao clicar em Conciliar (`transacoes_bancarias_lancamento_id_fkey`)
+**Causa:** `handleConciliar` enviava `lancamento_id = transacao.id` (o ID da própria transação), mas `lancamento_id` é FK para a tabela `lancamentos`.
+**Correção em `ReconciliationPage.tsx`:**
+- Botão "Conciliar" agora abre modal com lista de lançamentos do mesmo tipo (`credito`/`debito`) do escritório
+- Usuário seleciona o lançamento correspondente e confirma
+- `lancamento_id` recebe o ID do lançamento selecionado
+- Botão "Desfazer" seta `lancamento_id = null` (sem alteração)
+
+### Performance — DashboardPage carregamento mais rápido
+**Problema:** dashboard era lento por 1 query sequencial + 7 paralelas = 2 round trips mínimos.
+**Otimizações aplicadas em `DashboardPage.tsx`:**
+- `escritorio` agora vem do store (`useAuthStore`) — elimina round trip sequencial (era a causa principal da lentidão)
+- 3 queries de `clientes` (count total, count pendente, select) fundidas em 1 — KPIs calculados em JS
+- `lancamentos` filtrado por ano diretamente no banco (`.gte/.lte`) — evita baixar dados de anos anteriores
+- Removidos todos os `console.log` de debug
+- Skeleton animado nos 4 KPI cards enquanto os dados carregam (UI não fica em branco)
+- Total de queries: **8 → 4** em paralelo
+
+### LoginPage.tsx — Estilização alinhada ao padrão Landing/Dashboard
+- **Left panel**: background atualizado de `#1a7a4a` (sólido) para `linear-gradient(160deg, #1a7a4a 0%, #0d3d24 55%, #081a10 100%)` — mesmo tom escuro-verde da Landing hero section
+- **Glows radiais**: adicionados `LeftGlow1` (topo-esquerda) e `LeftGlow2` (baixo-direita) com `radial-gradient` verde, replicando o estilo da Landing page
+- **HeroTitle `em`**: cor atualizada para `#4ade80` (green-400), igual ao TypeAnimation da Landing
+- **Background**: `#f7f5f0` → `#f8f6f1` (cream exato da Landing) em `Page`, `Right` e card de resumo do cadastro
+- **SubmitBtn**: background atualizado para `linear-gradient(135deg, #1a7a4a 0%, #0f5233 100%)` com hover mais intenso — mesma CTA da Landing
+- **BackBtn hover**: `#f7f5f0` → `#f0ede8` para contrastar melhor com o novo fundo
+
+### Dashboard — Novos módulos em implementação (SESSÃO INTERROMPIDA)
+
+#### O que foi feito nesta sessão:
+
+**`app/src/types/index.ts`**
+- Adicionada interface `Tarefa` (id, escritorio_id, cliente_id, titulo, descricao, status, prioridade, responsavel, data_vencimento, clientes)
+
+**`app/src/features/dashboard/DashboardPage.tsx`** — REESCRITO COMPLETO com:
+- **Ticker de Vencimentos** — banner amarelo no topo mostrando obrigações vencendo em ≤7 dias
+- **Honorários Recebidos / Pendentes** — 2 cards abaixo dos KPIs, calculados por `clientes.situacao`
+- **DRE Resumido** — card full-width: Receitas, Despesas, Resultado, Margem % (mês atual + acumulado ano)
+- **Calendário Fiscal** — datas de referência estáticas por mês (FGTS, GPS, DCTF, SPED, eSocial, ECF…) com status visual (passou/hoje/X dias)
+- **Clientes em Risco** — lista de clientes onde `situacao !== 'em_dia'` com badge e honorário devido
+- **Gestão de Tarefas (Kanban)** — 3 colunas: Aberta / Em Andamento / Concluída; clicar na tarefa avança o status; botão excluir; modal "Nova Tarefa" com título, prioridade, cliente, vencimento, responsável
+- **Ranking de Clientes** — top 7 por honorários com barra proporcional colorida
+- Importados: `differenceInDays` de date-fns, `AnimatePresence` de framer-motion, `toast` de sonner
+- Estado novo: `clientesAll`, `tarefas`, `showAddTarefa`, `novaT`, `savingTarefa`, `tarefasError`
+- Funções novas: `loadTarefas`, `addTarefa`, `updateTarefaStatus`, `deleteTarefa`
+- Memos novos: `dreData`, `honData`, `clientesRisco`, `rankingClientes`, `maxHon`, `proximosVenc`, `calFiscalMes`
+
+#### PENDENTE — continuar na próxima sessão:
+
+1. **Rodar `npx tsc --noEmit`** para confirmar zero erros de TypeScript (havia 1 erro de `string | undefined` já corrigido, mas o comando foi interrompido antes de confirmar)
+
+2. **SQL para criar tabela `tarefas`** — enviar ao usuário para rodar no Supabase:
+```sql
+CREATE TABLE IF NOT EXISTS tarefas (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  escritorio_id uuid REFERENCES escritorios(id) ON DELETE CASCADE NOT NULL,
+  cliente_id uuid REFERENCES clientes(id) ON DELETE SET NULL,
+  titulo text NOT NULL,
+  descricao text,
+  status text NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta','em_andamento','concluida')),
+  prioridade text NOT NULL DEFAULT 'media' CHECK (prioridade IN ('baixa','media','alta')),
+  responsavel text,
+  data_vencimento date,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE tarefas ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "tarefas_escritorio" ON tarefas
+  FOR ALL USING (
+    escritorio_id IN (
+      SELECT id FROM escritorios WHERE user_id = auth.uid()
+    )
+  );
+```
+
+3. **Testar no browser** após rodar o SQL
+
+4. **LoginPage.tsx** — estilização já concluída na sessão anterior (gradiente escuro no painel esquerdo, glows, `#4ade80` no `em`, botão com gradiente)
+
+*Última atualização: 2026-03-15*
+
+---
+
+## Sessão — 2026-03-15
+
+### 8 Novas Funcionalidades adicionadas
+
+#### Arquivos novos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `app/src/components/NotificacoesDropdown.tsx` | Dropdown do sino com notificações em tempo real |
+| `app/src/features/agenda/AgendaFiscalPage.tsx` | Calendário visual de obrigações fiscais |
+| `app/src/features/honorarios/HonorariosPage.tsx` | Módulo de cobrança mensal de honorários |
+| `app/src/features/atendimentos/AtendimentosPage.tsx` | Registro de atendimentos a clientes |
+| `app/src/features/fluxo/FluxoCaixaPage.tsx` | Fluxo de caixa projetado com gráficos |
+| `app/src/features/tempo/ControleTempo.tsx` | Timer + controle de horas por cliente |
+| `app/src/features/nfse/NfsePage.tsx` | Emissão e download de NFS-e em PDF |
+| `supabase/novas_funcionalidades.sql` | DDL das novas tabelas com RLS |
+
+#### Arquivos modificados
+
+| Arquivo | O que mudou |
+|---------|-------------|
+| `app/src/App.tsx` | 6 novas rotas lazy: /agenda, /honorarios, /atendimentos, /fluxo, /tempo, /nfse |
+| `app/src/components/layout/AppLayout.tsx` | Nav reorganizada em 3 grupos (Principal/Fiscal/Gestão); sino funcional via `NotificacoesDropdown`; ícone de tema na topbar |
+| `app/src/stores/dataStore.ts` | 4 novos fetchers + setters + Realtime para: honorarios, atendimentos, registros_tempo, notas_servico |
+| `app/src/types/index.ts` | 4 novas interfaces: `Honorario`, `Atendimento`, `RegistroTempo`, `NotaServico` |
+| `app/src/features/payroll/PayrollPage.tsx` | Tab bar de Departamento Pessoal: Folha / Férias / 13º Salário / Rescisão (calculadoras automáticas) |
+
+#### SQL a rodar no Supabase
+
+> **⚠ Rodar `supabase/novas_funcionalidades.sql` no SQL Editor antes de usar os novos módulos**
+
+Cria 4 tabelas com RLS:
+- `honorarios` — cobranças mensais por cliente, unique por (escritorio_id, cliente_id, mes_ref)
+- `atendimentos` — log de ligações, e-mails, reuniões, WhatsApp
+- `registros_tempo` — início/fim de atividades com cálculo automático de minutos
+- `notas_servico` — notas de serviço com cálculo de ISS/IRRF e serial auto-incremento
+
+#### Detalhamento das funcionalidades
+
+**1. Central de Notificações**
+- Bell na topbar com badge vermelho indicando quantidade
+- Dropdown com alertas: obrigações atrasadas, vencendo ≤7 dias, vencendo amanhã, clientes atrasados, tarefas vencidas
+- Fecha ao clicar fora; navega à página correspondente ao clicar no item
+
+**2. Agenda Fiscal Interativa** (`/app/agenda`)
+- Calendário mensal com obrigações plotadas por data de vencimento
+- Cores: azul=pendente, amarelo=≤7 dias, laranja=≤3 dias, vermelho=atrasada, verde=concluída
+- Modal ao clicar no dia: lista de obrigações com botão "✓ Concluir" que atualiza status para 'transmitido'
+- Filtro por cliente; navegação entre meses; botão "Hoje"
+
+**3. Módulo de Honorários** (`/app/honorarios`)
+- Navegação mensal com botão "Gerar Mês" que cria registros automaticamente a partir de `clientes.honorarios`
+- Cards de stats: Total / Recebido / Pendente / Atrasado
+- Tabela com botões "✓ Pago" e "Atrasado" por linha
+- Export Excel; modal de adição manual
+- Bug fix no formulário: `status` tipado corretamente para evitar erro TS2367
+
+**4. Registro de Atendimentos** (`/app/atendimentos`)
+- 5 tipos: Ligação, E-mail, Reunião, WhatsApp, Outro — cada um com cor e ícone
+- Cards com stats de contagem por tipo
+- Filtros por tipo e cliente; busca por assunto/descrição
+- Campos: data, duração em minutos, responsável, descrição
+
+**5. Fluxo de Caixa** (`/app/fluxo`)
+- Navegação por ano; tabela mensal com entradas, saídas, resultado, saldo acumulado
+- Gráfico de barras (Entradas × Saídas) e área (Saldo Acumulado) via ApexCharts
+- Dados calculados a partir de `lancamentos` do dataStore (sem queries extras)
+
+**6. Controle de Tempo** (`/app/tempo`)
+- Timer com play/stop na página — início automático, para e salva no banco
+- Seleção de cliente antes de iniciar; campo de descrição
+- Registro manual via modal com datetime-local inicio/fim
+- Stats: total acumulado, tempo hoje, top cliente
+
+**7. Departamento Pessoal** (tabs em `/app/folha`)
+- 4 tabs: Folha (existente) / Férias / 13º Salário / Rescisão
+- Calculadora de Férias: proporcional + 1/3 adicional + abono pecuniário - INSS - IRRF
+- Calculadora de 13º: por avos, INSS 2ª parcela, IRRF, FGTS patronal
+- Calculadora de Rescisão: sem justa causa / pedido demissão / justa causa / acordo mútuo § 6º. Inclui aviso prévio, 13º proporcional, férias proporcionais, 1/3 adicional, multa FGTS 40%
+- Selector de colaborador para pré-preencher salário
+
+**8. NFS-e Simplificada** (`/app/nfse`)
+- Formulário com: descrição do serviço, valor, alíquotas ISS e IRRF, dados do tomador
+- Preview em tempo real do cálculo (bruto → ISS → IRRF → líquido)
+- Ao emitir: salva no banco + gera PDF automaticamente (jsPDF + autoTable)
+- PDF com layout profissional: cabeçalho verde, dados prestador/tomador, tabela de valores
+- Botão download para notas já emitidas; cancelamento de nota com confirmação
+
+#### Resultado
+
+- `npx tsc --noEmit` — **zero erros**
+- Navegação reorganizada em 3 grupos na sidebar (Principal / Fiscal / Gestão)
+- Todos os novos módulos leem e escrevem via Supabase com RLS
+- Realtime: store reativo a mudanças em todas as novas tabelas
+
+---
+
+## Sessão — 2026-03-13 (continuação)
+
+### ReconciliationPage.tsx — Filtro por cliente + Apagar Tudo
+
+**Filtro por cliente:**
+- Estado `filterCliente` + lista `clientes` carregada em paralelo com `transacoes_bancarias` no `load()`
+- Dropdown `FilterSelect` na toolbar listando todos os clientes do escritório
+- `useEffect` de filtro agora aplica `filterCliente` E `search` em sequência
+- Botão "Limpar filtros" aparece quando qualquer filtro está ativo (reseta `search` e `filterCliente`)
+
+**Apagar Tudo:**
+- Botão vermelho "Apagar Tudo" aparece no header apenas quando há transações (`transacoes.length > 0`)
+- Abre modal de confirmação (`ConfirmOverlay/ConfirmBox`) com ícone de lixeira, contagem de transações e aviso de irreversibilidade
+- `handleApagarTudo`: `.delete().eq('escritorio_id', escId)` — apaga todas as transações do escritório
+- Após deletar, reseta filtros e recarrega
+
+**Styled components adicionados:**
+- `FilterSelect`, `ConfirmOverlay`, `ConfirmBox`, `ConfirmIcon`, `ConfirmTitle`, `ConfirmSub`, `ConfirmBtns`, `ConfirmCancel`, `ConfirmDelete`
+- `ActionBtn` recebeu prop `$danger` para estilo vermelho
+
+**`npx tsc --noEmit` — zero erros**
+
+---
+
+## Portal do Cliente — 2026-03-13
+
+### Arquivos criados
+
+**`app/src/stores/clientePortalStore.ts`**
+- Zustand store com `persist` (localStorage key `cliente-portal-session`)
+- Interface `ClienteSession`: id, razao_social, cnpj, regime, email_acesso, senha_acesso, honorarios, situacao, responsavel, municipio, estado
+- Métodos: `setSession`, `logout`
+
+**`app/src/features/cliente-portal/ClienteLoginPage.tsx`**
+- Rota: `/portal` (separada do login do escritório `/login`)
+- Design: dois painéis, gradiente verde-escuro à esquerda, formulário cream à direita — mesmo estilo do LoginPage
+- Chama RPC `login_cliente(p_email, p_senha)` via supabase.rpc()
+- Salva session no `clientePortalStore`, navega para `/portal/dashboard`
+- Link para `/login` (acesso escritório) e link para `/` (voltar)
+
+**`app/src/features/cliente-portal/ClientePortalPage.tsx`**
+- TopBar fixo com gradiente verde, nome do cliente, botão logout
+- Saudação com razao_social, CNPJ, regime, badge de situação
+- 4 KPI cards: Receitas do Mês, Despesas do Mês, Saldo, Obrigações Pendentes
+- Gráfico de barras ReactApexChart: Receitas × Despesas — 12 meses do ano atual
+- Tabelas: Obrigações (10), Lançamentos Recentes (15), Transações Bancárias (15)
+- Carrega dados via RPC `get_cliente_dados(p_id, p_senha)` (valida ID + senha)
+- Guard: redireciona para `/portal` se sessão nula
+
+### Arquivos modificados
+
+**`app/src/types/index.ts`** — adicionado `email_acesso?: string` e `senha_acesso?: string` à interface `Cliente`
+
+**`app/src/features/clients/ClientsPage.tsx`**
+- Adicionado `KeyRound` e `Lock` ao import lucide
+- `blankCliente` agora inclui `email_acesso: ''` e `senha_acesso: ''`
+- Nova seção no form de add/edit: "Acesso ao Portal do Cliente" — campos email_acesso e senha_acesso com hint de URL `/portal`
+
+**`app/src/App.tsx`**
+- Import `ClienteLoginPage` (direto, não lazy)
+- Lazy `ClientePortalPage`
+- Rotas: `/portal` → ClienteLoginPage, `/portal/dashboard` → ClientePortalPage
+
+### SQL necessário — `supabase/cliente_portal.sql`
+
+> **⚠ Rodar no Supabase SQL Editor antes de usar o portal:**
+
+```sql
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS email_acesso text;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS senha_acesso text;
+```
+
+Mais duas RPC functions SECURITY DEFINER:
+- `login_cliente(p_email, p_senha)` — valida credenciais, retorna row do cliente
+- `get_cliente_dados(p_id, p_senha)` — valida ID+senha, retorna cliente + lancamentos + obrigacoes + transacoes
+
+> Arquivo completo: `supabase/cliente_portal.sql`
+
+**`npx tsc --noEmit` — zero erros**
+
+---
+
+## Otimizações de Performance — 2026-03-13
+
+### `stores/authStore.ts`
+- Listener `onAuthStateChange` duplicava a cada chamada de `initialize()`. Adicionado `_authListenerUnsubscribe` global — cancela o listener anterior antes de criar um novo.
+
+### `features/accounting/AccountingPage.tsx`
+- Query `lancamentos`: adicionado `.limit(500)`; query `clientes`: `.limit(200)`
+- `totalCredito`, `totalDebito`, `saldo`: movidos para `useMemo([lancamentos])`
+
+### `features/obligations/ObligationsPage.tsx`
+- Query `obrigacoes`: `.limit(300)`; query `clientes`: `.limit(200)`
+- Stats `pendentes/atrasadas/transmitidos`: movidos para `useMemo([obrigacoes])`
+
+### `features/payroll/PayrollPage.tsx`
+- Query `colaboradores`: `.limit(300)`; query `clientes`: `.limit(200)`
+- Stats (`ativos`, `totalBruto`, `totalInss`, `totalFgts`, `totalLiquido`): `useMemo([colaboradores])`
+
+### `features/clients/ClientsPage.tsx`
+- `useEffect([])` → `useEffect([escId])` — recarrega quando escritório muda
+- Query: filtro explícito por `escId` + `.limit(500)`
+- `filtered`: convertido de `useState+useEffect` para `useMemo` — elimina render extra
+
+### `features/dashboard/DashboardPage.tsx`
+- Query `clientes`: adicionado `.limit(300)`
+
+---
+
+## Cache Global de Dados — 2026-03-13
+
+### Problema
+Cada navegação entre seções (Clientes, Lançamentos, Folha, etc.) re-buscava todos os dados do zero no Supabase → lentidão a cada troca de página.
+
+### Solução: `stores/dataStore.ts` (NOVO)
+Store Zustand com cache de todos os dados do app:
+- Arrays: `clientes`, `lancamentos`, `obrigacoes`, `colaboradores`, `planoContas`, `transacoes`
+- `preload(escId)` — busca tudo em paralelo (6 queries simultâneas) uma única vez
+- `loadedEscId` — guard para não recarregar se já carregou para o mesmo escritório
+- Setters individuais por feature para atualizar cache após CRUD
+
+### `components/layout/AppLayout.tsx`
+- Importa `useDataStore` e chama `preload(escId)` via `useEffect([escritorio?.id])`
+- Resultado: dados carregados **antes** do usuário clicar em qualquer seção
+
+### Todas as páginas atualizadas com cache:
+- `ClientsPage.tsx` — `clientes` inicializado do cache, `loading` começa `false` se cache populado
+- `AccountingPage.tsx` — `lancamentos` + `clientes` do cache; `clientes` não re-fetched (usa cache direto)
+- `ObligationsPage.tsx` — `obrigacoes` + `clientes` do cache
+- `PayrollPage.tsx` — `colaboradores` + `clientes` do cache; `loadClientes()` removida
+- `ChartOfAccountsPage.tsx` — `planoContas` do cache; `useEffect([])` corrigido para `[escId]`
+- `ReconciliationPage.tsx` — `transacoes` + `clientes` do cache
+
+### Comportamento resultante
+- **1ª visita ao app**: AppLayout pré-carrega tudo em background enquanto Dashboard renderiza
+- **Navegação subsequente**: instantânea — dados já estão no store, sem loading spinner
+- **Após CRUD** (salvar/deletar): página re-fetcha e atualiza o cache automaticamente
+
+---
+
+## Sessão — 2026-03-13 (continuação)
+
+### Arquivos do Cliente — Portal de Download
+
+#### `supabase/cliente_arquivos.sql` (NOVO — rodar no SQL Editor)
+- Cria bucket `cliente-arquivos` (público, 50 MB por arquivo)
+- Políticas de storage: upload autenticado, leitura pública, delete autenticado
+- Tabela `cliente_arquivos`: `id, escritorio_id, cliente_id, nome_arquivo, storage_path, size_bytes, mimetype, created_at`
+- RLS: escritório só acessa seus próprios arquivos
+- Atualiza `get_cliente_dados` para incluir `arquivos` no JSON retornado
+
+#### `ClientsPage.tsx`
+- Adicionados ícones `FolderOpen`, `Upload`, `ExternalLink`
+- Novo botão <FolderOpen> na linha de cada cliente (ao lado de visualizar/editar/excluir)
+- Abre modal "Arquivos — {razao_social}" com:
+  - Botão "Enviar Arquivo" → file picker → upload para `cliente-arquivos/{escId}/{clienteId}/{filename}`
+  - Lista de arquivos com nome, tamanho, data
+  - Botão download (abre URL pública em nova aba)
+  - Botão remover (deleta do storage + tabela)
+
+#### `ClientePortalPage.tsx`
+- Adicionada interface `Arquivo`
+- `arquivos` incluído em `ClienteDados`
+- Funções `downloadArquivo` e `fmtFileSize`
+- Nova seção "Meus Arquivos" antes de Transações Bancárias:
+  - Cards por arquivo com ícone, nome, tamanho, data de envio
+  - Botão "Baixar" usa `supabase.storage.getPublicUrl` + simula clique em `<a download>`
+
+### DashboardPage.tsx — bug fix: dados às vezes não carregavam (v2 — fix definitivo)
+- **Causa raiz**: O `_loadingRef` da correção anterior bloqueava a segunda invocação do `useEffect` quando `escId` mudava de null → valor (o escId muda dentro do próprio `loadData` ao chamar `setEscritorio`). O React re-dispara o effect com o `escId` já populado, mas `_loadingRef.current = true` bloqueava essa segunda chamada, deixando o loading preso. Em navegação rápida, acumulavam-se requests pendentes do Supabase esgotando conexões.
+- **Fix**: Substituído o padrão `useCallback + _loadingRef` pelo padrão correto de **AbortController**:
+  - `useEffect` com `controller = new AbortController()` — lógica de load inline no effect
+  - `return () => controller.abort()` — cancela TODOS os requests Supabase em-andamento ao desmontar
+  - `.abortSignal(signal)` em todas as 5 queries Supabase (clientes, colaboradores, lancamentos, obrigacoes, tarefas)
+  - Checagens `if (signal.aborted) return` antes de qualquer `setState`
+  - `finally { if (!signal.aborted) setLoading(false) }` — evita atualizar estado de componente desmontado
+  - `loadKey` state + `refreshData = () => setLoadKey(k => k+1)` para o botão "Atualizar"
+  - Deps do effect: `[user?.id, escId, year, loadKey, setEscritorio, loadTarefas]` — todos primitivos/estáveis
+
+### ObligationsPage.tsx — bug fix: "Salvando..." infinito ao criar obrigação
+- **Causa 1**: Overlay usava `e.target === e.currentTarget` sem `stopPropagation` no Modal → framer-motion mudava o alvo do evento, modal fechava ao clicar em Salvar, componente desmontava durante o `await`, `setSaving(false)` nunca era chamado
+- **Causa 2**: Sem `try-catch` → exceção de rede ou do Supabase escapava sem resetar `saving`
+- **Fix**: Overlay agora `onClick={() => setShowModal(false)}` + `<Modal onClick={e => e.stopPropagation()}>` + `handleSave` envolto em `try/finally { setSaving(false) }`
+
+### ReconciliationPage.tsx — campo de cliente no modal Nova Transação
+- Adicionado `<Field><Label>Cliente</Label><Select>` no modal "Nova Transação"
+- Opção padrão: "— Empresa (sem cliente vinculado) —" (valor `""` → salvo como `null`)
+- Lista todos os clientes do escritório carregados do cache (`useDataStore`)
+- `blankForm` já incluía `cliente_id: ''` e `handleSave` já passava `cliente_id: form.cliente_id || null` (implementado na sessão anterior)
+
+**`npx tsc --noEmit` — zero erros**
+
+---
+
+## Sessão — 2026-03-14
+
+### Portal do Cliente — Conciliação Bancária
+
+**Problema:** O portal do cliente mostrava transações bancárias com apenas um badge "Sim/Não" para conciliação — sem mostrar qual lançamento contábil estava vinculado.
+
+**`supabase/update_conciliacao_portal.sql`** (NOVO — rodar no Supabase):
+- Atualiza `get_cliente_dados` para fazer LEFT JOIN entre `transacoes_bancarias` e `lancamentos`
+- Cada transação agora retorna: `lanc_historico`, `lanc_valor`, `lanc_data`, `conta_debito`, `conta_credito`
+
+**`ClientePortalPage.tsx`**:
+- Interface `Transacao` expandida com os novos campos do JOIN
+- Estado `concilTab` ('todas' | 'conciliadas' | 'pendentes') para filtrar a view
+- Tabs "Todas / ✓ Conciliadas / ⏳ Pendentes" com contadores
+- Nova view `ConcilRow` — layout em 3 colunas:
+  - **Esquerda**: dados da transação bancária (descrição, data, tipo, valor)
+  - **Centro**: badge "Conciliada" (verde) ou "Pendente" (cinza)
+  - **Direita**: dados do lançamento contábil vinculado (historico, data, valor, conta débito)
+- Transações conciliadas têm fundo `#f0fdf4` (verde claro)
+- Transações pendentes mostram placeholder "Aguardando conciliação pelo escritório"
+- Contador no header: "X conciliadas · Y pendentes"
+- `npx tsc --noEmit` — zero erros
+
+> **SQL para rodar:** `supabase/update_conciliacao_portal.sql`
+
+### Performance — Eliminação de fetches redundantes (fix definitivo)
+
+**Causa real da lentidão e inconsistência:**
+- `DashboardPage` buscava 4 tabelas do Supabase **toda vez que montava** (clientes, colaboradores, lançamentos, obrigações) — mesmo com dataStore já precarregado. `setEscritorio` instável nos deps causava re-execuções. Total: 5+ queries sequenciais/paralelas bloqueando o render.
+- `ReconciliationPage` abria o modal de conciliação e então buscava lancamentos do Supabase — resultado demorava e às vezes não chegava (race condition / componente desmontado)
+
+**Fix — `DashboardPage` refatorado para ler 100% do `dataStore`:**
+- Removido o grande `useEffect` com `AbortController` e `Promise.all` (5 queries)
+- Removidos todos os `useState` de dados (kpis, clientesAll, clientes, alertas, atividade, recArr, despArr, regimes, tarefas, loadError, tarefasError)
+- `useDataStore()` provê clientes, lancamentos, obrigacoes, colaboradores, tarefas — **reativos, sem fetch**
+- `loading = preloading && clientes.length === 0` — spinner só aparece se store ainda não tem dados
+- Todos os valores derivados (kpis, recArr, despArr, regimes, alertas, atividade) calculados com `useMemo` direto do store
+- `refreshData` agora chama `invalidate()` + `preload()` para forçar re-fetch quando necessário
+- Tarefas CRUD: `addTarefa` com `try/finally`; `updateTarefaStatus` e `deleteTarefa` com optimistic update no store + Realtime confirma
+
+**Fix — `ReconciliationPage.abrirConciliar`:**
+- Removida query Supabase ao abrir o modal de conciliação
+- Usa `useDataStore.getState().lancamentos` diretamente — instantâneo, sem round-trip
+
+**Fix — `dataStore.ts`:** adicionada tabela `tarefas` ao preload, Realtime e setters
+
+**Resultado:** Dashboard carrega instantaneamente com dados do store. Modal de conciliação abre com lançamentos na hora. Nenhuma query redundante.
+
+### Performance — Supabase Realtime + preload antecipado
+
+**Problema:** Sistema lento e inconsistente ao puxar dados. Causas identificadas:
+1. Cadeia sequencial: `initialize()` → `loadEscritorio()` → render → `AppLayout.useEffect` → `preload()` — 3 etapas assíncronas antes de qualquer dado aparecer
+2. Cache não reativo: pages faziam `useState(cachedData)` uma vez ao montar. Se o preload não terminou, ficavam vazias para sempre (local state não se atualizava)
+3. Sem Realtime: após CRUD, cada página chamava `load()` explicitamente — se falhasse, dado ficava stale
+
+**Solução implementada:**
+
+**`stores/dataStore.ts`** — refatorado:
+- Fetchers individuais por tabela (`fetchClientes`, `fetchLancamentos`, etc.) extraídos como funções puras — reutilizados em preload E no Realtime
+- Método `subscribe(escId)`: cria canal Supabase Realtime com `postgres_changes` para cada tabela, filtrado por `escritorio_id`. Qualquer INSERT/UPDATE/DELETE no banco → re-fetch automático da tabela afetada → store atualizado → todas as páginas re-renderizam
+- Método `unsubscribe()`: remove o canal (cleanup)
+- `preload()` chama `subscribe()` automaticamente após carregar os dados
+- Propriedade `realtimeChannel` armazena o canal ativo
+
+**`stores/authStore.ts`**:
+- `loadEscritorio()` agora chama `useDataStore.getState().preload(esc.id)` imediatamente após setar o escritório, sem esperar o `AppLayout` montar — elimina 1 ciclo de render de atraso
+
+**`components/layout/AppLayout.tsx`**:
+- Adicionado `useEffect` de cleanup: `return () => unsubscribe()` ao desmontar
+
+**Resultado esperado:**
+- Preload inicia ~1 ciclo de render mais cedo
+- Após qualquer CRUD (salvar lançamento, conciliar, etc.), o dado aparece em TODAS as páginas automaticamente sem `load()` manual
+- "Às vezes não puxa dados" eliminado: Realtime mantém o store sempre sincronizado com o banco
+
+### ReconciliationPage — Seleção de cliente ao importar OFX
+**Fluxo anterior:** arquivo selecionado → inserção imediata sem cliente vinculado.
+**Fluxo novo:**
+1. Arquivo selecionado → OFX parseado → abre modal de confirmação
+2. Modal exibe: contador de transações, preview das primeiras 5 (descrição + valor colorido), dropdown de cliente
+3. Usuário escolhe cliente (ou deixa "Sem cliente") → clica "Importar N transações"
+4. Todas as transações inseridas com o `cliente_id` selecionado
+
+**Estados adicionados:** `ofxParsed`, `ofxClienteId`, `showOFXModal`
+**Funções:** `handleFileChange` agora só parseia e abre modal; `confirmarImportOFX` faz o insert com `cliente_id`
+
+### Bug fix — "Desfazer" conciliação não fazia nada + correções gerais em `ReconciliationPage`
+**Problemas identificados:**
+1. `handleDesconciliar`: sem guard de `escId`, usava `escId!` (undefined em runtime não gera erro TS), sem `try/finally` — update silencioso sem feedback
+2. `confirmarConciliar`: sem `try/finally` — `setConciliando` poderia ficar preso
+3. `handleSave`: `setSaving(false)` antes do `if (error)`, fora do `finally`
+4. `handleApagarTudo`: `setDeleting(false)` antes do `if (error)`, fora do `finally`
+
+**Correções:**
+- Todos os handlers agora usam `try/finally` para garantir reset de estado
+- `handleDesconciliar`: guard `if (!escId) return`, `escId!` removido, estado `desfazendoId` adicionado
+- Botão "Desfazer": desabilitado e mostra `...` enquanto operação está em andamento
+
+---
+
+## Sessão — 2026-03-15 (continuação)
+
+### Bug fix — "Salvando..." infinito em todos os módulos novos
+
+**Módulos afetados:** `AtendimentosPage`, `HonorariosPage`, `ControleTempo`, `NfsePage`
+
+**Causa raiz identificada:** O SDK Supabase 2.99.1 trava indefinidamente ao combinar `insert/update + .select('*,tabela_estrangeira(...)')` num único request PostgREST. O PostgREST retorna um response malformado quando há um foreign key embed (`clientes(razao_social)`) na cláusula RETURNING — a promise nunca resolve, o bloco `finally` nunca executa, e o estado `saving` fica preso em `true` para sempre.
+
+**Correção aplicada nos seguintes pontos:**
+- `AtendimentosPage.handleSave`
+- `HonorariosPage.handleSave`, `gerarMes`, `marcarPago`, `marcarAtrasado`
+- `ControleTempo.handleTimer`, `handleSave`
+- `NfsePage.handleSave`, `handleCancelar`
+
+**Padrão antigo (trava):**
+```typescript
+const { data, error } = await supabase.from(table).insert(payload).select('*,clientes(razao_social)')
+```
+
+**Padrão novo (funciona):**
+```typescript
+const { error } = await supabase.from(table).insert(payload)           // request simples, sem join
+if (error) throw error
+const { data: fresh } = await supabase.from(table).select('*,clientes(razao_social)').eq(...) // GET separado
+setXxx(fresh || [])
+```
+
+**Nota:** `NfsePage.handleSave` usa `insert().select('id')` (sem join) para obter o ID da nota recém-inserida e gerar o PDF corretamente. O select com join é feito em seguida como request separado.
+
+---
+
+### Bug fix — "Salvando..." infinito ao criar/editar lançamento (`AccountingPage`)
+**Causa:** Mesma causa do bug anterior em `ObligationsPage` — `Overlay` usava `e.target === e.currentTarget` para fechar o modal. O framer-motion altera o `e.target` durante animações, fazendo o modal fechar ao clicar em "Salvar". O componente desmontava durante o `await`, e o `setSaving(false)` no bloco linear nunca era alcançado.
+
+**Correção em `AccountingPage.tsx`:**
+- `Overlay` do modal de lançamento: `onClick={e => e.target === e.currentTarget && ...}` → `onClick={() => setShowModal(false)}`
+- `Modal` do lançamento: adicionado `onClick={e => e.stopPropagation()}`
+- `handleSave`: `setSaving(false)` movido para `finally { }` (garante reset mesmo em erro/desmonte)
+- Mesmas correções aplicadas ao modal de modelo (`showModeloModal` + `saveModelo`)

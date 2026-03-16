@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEUcontador — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/dashboard.css">
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="curRing"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-wrap">
+      <div class="logo-icon">T</div>
+      <div>
+        <div class="logo-name"><em>TEU</em>contador</div>
+        <div class="logo-ver">Sistema Contábil</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Principal</div>
+    <div class="ni active" data-pg="dashboard">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke-width="2"/></svg>
+      Dashboard
+    </div>
+    <div class="ni" data-pg="clientes">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
+      Clientes / Empresas
+      <span class="nb nb-gray" id="sb-clientes-badge">0</span>
+    </div>
+    <div class="ni" data-pg="lancamentos">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14,2 14,8 20,8" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/></svg>
+      Lançamentos
+    </div>
+    <div class="ni" data-pg="plano">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke-width="2"/></svg>
+      Plano de Contas
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Fiscal & RH</div>
+    <div class="ni" data-pg="relatorios">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14,2 14,8 20,8" stroke-width="2"/><rect x="8" y="13" width="8" height="1.5" rx="1"/><rect x="8" y="16" width="5" height="1.5" rx="1"/></svg>
+      Relatórios
+    </div>
+    <div class="ni" data-pg="folha">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke-width="2"/><path d="M16 3v4M8 3v4M16 17v4M8 17v4" stroke-width="2"/></svg>
+      Folha / eSocial
+    </div>
+    <div class="ni" data-pg="obrigacoes">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/></svg>
+      Obrigações
+    </div>
+    <div class="ni" data-pg="conciliacao">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke-width="2"/></svg>
+      Conciliação
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Sistema</div>
+    <div class="ni" data-pg="config">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-width="2"/></svg>
+      Configurações
+    </div>
+  </div>
+
+  <div style="padding:8px 12px 4px">
+    <button id="theme-btn" onclick="toggleTheme()" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-mid);font-size:12px;font-family:inherit;cursor:pointer;transition:all .2s">
+      <span id="theme-icon">🌙</span><span id="theme-label">Modo Escuro</span>
+    </button>
+  </div>
+
+  <div class="sb-footer">
+    <div class="user-row">
+      <div class="av">RO</div>
+      <div>
+        <div class="u-name">Rafael Oliveira</div>
+        <div class="u-role">Contador Sênior</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tp-title" id="tpTitle">Dashboard</div>
+      <div class="tp-sub" id="tpSub">Visão geral do escritório</div>
+    </div>
+    <div class="tp-right">
+      <div class="search">
+        <svg width="12" height="12" fill="none" stroke="rgba(0,0,0,.3)" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/></svg>
+        <input placeholder="Buscar cliente, lançamento…">
+      </div>
+      <div class="icon-btn" onclick="toast('🔔 Nenhuma notificação nova')">🔔<div class="dot"></div></div>
+      <button class="btn btn-primary" id="topBtn" onclick="topAction()">+ Novo Lançamento</button>
+    </div>
+  </div>
+  <div class="glow-line"></div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="pg-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Receita Bruta Mensal <span class="kpi-icon">💰</span></div><div class="kpi-value" id="k1">R$ 0</div><div class="kpi-delta grey" id="k1-delta">Soma dos honorários</div></div>
+        <div class="kpi"><div class="kpi-label">Clientes Ativos <span class="kpi-icon">🏢</span></div><div class="kpi-value" id="k2">0</div><div class="kpi-delta grey" id="k2-delta">clientes cadastrados</div></div>
+        <div class="kpi"><div class="kpi-label">Pendências Fiscais <span class="kpi-icon">⚠️</span></div><div class="kpi-value down" id="k3">0</div><div class="kpi-delta grey" id="k3-delta">clientes com pendência</div></div>
+        <div class="kpi"><div class="kpi-label">Folha / Mês <span class="kpi-icon">👥</span></div><div class="kpi-value" id="k4">R$ 0</div><div class="kpi-delta grey">Total bruto de colaboradores</div></div>
+      </div>
+
+      <div class="g3-1">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">Receitas × Despesas</div><div class="card-sub">Acumulado mensal — 2025</div></div>
+            <span class="card-link" onclick="goPage('lancamentos')">Ver lançamentos →</span>
+          </div>
+          <div id="ch-bar" style="padding:4px 6px 0"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Ações Rápidas</div></div>
+          <div class="qa">
+            <div class="qa-btn" onclick="openM('m-sped')"><div class="qa-icon">📄</div><div class="qa-lbl">Emitir SPED</div><div class="qa-sub">Fiscal / Contábil</div></div>
+            <div class="qa-btn" onclick="openM('m-dctf')"><div class="qa-icon">🧾</div><div class="qa-lbl">Gerar DCTF</div><div class="qa-sub">Declaração mensal</div></div>
+            <div class="qa-btn" onclick="goPage('folha')"><div class="qa-icon">💼</div><div class="qa-lbl">Folha eSocial</div><div class="qa-sub">Transmissão</div></div>
+            <div class="qa-btn" onclick="goPage('conciliacao')"><div class="qa-icon">🔗</div><div class="qa-lbl">Conciliação</div><div class="qa-sub">Extrato bancário</div></div>
+            <div class="qa-btn" onclick="toast('📊 Balanço exportado!')"><div class="qa-icon">📊</div><div class="qa-lbl">Balanço</div><div class="qa-sub">Exportar PDF</div></div>
+            <div class="qa-btn" onclick="abrirNovoCliente()"><div class="qa-icon">➕</div><div class="qa-lbl">Novo Cliente</div><div class="qa-sub">Cadastrar empresa</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g3-1">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">Clientes — Situação Atual</div><div class="card-sub">Acompanhamento fiscal fev/2025</div></div>
+            <span class="card-link" onclick="goPage('clientes')">Ver todos →</span>
+          </div>
+          <div class="tabs" id="dash-clientes-tabs">
+            <div class="tab active" onclick="swTab(this)">Todos (0)</div>
+            <div class="tab" onclick="swTab(this)">Pendentes (0)</div>
+            <div class="tab" onclick="swTab(this)">Em dia (0)</div>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Empresa</th><th>Regime</th><th>Situação</th><th>Honorários</th></tr></thead>
+            <tbody id="dash-clientes-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="card-head"><div class="card-title">Regimes Tributários</div></div>
+            <div id="ch-donut" style="padding:0 6px"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">Alertas</div><span class="card-link" onclick="goPage('obrigacoes')">Ver todos</span></div>
+            <div id="dash-alertas" style="padding:9px 11px">
+              <div style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px">Nenhum alerta no momento</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">Atividade Recente</div><span class="card-link" onclick="goPage('lancamentos')">Ver todos →</span></div>
+        <div id="act-recente"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="page" id="pg-clientes">
+      <div style="display:flex;align-items:center;justify-content:space-between"><div id="pg-clientes-stats" style="font-size:12px;color:var(--text-dim)">0 empresas · 0 em dia · 0 com pendências</div><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="exportarClientes()">⬇ Exportar</button><button class="btn btn-primary btn-sm" onclick="openM('m-cliente')">+ Novo Cliente</button></div></div>
+      <div class="card">
+        <div class="tabs" id="pg-clientes-tabs"><div class="tab active" onclick="swTab(this)">Todos (0)</div></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Empresa / CNPJ</th><th>Regime</th><th>Responsável</th><th>Competência</th><th>Situação</th><th>Honorários</th><th>Ações</th></tr></thead>
+          <tbody>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- LANÇAMENTOS -->
+    <div class="page" id="pg-lancamentos">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div id="lanc-stats" style="font-size:12px;color:var(--text-dim)">0 lançamentos</div><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="toast('⬇ Exportando…')">⬇ Exportar</button><button class="btn btn-primary btn-sm" onclick="openM('m-lanc')">+ Novo Lançamento</button></div></div>
+      <div class="g2">
+        <div class="kpi"><div class="kpi-label">Total Débitos <span class="kpi-icon">📉</span></div><div class="kpi-value down" id="lanc-debitos">R$ 0</div><div class="kpi-delta grey" id="lanc-debitos-count">0 lançamentos a débito</div></div>
+        <div class="kpi"><div class="kpi-label">Total Créditos <span class="kpi-icon">📈</span></div><div class="kpi-value" style="color:var(--pos)" id="lanc-creditos">R$ 0</div><div class="kpi-delta grey" id="lanc-creditos-count">0 lançamentos a crédito</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Lançamentos Contábeis</div><div class="card-sub">Partida dobrada</div></div><div style="display:flex;gap:8px"><select class="f-select sel-cliente" style="font-size:11.5px;padding:5px 10px;width:auto"><option value="">Todos os clientes</option></select></div></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>#</th><th>Data</th><th>Cliente</th><th>Conta Débito</th><th>Conta Crédito</th><th>Histórico</th><th>Débito</th><th>Crédito</th><th></th></tr></thead>
+          <tbody>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- PLANO DE CONTAS -->
+    <div class="page" id="pg-plano">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Total de Contas <span class="kpi-icon">📋</span></div><div class="kpi-value" id="plano-kpi-total">0</div><div class="kpi-delta grey">contas cadastradas</div></div>
+        <div class="kpi"><div class="kpi-label">Contas Analíticas <span class="kpi-icon">📝</span></div><div class="kpi-value" id="plano-kpi-analiticas">0</div><div class="kpi-delta grey">recebem lançamentos</div></div>
+        <div class="kpi"><div class="kpi-label">Contas Sintéticas <span class="kpi-icon">🗂</span></div><div class="kpi-value" id="plano-kpi-sinteticas">0</div><div class="kpi-delta grey">contas agrupadores</div></div>
+        <div class="kpi"><div class="kpi-label">Grupos Ativos <span class="kpi-icon">📊</span></div><div class="kpi-value" id="plano-kpi-grupos">0</div><div class="kpi-delta grey">de 7 grupos CFC</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">Plano de Contas — Referencial CFC</div><div class="card-sub">Estrutura NBC TG 26 / CPC 26 — partida dobrada</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select class="f-select" id="plano-filtro" style="width:170px;font-size:11.5px;padding:6px 10px" onchange="loadPlano()">
+              <option value="">Todos os grupos</option>
+              <option value="1">1 — Ativo</option>
+              <option value="2">2 — Passivo</option>
+              <option value="3">3 — Patrimônio Líquido</option>
+              <option value="4">4 — Receitas</option>
+              <option value="5">5 — Custos</option>
+              <option value="6">6 — Despesas</option>
+              <option value="7">7 — Resultado</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="exportarPlano()">⬇ CSV</button>
+            <button class="btn btn-ghost btn-sm" onclick="popularPlanoBase()" style="color:var(--warn);border-color:rgba(180,83,9,.3)">⚡ Popular Padrão CFC</button>
+            <button class="btn btn-primary btn-sm" onclick="openNovaConta()">+ Nova Conta</button>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th style="width:140px">Código</th><th>Descrição</th><th style="width:100px">Tipo</th><th style="width:80px">Nat.</th><th style="width:55px;text-align:center">Nível</th><th style="width:120px;text-align:right">Saldo Atual</th><th style="width:80px;text-align:center">Ações</th></tr></thead>
+          <tbody id="plano-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:30px">Nenhuma conta cadastrada. Use <strong>⚡ Popular Padrão CFC</strong> para inserir a estrutura base.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- RELATÓRIOS -->
+    <div class="page" id="pg-relatorios">
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px">
+        <div class="kpi"><div class="kpi-label">Total Lançamentos <span class="kpi-icon">📒</span></div><div class="kpi-value" id="rel-kpi-lanc">0</div><div class="kpi-delta grey">no período</div></div>
+        <div class="kpi"><div class="kpi-label">Receita Bruta <span class="kpi-icon">📈</span></div><div class="kpi-value" id="rel-kpi-rec" style="color:var(--pos)">R$ 0</div><div class="kpi-delta grey">grupo 4</div></div>
+        <div class="kpi"><div class="kpi-label">Despesas Totais <span class="kpi-icon">📉</span></div><div class="kpi-value" id="rel-kpi-desp" style="color:var(--neg)">R$ 0</div><div class="kpi-delta grey">grupos 5+6</div></div>
+        <div class="kpi"><div class="kpi-label">Resultado Período <span class="kpi-icon">💡</span></div><div class="kpi-value" id="rel-kpi-res">R$ 0</div><div class="kpi-delta grey" id="rel-kpi-res-label">lucro/prejuízo</div></div>
+      </div>
+
+      <!-- Filtros globais -->
+      <div class="card" style="margin-bottom:14px">
+        <div style="padding:14px 17px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px"><label class="f-label">Cliente</label><select class="f-select" id="rel-fil-cliente" onchange="aplicarFiltrosRel()"><option value="">Todos os clientes</option></select></div>
+          <div><label class="f-label">Data Início</label><input class="f-input" type="date" id="rel-fil-inicio" onchange="aplicarFiltrosRel()"></div>
+          <div><label class="f-label">Data Fim</label><input class="f-input" type="date" id="rel-fil-fim" onchange="aplicarFiltrosRel()"></div>
+          <div><button class="btn btn-ghost btn-sm" onclick="relSetMesAtual()">Mês Atual</button></div>
+          <div><button class="btn btn-ghost btn-sm" onclick="relSetAnoAtual()">Ano Atual</button></div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="exportarRelCSV()">⬇ CSV</button>
+            <button class="btn btn-ghost btn-sm" onclick="imprimirRel()">🖨 Imprimir</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Abas de relatórios -->
+      <div class="card">
+        <div class="tabs" style="border-bottom:1px solid var(--border);padding:0 17px">
+          <button class="tab active" id="rel-tab-balancete" onclick="swRelTab('balancete')">Balancete</button>
+          <button class="tab" id="rel-tab-dre" onclick="swRelTab('dre')">DRE</button>
+          <button class="tab" id="rel-tab-balanco" onclick="swRelTab('balanco')">Balanço Patrimonial</button>
+          <button class="tab" id="rel-tab-razao" onclick="swRelTab('razao')">Razão Contábil</button>
+          <button class="tab" id="rel-tab-obrig" onclick="swRelTab('obrig')">Obrigações</button>
+        </div>
+
+        <!-- BALANCETE -->
+        <div id="rel-pane-balancete" style="padding:0;background:var(--surface2);">
+          <div style="padding:10px 17px 0;display:flex;gap:10px;align-items:center">
+            <span style="font-size:11px;color:var(--text-dim)">Filtrar por grupo:</span>
+            <select class="f-select" id="balancete-grupo-fil" style="width:200px;font-size:12px;padding:5px 8px" onchange="renderBalancete()">
+              <option value="">Todos os grupos</option>
+              <option value="1">1 — Ativo</option><option value="2">2 — Passivo</option>
+              <option value="3">3 — Patrimônio Líquido</option><option value="4">4 — Receitas</option>
+              <option value="5">5 — Custos</option><option value="6">6 — Despesas</option>
+              <option value="7">7 — Resultado</option>
+            </select>
+            <label style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px;cursor:pointer">
+              <input type="checkbox" id="balancete-so-mov" onchange="renderBalancete()"> Somente com movimento
+            </label>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl rel-card" id="balancete-table">
+              <thead><tr>
+                <th style="width:110px">Código</th><th>Conta</th><th style="width:50px">Nat.</th>
+                <th style="text-align:right;width:120px">Débitos</th>
+                <th style="text-align:right;width:120px">Créditos</th>
+                <th style="text-align:right;width:130px">Saldo Devedor</th>
+                <th style="text-align:right;width:130px">Saldo Credor</th>
+              </tr></thead>
+              <tbody id="balancete-body"><tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:32px;font-style:italic">Aguardando filtros…</td></tr></tbody>
+              <tfoot id="balancete-foot"></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- DRE -->
+        <div id="rel-pane-dre" style="display:none;padding:20px;background:var(--surface2)">
+          <div id="dre-content" style="max-width:720px;margin:0 auto">
+            <div style="text-align:center;color:var(--text-dim);padding:32px;font-style:italic">Aguardando filtros…</div>
+          </div>
+        </div>
+
+        <!-- BALANÇO PATRIMONIAL -->
+        <div id="rel-pane-balanco" style="display:none;padding:20px;background:var(--surface2)">
+          <div id="balanco-content" style="max-width:100%">
+            <div style="text-align:center;color:var(--text-dim);padding:32px;font-style:italic">Aguardando filtros…</div>
+          </div>
+        </div>
+
+        <!-- RAZÃO CONTÁBIL -->
+        <div id="rel-pane-razao" style="display:none;background:var(--surface2)">
+          <div style="padding:10px 17px 0;display:flex;gap:10px;align-items:center">
+            <span style="font-size:11px;color:var(--text-dim)">Conta:</span>
+            <select class="f-select" id="razao-conta-sel" style="width:320px;font-size:12px;padding:5px 8px" onchange="renderRazao()">
+              <option value="">Selecione uma conta analítica…</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl rel-card" id="razao-table">
+              <thead><tr>
+                <th style="width:90px">Data</th>
+                <th style="width:110px">Documento</th>
+                <th>Histórico</th>
+                <th style="width:160px">Cliente</th>
+                <th style="text-align:right;width:120px">Débito</th>
+                <th style="text-align:right;width:120px">Crédito</th>
+                <th style="text-align:right;width:120px">Saldo</th>
+              </tr></thead>
+              <tbody id="razao-body"><tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:32px;font-style:italic">Selecione uma conta para visualizar o razão</td></tr></tbody>
+              <tfoot id="razao-foot"></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- OBRIGAÇÕES -->
+        <div id="rel-pane-obrig" style="display:none;padding:17px">
+          <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+            <select class="f-select" id="obrig-cli-fil" style="width:220px;font-size:12px;padding:5px 8px" onchange="renderObrigacoes()">
+              <option value="">Todos os clientes</option>
+            </select>
+            <select class="f-select" id="obrig-status-fil" style="width:160px;font-size:12px;padding:5px 8px" onchange="renderObrigacoes()">
+              <option value="">Todos os status</option>
+              <option value="pendente">Pendente</option>
+              <option value="transmitido">Transmitido</option>
+              <option value="atrasado">Atrasado</option>
+            </select>
+            <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openNovaObrigacao()">+ Nova Obrigação</button>
+          </div>
+          <div id="obrig-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOLHA -->
+    <div class="page" id="pg-folha">
+      <div class="g2">
+        <div class="kpi"><div class="kpi-label">Total Bruto <span class="kpi-icon">💼</span></div><div class="kpi-value" id="folha-bruto">R$ 0</div><div class="kpi-delta grey" id="folha-colab">0 colaboradores</div></div>
+        <div class="kpi"><div class="kpi-label">Total Líquido <span class="kpi-icon">💵</span></div><div class="kpi-value" style="color:var(--pos)" id="folha-liq">R$ 0</div><div class="kpi-delta grey">Após INSS e IRRF</div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Resumo da Folha</div><div class="card-sub" id="folha-sub">Nenhuma folha processada</div></div><button class="btn btn-primary btn-sm" onclick="toast('📤 Processando folha…')">Processar</button></div>
+          <div style="padding:0 17px 10px">
+            <div class="stat-row"><div class="stat-lbl">Salários Brutos</div><div class="stat-val" id="folha-s-bruto">—</div></div>
+            <div class="stat-row"><div class="stat-lbl">(-) INSS Empregado</div><div class="stat-val" style="color:var(--neg)" id="folha-s-inss">—</div></div>
+            <div class="stat-row"><div class="stat-lbl">(-) IRRF</div><div class="stat-val" style="color:var(--neg)" id="folha-s-irrf">—</div></div>
+            <div class="stat-row"><div class="stat-lbl">(+) FGTS Empresa 8%</div><div class="stat-val" style="color:var(--warn)" id="folha-s-fgts">—</div></div>
+            <div class="stat-row"><div class="stat-lbl" style="font-weight:600">Líquido Colaboradores</div><div class="stat-val" style="color:var(--pos);font-size:15px" id="folha-s-liq">—</div></div>
+          </div>
+          <div style="padding:8px 17px 14px;display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="toast('⬇ Holerites gerados!')">⬇ Holerites</button>
+            <button class="btn btn-ghost btn-sm" onclick="toast('📤 Transmitindo eSocial…')">📤 eSocial</button>
+            <button class="btn btn-ghost btn-sm" onclick="toast('📋 GFIP gerada!')">📋 GFIP</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Colaboradores</div><button class="btn btn-primary btn-sm" onclick="openNovoColaborador()">+ Novo Colaborador</button></div>
+          <div id="folha-colab-lista" style="padding:16px;text-align:center;color:var(--text-dim)">Nenhum colaborador cadastrado ainda</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBRIGAÇÕES -->
+    <div class="page" id="pg-obrigacoes">
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Calendário Fiscal</div><div class="card-sub">Prazos e status de entrega</div></div><button class="btn btn-primary btn-sm" onclick="openNovaObrigacao()">+ Nova Obrigação</button></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Obrigação</th><th>Cliente</th><th>Vencimento</th><th>Status</th><th>Responsável</th><th>Ação</th></tr></thead>
+          <tbody id="obrig-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px">Nenhuma obrigação cadastrada ainda</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- CONCILIAÇÃO -->
+    <div class="page" id="pg-conciliacao">
+      <div class="g4">
+        <div class="kpi"><div class="kpi-label">Transações Importadas <span class="kpi-icon">📥</span></div><div class="kpi-value" id="conc-total">0</div><div class="kpi-delta grey">Transações importadas via OFX</div></div>
+        <div class="kpi"><div class="kpi-label">Pendentes de Conciliação <span class="kpi-icon">🔍</span></div><div class="kpi-value" id="conc-pend" style="color:var(--warn)">0</div><div class="kpi-delta down">▼ Aguardando vinculação</div></div>
+        <div class="kpi"><div class="kpi-label">Total Créditos <span class="kpi-icon">⬆️</span></div><div class="kpi-value" id="conc-total-credito" style="color:var(--pos)">R$ 0,00</div><div class="kpi-delta grey">Entradas no período</div></div>
+        <div class="kpi"><div class="kpi-label">Total Débitos <span class="kpi-icon">⬇️</span></div><div class="kpi-value" id="conc-total-debito" style="color:var(--neg)">R$ 0,00</div><div class="kpi-delta grey">Saídas no período</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Conciliação Bancária</div><div class="card-sub" id="conc-filtro-label">Importe um extrato OFX para iniciar</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="file" id="ofx-input" accept=".ofx,.OFX" style="display:none"><button class="btn btn-ghost btn-sm" onclick="abrirFiltroCliente()">👤 Cliente</button><button class="btn btn-ghost btn-sm" onclick="importarOFX()">📂 Importar OFX</button><button class="btn btn-primary btn-sm" onclick="autoConciliar()">⚡ Auto-conciliar</button><button class="btn btn-ghost btn-sm" style="color:var(--neg);margin-left:8px" onclick="openM('m-limpar-conciliacao')">🗑&nbsp;Limpar&nbsp;Tudo</button></div></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Data</th><th>Descrição Bancária</th><th>Valor</th><th>Tipo</th><th>Lançamento Vinculado</th><th>Status</th><th>Ação</th></tr></thead>
+          <tbody id="conc-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px">Nenhuma transação importada ainda. Clique em "Importar OFX" para começar.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- MODAL FILTRO CLIENTE CONCILIAÇÃO -->
+<div class="overlay" id="m-filtro-cliente-conc">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><div class="modal-title">Filtrar por Cliente</div><button class="modal-x" onclick="closeM('m-filtro-cliente-conc')">✕</button></div>
+    <div style="padding:20px">
+      <label class="f-label">Cliente</label>
+      <select class="f-select sel-cliente" id="filtro-cliente-conc-sel"><option value="">Selecione o cliente…</option></select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="limparFiltroCliente()">Limpar Filtro</button>
+      <button class="btn btn-primary" onclick="aplicarFiltroCliente()">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+    <!-- MODAL IMPORTAR OFX -->
+<div class="overlay" id="m-importar-ofx">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><div class="modal-title">Importar Extrato OFX</div><button class="modal-x" onclick="closeM('m-importar-ofx')">✕</button></div>
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="f-label">Cliente *</label><select class="f-select sel-cliente" id="ofx-cliente-sel"><option value="">Selecione o cliente…</option></select></div>
+      <div><label class="f-label">Arquivo OFX *</label><input type="file" id="ofx-input-modal" accept=".ofx,.OFX" class="f-input" style="padding:6px"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-importar-ofx')">Cancelar</button><button class="btn btn-primary" onclick="confirmarImportarOFX()">Importar</button></div>
+  </div>
+</div>
+
+    <!-- MODAL LIMPAR CONCILIAÇÃO -->
+<div class="overlay" id="m-limpar-conciliacao">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><div class="modal-title" style="color:var(--neg)">⚠️ Limpar Conciliação</div><button class="modal-x" onclick="closeM('m-limpar-conciliacao')">✕</button></div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <p style="margin:0;color:var(--text);font-weight:600;font-size:15px">Tem certeza que deseja excluir TODOS os dados de conciliação bancária?</p>
+      <p style="margin:0;font-size:13px;color:var(--text-dim);line-height:1.6">Esta ação irá remover permanentemente todas as transações importadas do Supabase. Os lançamentos contábeis vinculados <strong>não</strong> serão excluídos.</p>
+      <p style="margin:0;font-size:13px;color:var(--neg);font-weight:600;padding:10px 12px;background:rgba(220,53,69,.08);border-radius:6px;border-left:3px solid var(--neg)">⚠️ Esta ação não pode ser desfeita.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-limpar-conciliacao')">Cancelar</button><button class="btn" style="background:var(--neg);color:#fff" onclick="limparConciliacao()">Sim, excluir tudo</button></div>
+  </div>
+</div>
+
+    <!-- MODAL EDITAR TRANSAÇÃO -->
+<div class="overlay" id="m-editar-tx">
+  <div class="modal wide">
+    <div class="modal-head"><div class="modal-title">Editar Transação</div><button class="modal-x" onclick="closeM('m-editar-tx')">✕</button></div>
+    <div class="form-grid" style="padding:16px 20px">
+      <input type="hidden" id="edit-tx-id">
+      <div><label class="f-label">Data</label><input class="f-input" type="date" id="edit-tx-data"></div>
+      <div><label class="f-label">Tipo</label><select class="f-select" id="edit-tx-tipo"><option value="credito">Crédito</option><option value="debito">Débito</option></select></div>
+      <div><label class="f-label">Valor</label><input class="f-input" type="number" step="0.01" id="edit-tx-valor" placeholder="0,00"></div>
+      <div><label class="f-label">Status</label><select class="f-select" id="edit-tx-conciliado"><option value="false">Pendente</option><option value="true">Conciliado</option></select></div>
+      <div style="grid-column:span 2"><label class="f-label">Descrição</label><input class="f-input" id="edit-tx-descricao" placeholder="Descrição da transação"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-editar-tx')">Cancelar</button><button class="btn btn-primary" onclick="salvarEdicaoTransacao()">Salvar</button></div>
+  </div>
+</div>
+
+    <!-- MODAL EXCLUIR TRANSAÇÃO -->
+<div class="overlay" id="m-excluir-tx">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><div class="modal-title">Excluir Transação</div><button class="modal-x" onclick="closeM('m-excluir-tx')">✕</button></div>
+    <div style="padding:16px 20px">
+      <p style="margin:0 0 8px;color:var(--text)">Tem certeza que deseja excluir esta transação?</p>
+      <p id="excluir-tx-desc" style="margin:0;font-size:13px;color:var(--text-dim)"></p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-excluir-tx')">Cancelar</button><button class="btn" style="background:var(--neg);color:#fff" onclick="excluirTransacao()">Excluir</button></div>
+  </div>
+</div>
+
+    <!-- CONFIG -->
+    <div class="page" id="pg-config">
+      <div class="g2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Dados do Escritório</div></div>
+          <div style="padding:16px">
+            <div class="form-grid" style="gap:12px">
+              <div style="grid-column:span 2"><label class="f-label">Razão Social</label><input class="f-input" id="cfg-nome" placeholder="Nome do escritório"></div>
+              <div><label class="f-label">CNPJ</label><input class="f-input" id="cfg-cnpj" placeholder="00.000.000/0001-00"></div>
+              <div><label class="f-label">CRC</label><input class="f-input" id="cfg-crc" placeholder="UF-000000/O-0"></div>
+              <div><label class="f-label">Responsável Técnico</label><input class="f-input" id="cfg-resp" placeholder="Nome completo"></div>
+              <div><label class="f-label">Telefone</label><input class="f-input" id="cfg-tel" placeholder="(00) 00000-0000"></div>
+              <div style="grid-column:span 2"><label class="f-label">Endereço</label><input class="f-input" id="cfg-end" placeholder="Rua, número — Cidade/UF"></div>
+            </div>
+            <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn btn-primary btn-sm" onclick="saveConfig()">Salvar alterações</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Integrações</div></div>
+          <div style="padding:0 17px 10px">
+            <div class="stat-row"><div class="stat-lbl">🏦 Bradesco Open Finance</div><span class="badge b-pend">Configurar</span></div>
+            <div class="stat-row"><div class="stat-lbl">🧾 SEFAZ (NF-e / NFS-e)</div><span class="badge b-pend">Configurar</span></div>
+            <div class="stat-row"><div class="stat-lbl">👥 eSocial</div><span class="badge b-pend">Configurar</span></div>
+            <div class="stat-row"><div class="stat-lbl">📊 SPED Receita Federal</div><span class="badge b-pend">Configurar</span></div>
+            <div class="stat-row"><div class="stat-lbl">🔗 Domínio Sistemas</div><span class="badge b-pend">Configurar</span></div>
+          </div>
+          <div style="padding:0 17px 16px"><button class="btn btn-ghost btn-sm" onclick="toast('🔗 Abrindo configuração…')">+ Adicionar integração</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="m-cliente">
+  <div class="modal wide">
+    <input type="hidden" id="cli-id">
+    <div class="modal-head"><div class="modal-title" id="m-cliente-title">Cadastrar Novo Cliente</div><button class="modal-x" onclick="closeM('m-cliente')">✕</button></div>
+    <div class="form-grid fg3">
+      <div style="grid-column:span 2"><label class="f-label">Razão Social *</label><input class="f-input" id="cli-razao" placeholder="Empresa Exemplo Ltda."></div>
+      <div><label class="f-label">CNPJ *</label><input class="f-input" id="cli-cnpj" placeholder="00.000.000/0001-00"></div>
+      <div><label class="f-label">Regime Tributário *</label><select class="f-select" id="cli-regime"><option>Simples Nacional</option><option>Lucro Presumido</option><option>Lucro Real</option></select></div>
+      <div><label class="f-label">Honorários Mensais</label><input class="f-input" id="cli-honorarios" placeholder="R$ 0,00"></div>
+      <div><label class="f-label">Responsável</label><select class="f-select sel-responsavel" id="cli-responsavel"><option value="">Selecione…</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-cliente')">Cancelar</button><button class="btn btn-primary" id="cli-save-btn" onclick="saveCliente()">Cadastrar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-lanc">
+  <div class="modal wide">
+    <div class="modal-head"><div class="modal-title">Novo Lançamento Contábil</div><button class="modal-x" onclick="closeM('m-lanc')">✕</button></div>
+    <div class="form-grid">
+      <div><label class="f-label">Cliente *</label><select class="f-select sel-cliente"><option value="">Selecione…</option></select></div>
+      <div><label class="f-label">Data *</label><input class="f-input" type="date" id="lanc-data"></div>
+      <div><label class="f-label">Conta Débito *</label><input class="f-input" id="lanc-conta-debito" placeholder="1.1.1.01 - Caixa"></div>
+      <div><label class="f-label">Conta Crédito *</label><input class="f-input" id="lanc-conta-credito" placeholder="3.1.1.01 - Rec. Serviços"></div>
+      <div><label class="f-label">Valor *</label><input class="f-input" id="lanc-valor" placeholder="R$ 0,00"></div>
+      <div><label class="f-label">Tipo *</label><select class="f-select" id="lanc-tipo"><option value="debito">Débito</option><option value="credito">Crédito</option></select></div>
+      <div><label class="f-label">Nº Documento</label><input class="f-input" id="lanc-nrdoc" placeholder="NF-e, RPA, Nota…"></div>
+      <div style="grid-column:span 2"><label class="f-label">Histórico *</label><input class="f-input" id="lanc-historico" placeholder="Descreva o lançamento…"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-lanc')">Cancelar</button><button class="btn btn-primary" onclick="saveLanc()">Registrar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-ver-lanc">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Lançamento Contábil</div><button class="modal-x" onclick="closeM('m-ver-lanc')">✕</button></div>
+    <div class="form-grid" style="gap:12px">
+      <div><label class="f-label">Data</label><div id="vl-data" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Tipo</label><div id="vl-tipo" class="f-input" style="background:var(--surface2)"></div></div>
+      <div style="grid-column:span 2"><label class="f-label">Cliente</label><div id="vl-cliente" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Conta Débito</label><div id="vl-debito" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Conta Crédito</label><div id="vl-credito" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Valor</label><div id="vl-valor" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Nº Documento</label><div id="vl-nrdoc" class="f-input" style="background:var(--surface2)"></div></div>
+      <div style="grid-column:span 2"><label class="f-label">Histórico</label><div id="vl-historico" class="f-input" style="background:var(--surface2)"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-ver-lanc')">Fechar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-ver-cliente">
+  <div class="modal wide">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="vc-av" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex-shrink:0"></div>
+        <div><div class="modal-title" id="vc-nome">—</div><div id="vc-cnpj" style="font-size:12px;color:var(--text-dim);margin-top:2px">—</div></div>
+      </div>
+      <button class="modal-x" onclick="closeM('m-ver-cliente')">✕</button>
+    </div>
+    <div class="form-grid fg3" style="gap:12px">
+      <div><label class="f-label">Situação</label><div id="vc-sit" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Regime Tributário</label><div id="vc-regime" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Honorários / Mês</label><div id="vc-hon" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Responsável</label><div id="vc-resp" class="f-input" style="background:var(--surface2)"></div></div>
+      <div><label class="f-label">Cadastrado em</label><div id="vc-data" class="f-input" style="background:var(--surface2)"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-ver-cliente')">Fechar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-conta">
+  <div class="modal wide">
+    <div class="modal-head">
+      <div><div class="modal-title" id="m-conta-titulo">Nova Conta Contábil</div><div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">Plano de Contas NBC TG 26 — Partida Dobrada</div></div>
+      <button class="modal-x" onclick="closeM('m-conta')">✕</button>
+    </div>
+    <input type="hidden" id="conta-id">
+    <div class="form-grid" style="gap:13px">
+      <div>
+        <label class="f-label">Código * <span style="font-size:9px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">ex: 1.1.1.01</span></label>
+        <input class="f-input" id="conta-codigo" placeholder="1.1.1.01" oninput="onCodigoChange(this.value)">
+      </div>
+      <div>
+        <label class="f-label">Nível <span style="font-size:9px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">preenchido auto</span></label>
+        <input class="f-input" id="conta-nivel" readonly style="background:var(--surface2);cursor:default" value="1">
+      </div>
+      <div style="grid-column:span 2">
+        <label class="f-label">Descrição *</label>
+        <input class="f-input" id="conta-descricao" placeholder="Ex: Caixa e Equivalentes de Caixa">
+      </div>
+      <div>
+        <label class="f-label">Grupo CFC *</label>
+        <select class="f-select" id="conta-grupo" onchange="onGrupoChange(this.value)">
+          <option value="">Selecione o grupo…</option>
+          <option value="1">1 — Ativo</option>
+          <option value="2">2 — Passivo</option>
+          <option value="3">3 — Patrimônio Líquido</option>
+          <option value="4">4 — Receitas</option>
+          <option value="5">5 — Custos</option>
+          <option value="6">6 — Despesas</option>
+          <option value="7">7 — Resultado</option>
+        </select>
+      </div>
+      <div>
+        <label class="f-label">Conta Pai (Sintética) <span style="font-size:9px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">opcional</span></label>
+        <select class="f-select" id="conta-pai">
+          <option value="">— Conta de nível superior —</option>
+        </select>
+      </div>
+      <div>
+        <label class="f-label">Tipo *</label>
+        <select class="f-select" id="conta-tipo">
+          <option value="Analítica">Analítica — recebe lançamentos</option>
+          <option value="Sintética">Sintética — agrupa contas</option>
+        </select>
+      </div>
+      <div>
+        <label class="f-label">Natureza * <span style="font-size:9px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">saldo normal</span></label>
+        <select class="f-select" id="conta-natureza">
+          <option value="Devedora">Devedora — saldo D (Ativo/Custo/Despesa)</option>
+          <option value="Credora">Credora — saldo C (Passivo/PL/Receita)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text-dim);line-height:1.6">
+      💡 <strong>Dica:</strong> O nível é derivado automaticamente do código (quantidade de pontos + 1). Contas <em>Analíticas</em> recebem lançamentos diretamente. Contas <em>Sintéticas</em> apenas agrupam e exibem o saldo consolidado.
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-conta')">Cancelar</button><button class="btn btn-primary" onclick="saveConta()">Salvar Conta</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-sped">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Emitir SPED</div><button class="modal-x" onclick="closeM('m-sped')">✕</button></div>
+    <div class="form-grid">
+      <div style="grid-column:span 2"><label class="f-label">Tipo de SPED</label><select class="f-select"><option>SPED Fiscal (EFD ICMS/IPI)</option><option>SPED Contábil (ECD)</option><option>ECF — Lucro Real/Presumido</option></select></div>
+      <div><label class="f-label">Cliente</label><select class="f-select sel-cliente"><option value="">Selecione…</option></select></div>
+      <div><label class="f-label">Competência</label><input class="f-input" type="month" value="2025-02"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-sped')">Cancelar</button><button class="btn btn-primary" onclick="closeM('m-sped');toast('📄 SPED gerado com sucesso!')">Gerar SPED</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-dctf">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Gerar DCTF</div><button class="modal-x" onclick="closeM('m-dctf')">✕</button></div>
+    <div class="form-grid">
+      <div><label class="f-label">Competência</label><input class="f-input" type="month" value="2025-02"></div>
+      <div><label class="f-label">Tipo</label><select class="f-select"><option>DCTF Mensal</option><option>DCTF Semestral</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-dctf')">Cancelar</button><button class="btn btn-primary" onclick="closeM('m-dctf');toast('🧾 DCTF gerada com sucesso!')">Gerar DCTF</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-relatorio">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Nova Obrigação Acessória</div><button class="modal-x" onclick="closeM('m-relatorio')">✕</button></div>
+    <input type="hidden" id="obrig-id">
+    <div class="form-grid">
+      <div><label class="f-label">Cliente *</label><select class="f-select" id="obrig-cliente-sel"><option value="">Selecione…</option></select></div>
+      <div><label class="f-label">Tipo de Obrigação *</label><select class="f-select" id="obrig-tipo">
+        <option>SPED Contábil</option><option>SPED Fiscal (EFD)</option><option>ECF — Escrituração Contábil Fiscal</option>
+        <option>ECD — Escrituração Contábil Digital</option><option>DCTF</option><option>GIA</option>
+        <option>DARF — IRPJ</option><option>DARF — CSLL</option><option>DARF — PIS/COFINS</option>
+        <option>GPS — INSS</option><option>GFIP</option><option>DIRF</option><option>RAIS</option>
+        <option>CAGED</option><option>eSocial</option><option>EFD-Reinf</option><option>Outro</option>
+      </select></div>
+      <div><label class="f-label">Competência *</label><input class="f-input" type="month" id="obrig-comp"></div>
+      <div><label class="f-label">Vencimento *</label><input class="f-input" type="date" id="obrig-venc"></div>
+      <div><label class="f-label">Responsável</label><input class="f-input" id="obrig-resp" placeholder="Nome do contador responsável"></div>
+      <div><label class="f-label">Status</label><select class="f-select" id="obrig-status">
+        <option value="pendente">Pendente</option>
+        <option value="transmitido">Transmitido</option>
+        <option value="atrasado">Atrasado</option>
+      </select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('m-relatorio')">Cancelar</button><button class="btn btn-primary" onclick="saveObrigacao()">Salvar Obrigação</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-colaborador">
+  <div class="modal wide">
+    <div class="modal-head">
+      <div><div class="modal-title" id="m-colab-titulo">Novo Colaborador</div><div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">Cadastro de funcionário — folha de pagamento</div></div>
+      <button class="modal-x" onclick="closeM('m-colaborador')">✕</button>
+    </div>
+    <input type="hidden" id="colab-id">
+    <div class="form-grid fg3" style="gap:13px">
+      <div style="grid-column:span 2">
+        <label class="f-label">Nome Completo *</label>
+        <input class="f-input" id="colab-nome" placeholder="Ex: João da Silva">
+      </div>
+      <div>
+        <label class="f-label">CPF</label>
+        <input class="f-input" id="colab-cpf" placeholder="000.000.000-00">
+      </div>
+      <div>
+        <label class="f-label">Cargo *</label>
+        <input class="f-input" id="colab-cargo" placeholder="Ex: Analista Contábil">
+      </div>
+      <div>
+        <label class="f-label">Regime *</label>
+        <select class="f-select" id="colab-regime">
+          <option value="CLT">CLT</option>
+          <option value="PJ">PJ</option>
+          <option value="Estágio">Estágio</option>
+        </select>
+      </div>
+      <div>
+        <label class="f-label">Salário Bruto *</label>
+        <input class="f-input" id="colab-salario" placeholder="R$ 0,00" type="number" min="0" step="0.01">
+      </div>
+      <div>
+        <label class="f-label">Data de Admissão</label>
+        <input class="f-input" id="colab-admissao" type="date">
+      </div>
+      <div>
+        <label class="f-label">Cliente Vinculado</label>
+        <select class="f-select sel-cliente" id="colab-cliente"><option value="">Nenhum</option></select>
+      </div>
+      <div>
+        <label class="f-label">E-mail</label>
+        <input class="f-input" id="colab-email" placeholder="funcionario@email.com" type="email">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-colaborador')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveColaborador()">Salvar Colaborador</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<!-- CHATBOT STYLES -->
+
+<!-- FAB -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()">
+  <div class="fab-notif" id="fabNotif">1</div>
+  <svg id="fabIcon" width="22" height="22" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</button>
+
+<!-- CHAT WINDOW -->
+<div class="chat-win" id="chatWin">
+  <div class="chat-header">
+    <div class="bot-avatar">🤖</div>
+    <div class="bot-info">
+      <div class="bot-name">TEU<em>Bot</em></div>
+      <div class="bot-status"><div class="status-dot"></div>Suporte TEUcontador — Online</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-topics">
+    <div class="topic-chip" onclick="sendTopic('Como gerar o SPED Fiscal?')">📄 SPED Fiscal</div>
+    <div class="topic-chip" onclick="sendTopic('Como emitir a DCTF?')">🧾 DCTF</div>
+    <div class="topic-chip" onclick="sendTopic('Como cadastrar um novo cliente?')">🏢 Clientes</div>
+    <div class="topic-chip" onclick="sendTopic('Como conciliar o extrato bancário?')">🔗 Conciliação</div>
+    <div class="topic-chip" onclick="sendTopic('Como processar a folha de pagamento?')">💼 Folha</div>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <textarea class="chat-textarea" id="chatInput" placeholder="Pergunte sobre o TEUcontador…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="chat-send" id="chatSend" onclick="sendMsg()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="chat-hint">Powered by <em>Claude AI</em> · TEUcontador Suporte</div>
+  </div>
+</div>
+
+<script src="js/dashboard.js"></script>
+</body>
+</html>
