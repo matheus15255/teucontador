@@ -822,3 +822,14 @@ setXxx(fresh || [])
 - `Modal` do lançamento: adicionado `onClick={e => e.stopPropagation()}`
 - `handleSave`: `setSaving(false)` movido para `finally { }` (garante reset mesmo em erro/desmonte)
 - Mesmas correções aplicadas ao modal de modelo (`showModeloModal` + `saveModelo`)
+
+---
+
+### Deploy — GitHub + Vercel (2026-03-16)
+**O que foi feito:**
+- Credenciais do Supabase movidas de hardcoded para variáveis de ambiente (`VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY`) em `app/src/lib/supabase.ts`
+- Criados `app/.env.local` (local, no .gitignore) e `app/.env.example` (referência, versionado)
+- Criado `.gitignore` na raiz (exclui `node_modules`, `dist`, `.env*.local`, `.claude/`, `supabase/.temp/`)
+- Criado `vercel.json` na raiz apontando `rootDirectory: "app"` para build correto no Vercel
+- Repositório git inicializado com commit inicial
+- **Próximos passos:** criar repo no GitHub e conectar ao Vercel (instruções passadas ao usuário)
