@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isInitialized: false,
 
   loadEscritorio: async (user: User) => {
-    const { data: escs } = await supabase.from('escritorios').select('*').eq('user_id', user.id).limit(1)
+    const { data: escs } = await supabase.from('escritorios').select('*').eq('user_id', user.id).order('created_at', { ascending: true }).limit(1)
     let esc = escs?.[0] ?? null
     if (!esc) {
       const nome = user.user_metadata?.nome_completo || user.email || 'Escritório'
