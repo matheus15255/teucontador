@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { Check, Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { useAuthStore } from '../../stores/authStore'
 import { toast } from 'sonner'
 
 const fadeIn = keyframes`
@@ -210,11 +211,14 @@ interface Props {
 
 export function PaywallModal({ onSignOut }: Props) {
   const [loading, setLoading] = useState(false)
+  const { escritorio } = useAuthStore()
 
   const handleAssinar = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout')
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { escritorioId: escritorio?.id },
+      })
       if (error || !data?.url) throw new Error(error?.message || 'Erro ao criar checkout')
       window.location.href = data.url
     } catch (err: any) {

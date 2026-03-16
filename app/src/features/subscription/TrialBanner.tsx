@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { toast } from 'sonner'
 
+
+
 const Banner = styled.div`
   background: linear-gradient(90deg, #92400e 0%, #b45309 100%);
   color: #fff;
@@ -46,13 +48,15 @@ interface Props {
 }
 
 export function TrialBanner({ daysRemaining }: Props) {
-  const { user } = useAuthStore()
+  const { escritorio } = useAuthStore()
   const [loading, setLoading] = useState(false)
 
   const handleAssinar = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout')
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { escritorioId: escritorio?.id },
+      })
       if (error || !data?.url) throw new Error(error?.message || 'Erro ao criar checkout')
       window.location.href = data.url
     } catch (err: any) {

@@ -19,21 +19,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
-    // Autenticar usuário pelo JWT
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(token)
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: CORS })
+    // Recebe escritorioId do body
+    const body = await req.json().catch(() => ({}))
+    const escritorioId: string = body.escritorioId
+
+    if (!escritorioId) {
+      return new Response(JSON.stringify({ error: 'escritorioId obrigatório' }), { status: 400, headers: CORS })
     }
 
     // Buscar escritório
-    const { data: esc } = await supabase
+    const { data: esc, error: escErr } = await supabase
       .from('escritorios')
-      .select('*')
-      .eq('user_id', user.id)
+      .select('id, nome')
+      .eq('id', escritorioId)
       .single()
 
-    if (!esc) {
+    if (escErr || !esc) {
       return new Response(JSON.stringify({ error: 'Escritório não encontrado' }), { status: 404, headers: CORS })
     }
 
@@ -49,24 +50,23 @@ serve(async (req) => {
           externalId: esc.id,
           name: 'TEUcontador — Plano Pro',
           quantity: 1,
-          price: 19700, // R$ 197,00 em centavos
+          price: 19700,
         }],
         methods: ['PIX'],
         frequency: 'ONE_TIME',
         returnUrl: `${APP_URL}/app/dashboard`,
         completionUrl: `${APP_URL}/app/dashboard?subscribed=1`,
-        metadata: { escritorio_id: esc.id, user_id: user.id },
       }),
     })
 
     const billing = await billingRes.json()
-    console.log('AbacatePay billing response:', JSON.stringify(billing))
+    console.log('AbacatePay response:', JSON.stringify(billing))
 
     const url: string = billing.data?.url
 
     if (!url) {
       return new Response(
-        JSON.stringify({ error: 'Erro ao criar cobrança', details: billing }),
+        JSON.stringify({ error: 'Erro AbacatePay', details: billing }),
         { status: 502, headers: { ...CORS, 'Content-Type': 'application/json' } }
       )
     }
