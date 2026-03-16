@@ -832,4 +832,33 @@ setXxx(fresh || [])
 - Criado `.gitignore` na raiz (exclui `node_modules`, `dist`, `.env*.local`, `.claude/`, `supabase/.temp/`)
 - Criado `vercel.json` na raiz apontando `rootDirectory: "app"` para build correto no Vercel
 - Repositório git inicializado com commit inicial
-- **Próximos passos:** criar repo no GitHub e conectar ao Vercel (instruções passadas ao usuário)
+- Deploy funcionando em https://teucontador-koda.vercel.app
+
+---
+
+### Integração AbacatePay + Sistema de Trial (2026-03-16)
+
+**O que foi feito:**
+- Credenciais Supabase movidas para variáveis de ambiente (`VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY`)
+- `supabase/add_subscription_fields.sql` — adiciona `subscription_status`, `subscription_id`, `abacatepay_customer_id` na tabela `escritorios`
+- `supabase/functions/create-checkout/` — Edge Function que cria customer + billing no AbacatePay v1 (sem JWT, aceita `escritorioId` no body)
+- `supabase/functions/abacatepay-webhook/` — Edge Function que recebe eventos do AbacatePay e atualiza `subscription_status`
+- `app/src/hooks/useSubscription.ts` — calcula status do trial (14 dias) e assinatura
+- `app/src/features/subscription/TrialBanner.tsx` — barra laranja no topo com dias restantes
+- `app/src/features/subscription/PaywallModal.tsx` — modal bloqueante quando trial expira
+- `AppLayout.tsx` — integra TrialBanner e PaywallModal
+- AbacatePay API: usa v1 (`/v1/billing/create`), chave `abc_dev_`, frequency `ONE_TIME`, customer inline
+
+**Bug corrigido — escritórios duplicados:**
+- `loadEscritorio` chamado em paralelo criava múltiplos escritórios em branco (race condition)
+- Correção: `ORDER BY created_at ASC` garante que sempre carrega o mais antigo (com dados reais)
+- SQL de limpeza rodado: deletados duplicados mantendo `59e9b892-8b0b-4267-bee7-8b64549517d9`
+
+**Secrets configurados no Supabase:**
+- `ABACATEPAY_API_KEY=abc_dev_F5YX2LbWjWfW0WGxDbRc2BFK`
+- `ABACATEPAY_PRODUCT_ID=prod_TDFjgCMQcAhkpjH0TshXZWhT`
+- `APP_URL=https://teucontador-koda.vercel.app`
+
+**Pendente para produção:**
+- Trocar chave AbacatePay dev → live (`abc_live_...`)
+- Coletar CPF/telefone real do usuário no checkout (hoje usa placeholder)
