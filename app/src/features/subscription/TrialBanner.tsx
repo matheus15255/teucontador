@@ -52,10 +52,7 @@ export function TrialBanner({ daysRemaining }: Props) {
   const handleAssinar = async () => {
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-      })
+      const { data, error } = await supabase.functions.invoke('create-checkout')
       if (error || !data?.url) throw new Error(error?.message || 'Erro ao criar checkout')
       window.location.href = data.url
     } catch (err: any) {
