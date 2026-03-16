@@ -12,6 +12,9 @@ import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import { useTheme } from '../../styles/ThemeProvider'
 import { NotificacoesDropdown } from '../NotificacoesDropdown'
+import { useSubscription } from '../../hooks/useSubscription'
+import { TrialBanner } from '../../features/subscription/TrialBanner'
+import { PaywallModal } from '../../features/subscription/PaywallModal'
 
 const navGroups = [
   {
@@ -385,6 +388,7 @@ export function AppLayout() {
   const { preload, unsubscribe } = useDataStore()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const { isTrial, isExpired, trialDaysRemaining } = useSubscription()
 
   useEffect(() => {
     if (escritorio?.id) preload(escritorio.id)
@@ -414,6 +418,7 @@ export function AppLayout() {
 
   return (
     <Wrap>
+      {isExpired && <PaywallModal onSignOut={handleSignOut} />}
       <Overlay $visible={sidebarOpen} onClick={() => setSidebarOpen(false)} />
 
       <Sidebar $open={sidebarOpen}>
@@ -481,6 +486,8 @@ export function AppLayout() {
             />
           </TopRight>
         </Topbar>
+
+        {isTrial && <TrialBanner daysRemaining={trialDaysRemaining} />}
 
         <Content>
           <Outlet />

@@ -5,6 +5,9 @@ export interface Escritorio {
   plano?: string
   email?: string
   created_at?: string
+  subscription_status?: 'trial' | 'active' | 'cancelled'
+  subscription_id?: string
+  abacatepay_customer_id?: string
 }
 
 export interface Cliente {
