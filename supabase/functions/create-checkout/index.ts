@@ -19,7 +19,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
-    // Recebe escritorioId do body
     const body = await req.json().catch(() => ({}))
     const escritorioId: string = body.escritorioId
 
@@ -27,25 +26,61 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'escritorioId obrigatório' }), { status: 400, headers: CORS })
     }
 
-    // Buscar escritório
-    const { data: esc, error: escErr } = await supabase
+    const { data: esc } = await supabase
       .from('escritorios')
-      .select('id, nome')
+      .select('*')
       .eq('id', escritorioId)
       .single()
 
-    if (escErr || !esc) {
+    if (!esc) {
       return new Response(JSON.stringify({ error: 'Escritório não encontrado' }), { status: 404, headers: CORS })
     }
 
-    // Criar billing no AbacatePay v1
+    // Criar ou reutilizar customer no AbacatePay
+    let customerId: string = esc.abacatepay_customer_id
+    let customerData: Record<string, string>
+
+    if (!customerId) {
+      const { data: user } = await supabase.auth.admin.getUserById(esc.user_id)
+      const email = esc.email || user?.user?.email || 'sem-email@teucontador.com.br'
+      const name  = esc.nome || 'Cliente TEUcontador'
+
+      const custRes = await fetch(`${API}/customer/create`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${ABACATEPAY_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          cellphone: esc.telefone || '11999999999',
+          taxId: esc.cpf_cnpj || '529.982.247-25',
+        }),
+      })
+      const custJson = await custRes.json()
+      console.log('Customer response:', JSON.stringify(custJson))
+
+      customerId = custJson.data?.id
+      customerData = { id: customerId, name, email, cellphone: esc.telefone || '11999999999', taxId: esc.cpf_cnpj || '529.982.247-25' }
+
+      if (customerId) {
+        await supabase.from('escritorios').update({ abacatepay_customer_id: customerId }).eq('id', esc.id)
+      }
+    } else {
+      const { data: user } = await supabase.auth.admin.getUserById(esc.user_id)
+      customerData = {
+        id: customerId,
+        name: esc.nome || 'Cliente',
+        email: esc.email || user?.user?.email || '',
+        cellphone: esc.telefone || '11999999999',
+        taxId: esc.cpf_cnpj || '529.982.247-25',
+      }
+    }
+
+    // Criar billing
     const billingRes = await fetch(`${API}/billing/create`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${ABACATEPAY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${ABACATEPAY_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        customer: customerData,
         products: [{
           externalId: esc.id,
           name: 'TEUcontador — Plano Pro',
@@ -60,7 +95,7 @@ serve(async (req) => {
     })
 
     const billing = await billingRes.json()
-    console.log('AbacatePay response:', JSON.stringify(billing))
+    console.log('Billing response:', JSON.stringify(billing))
 
     const url: string = billing.data?.url
 
