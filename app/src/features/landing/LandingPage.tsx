@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import CountUp from 'react-countup'
 import { TypeAnimation } from 'react-type-animation'
 import {
-  ArrowRight, Check, ChevronDown, Star, Shield, Zap, BarChart2,
+  ArrowRight, Check, ChevronDown, Star, Shield, BarChart2,
   Users, FileText, TrendingUp, Clock, Lock, Award, CheckCircle,
   BookOpen, DollarSign, RefreshCw, Menu, X,
 } from 'lucide-react'
@@ -815,7 +815,6 @@ const features = [
   { icon: DollarSign, bg: '#fef9e7', ic: '#9a7c2a', accent: 'linear-gradient(90deg,#d97706,#f59e0b)', title: 'Open Finance',         desc: 'Conciliação bancária com importação OFX e conexão via Open Banking.', tags: ['OFX','API','Pix'] },
   { icon: FileText,   bg: '#fdf0f0', ic: '#c53030', accent: 'linear-gradient(90deg,#c53030,#e53e3e)', title: 'Obrigações Fiscais',   desc: 'SPED, DCTF, ECF, DIRF e EFD Contribuições com alertas de vencimento.', tags: ['SPED','DCTF','ECF'] },
   { icon: Shield,     bg: '#f3e8ff', ic: '#7c3aed', accent: 'linear-gradient(90deg,#7c3aed,#8b5cf6)', title: 'Segurança LGPD',       desc: 'Criptografia AES-256, backups diários automáticos e conformidade LGPD.', tags: ['LGPD','AES-256','ISO'] },
-  { icon: Zap,        bg: '#fef3cd', ic: '#b45309', accent: 'linear-gradient(90deg,#b45309,#d97706)', title: 'Inteligência Artificial', desc: 'Classificação automática de lançamentos e sugestões de reconciliação via IA.', tags: ['IA','Automação','ML'] },
 ]
 
 const steps = [
