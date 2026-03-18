@@ -214,11 +214,11 @@ export function ChatbotWidget() {
         content: data.text,
         showSupport: data.showSupport === true,
       }])
-    } catch (err: any) {
+    } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `Erro técnico: ${err?.message || String(err)}`,
-        showSupport: false,
+        content: 'Não consegui processar sua mensagem agora. Tente novamente em instantes ou fale com nosso suporte.',
+        showSupport: true,
       }])
     } finally {
       setLoading(false)
