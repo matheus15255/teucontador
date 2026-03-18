@@ -1,4 +1,5 @@
 import { useMemo, useRef, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import styled, { keyframes } from 'styled-components'
 import { Bell, AlertTriangle, Clock, Users, CheckSquare, X } from 'lucide-react'
 import { differenceInDays, parseISO } from 'date-fns'
@@ -7,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); }`
 
-const Wrap = styled.div`position: static;`
+const Wrap = styled.div`position: relative; display: inline-flex;`
 
 const BellBtn = styled.button<{ $hasNew: boolean }>`
   width: 32px; height: 32px; border-radius: 8px;
@@ -210,7 +211,7 @@ export function NotificacoesDropdown({ open, onToggle, onClose }: Props) {
         {notifs.length > 0 && <Badge>{notifs.length > 9 ? '9+' : notifs.length}</Badge>}
       </BellBtn>
 
-      {open && (
+      {open && createPortal(
         <Panel $top={panelPos.top} $right={panelPos.right}>
           <PanelHead>
             <PanelTitle>Notificações</PanelTitle>
@@ -229,7 +230,8 @@ export function NotificacoesDropdown({ open, onToggle, onClose }: Props) {
               </Item>
             ))}
           </List>
-        </Panel>
+        </Panel>,
+        document.body
       )}
     </Wrap>
   )
