@@ -1,26 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { MessageCircle, X, Send, Bot, User, Phone } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 
 // ─── Animations ──────────────────────────────────────────────────────────────
 const fadeUp = keyframes`from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); }`
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); }`
 const pulse = keyframes`0%,100% { box-shadow: 0 0 0 0 rgba(26,122,74,0.4); } 50% { box-shadow: 0 0 0 8px rgba(26,122,74,0); }`
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
+// ─── Styled ───────────────────────────────────────────────────────────────────
 const FloatBtn = styled.button`
   position: fixed; bottom: 28px; right: 28px; z-index: 9000;
   width: 54px; height: 54px; border-radius: 50%;
   background: ${({ theme }) => theme.green}; color: #fff;
   border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 20px rgba(26,122,74,0.4);
-  transition: transform 0.2s;
+  box-shadow: 0 4px 20px rgba(26,122,74,0.4); transition: transform 0.2s;
   animation: ${pulse} 2.5s ease-in-out infinite;
   &:hover { transform: scale(1.08); }
   @media (max-width: 600px) { bottom: 18px; right: 18px; }
 `
-
 const Panel = styled.div`
   position: fixed; bottom: 96px; right: 28px; z-index: 9000;
   width: 360px; max-height: 560px; display: flex; flex-direction: column;
@@ -29,11 +26,10 @@ const Panel = styled.div`
   animation: ${fadeUp} 0.22s ease;
   @media (max-width: 440px) { width: calc(100vw - 24px); right: 12px; bottom: 82px; max-height: 68vh; }
 `
-
 const PanelHead = styled.div`
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 16px; border-bottom: 1px solid ${({ theme }) => theme.border};
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px;
   background: ${({ theme }) => theme.green}; border-radius: 18px 18px 0 0;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
 `
 const HeadAvatar = styled.div`
   width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2);
@@ -41,20 +37,18 @@ const HeadAvatar = styled.div`
 `
 const HeadInfo = styled.div`flex: 1;`
 const HeadName = styled.div`font-size: 14px; font-weight: 700; color: #fff;`
-const HeadStatus = styled.div`font-size: 11px; color: rgba(255,255,255,0.8);`
+const HeadSub = styled.div`font-size: 11px; color: rgba(255,255,255,0.8);`
 const CloseBtn = styled.button`
   width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
   background: rgba(255,255,255,0.15); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s; &:hover { background: rgba(255,255,255,0.3); }
+  &:hover { background: rgba(255,255,255,0.3); }
 `
-
 const Messages = styled.div`
   flex: 1; overflow-y: auto; padding: 14px 14px 8px;
   display: flex; flex-direction: column; gap: 10px;
   scrollbar-width: thin; scrollbar-color: ${({ theme }) => theme.border} transparent;
 `
-
 const MsgRow = styled.div<{ $user?: boolean }>`
   display: flex; gap: 8px; align-items: flex-end;
   flex-direction: ${({ $user }) => $user ? 'row-reverse' : 'row'};
@@ -67,7 +61,7 @@ const MsgAvatar = styled.div<{ $user?: boolean }>`
   display: flex; align-items: center; justify-content: center;
 `
 const MsgBubble = styled.div<{ $user?: boolean }>`
-  max-width: 78%; padding: 9px 13px;
+  max-width: 80%; padding: 9px 13px;
   border-radius: ${({ $user }) => $user ? '14px 14px 4px 14px' : '14px 14px 14px 4px'};
   background: ${({ theme, $user }) => $user ? theme.green : theme.surface2};
   color: ${({ theme, $user }) => $user ? '#fff' : theme.text};
@@ -75,12 +69,10 @@ const MsgBubble = styled.div<{ $user?: boolean }>`
   border: 1px solid ${({ theme, $user }) => $user ? 'transparent' : theme.border};
   white-space: pre-wrap; word-break: break-word;
 `
-
 const SupportCard = styled.a`
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px; margin-top: 6px;
   background: ${({ theme }) => theme.surface2}; border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 10px; padding: 10px 14px; text-decoration: none; margin-top: 6px;
-  transition: background 0.15s;
+  border-radius: 10px; padding: 10px 14px; text-decoration: none;
   &:hover { background: ${({ theme }) => theme.greenLight}; border-color: ${({ theme }) => theme.green}; }
 `
 const SupportIcon = styled.div`
@@ -91,21 +83,6 @@ const SupportText = styled.div`
   font-size: 12px; color: ${({ theme }) => theme.textMid};
   strong { display: block; font-size: 13px; color: ${({ theme }) => theme.green}; }
 `
-
-const Typing = styled.div`
-  display: flex; align-items: center; gap: 4px; padding: 10px 14px;
-  background: ${({ theme }) => theme.surface2}; border-radius: 14px 14px 14px 4px;
-  border: 1px solid ${({ theme }) => theme.border};
-  span {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: ${({ theme }) => theme.textDim};
-    animation: bounce 1.2s infinite ease-in-out;
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
-  }
-  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
-`
-
 const SuggestionsArea = styled.div`
   display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px;
 `
@@ -116,7 +93,6 @@ const SuggestionBtn = styled.button`
   transition: all 0.15s; white-space: nowrap;
   &:hover { background: ${({ theme }) => theme.greenLight}; color: ${({ theme }) => theme.green}; border-color: ${({ theme }) => theme.green}; }
 `
-
 const Footer = styled.div`
   display: flex; gap: 8px; align-items: center;
   padding: 10px 12px; border-top: 1px solid ${({ theme }) => theme.border};
@@ -137,6 +113,29 @@ const SendBtn = styled.button`
   &:hover { opacity: 0.85; } &:disabled { opacity: 0.4; cursor: not-allowed; }
 `
 
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
+const FAQ: Record<string, string> = {
+  'Como cadastrar um cliente?':
+    'Vá em **Clientes** no menu lateral, clique em **+ Novo Cliente** e preencha os dados da empresa (razão social, CNPJ, e-mail). Clique em Salvar para concluir.',
+
+  'Como criar um lançamento contábil?':
+    'Acesse **Lançamentos Contábeis**, clique em **+ Novo Lançamento** e preencha:\n• Histórico (descrição)\n• Data do lançamento\n• Conta Débito e Conta Crédito\n• Valor\n\nO sistema usa partidas dobradas automaticamente.',
+
+  'Como importar extrato OFX?':
+    'Na página de **Conciliação Bancária**, clique em **Importar OFX**, selecione o arquivo exportado pelo seu banco e confirme. As transações aparecem na lista em segundos.',
+
+  'Como gerar relatório em PDF?':
+    'Acesse **Relatórios**, selecione o tipo e o período desejado, depois clique no botão **Exportar PDF** no canto superior. O arquivo é gerado e baixado automaticamente.',
+
+  'Como lançar honorários?':
+    'Vá em **Honorários**, clique em **+ Novo**, selecione o cliente, defina o valor e o vencimento. O sistema acompanha o status de cada cobrança (pendente, pago, vencido).',
+
+  'Como usar a conciliação bancária?':
+    'Importe seu extrato OFX em **Conciliação Bancária**. Para cada transação pendente, clique em **Conciliar** e selecione o lançamento contábil correspondente. O sistema vincula os dois registros.',
+}
+
+const SUGGESTIONS = Object.keys(FAQ)
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Message {
   role: 'user' | 'assistant'
@@ -144,85 +143,51 @@ interface Message {
   showSupport?: boolean
 }
 
-const INITIAL_MSG: Message = {
+const WELCOME: Message = {
   role: 'assistant',
-  content: 'Olá! 👋 Sou o assistente do TEUcontador. Como posso ajudar você hoje?',
+  content: 'Olá! 👋 Sou o assistente do TEUcontador. Selecione uma das opções abaixo ou digite sua dúvida.',
 }
-
-const QUICK_SUGGESTIONS = [
-  'Como cadastrar um cliente?',
-  'Como criar um lançamento contábil?',
-  'Como importar extrato OFX?',
-  'Como gerar relatório em PDF?',
-  'Como lançar honorários?',
-  'Como usar a conciliação bancária?',
-]
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function ChatbotWidget() {
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MSG])
+  const [messages, setMessages] = useState<Message[]>([WELCOME])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Only show suggestions when conversation only has the welcome message
-  const showSuggestions = messages.length === 1 && !loading
+  const showSuggestions = messages.length === 1
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading])
+  }, [messages])
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 120)
   }, [open])
 
-  const send = async (text: string) => {
-    const trimmed = text.trim()
-    if (!trimmed || loading) return
+  const handleSuggestion = (question: string) => {
+    const answer = FAQ[question]
+    setMessages(prev => [
+      ...prev,
+      { role: 'user', content: question },
+      { role: 'assistant', content: answer },
+    ])
+  }
+
+  const handleFreeText = () => {
+    const text = input.trim()
+    if (!text) return
     setInput('')
-
-    const userMsg: Message = { role: 'user', content: trimmed }
-    const history = [...messages, userMsg]
-    setMessages(history)
-    setLoading(true)
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-      if (!token) throw new Error('Não autenticado')
-
-      // Anthropic requires conversation to start with a user message
-      const firstUserIdx = history.findIndex(m => m.role === 'user')
-      const apiMessages = history.slice(firstUserIdx).map(m => ({ role: m.role, content: m.content }))
-
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chat`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ messages: apiMessages }),
-        }
-      )
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erro no servidor')
-
-      setMessages(prev => [...prev, {
+    setMessages(prev => [
+      ...prev,
+      { role: 'user', content: text },
+      {
         role: 'assistant',
-        content: data.text,
-        showSupport: data.showSupport === true,
-      }])
-    } catch {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Não consegui processar sua mensagem agora. Tente novamente em instantes ou fale com nosso suporte.',
+        content: 'Não encontrei uma resposta automática para isso. Entre em contato com nosso suporte via WhatsApp — vamos te ajudar rapidinho!',
         showSupport: true,
-      }])
-    } finally {
-      setLoading(false)
-    }
+      },
+    ])
   }
 
   return (
@@ -233,7 +198,7 @@ export function ChatbotWidget() {
             <HeadAvatar><Bot size={18} color="#fff" /></HeadAvatar>
             <HeadInfo>
               <HeadName>Assistente TEUcontador</HeadName>
-              <HeadStatus>● Online agora</HeadStatus>
+              <HeadSub>● Online agora</HeadSub>
             </HeadInfo>
             <CloseBtn onClick={() => setOpen(false)}><X size={14} /></CloseBtn>
           </PanelHead>
@@ -251,11 +216,7 @@ export function ChatbotWidget() {
                 </MsgRow>
                 {m.showSupport && (
                   <div style={{ paddingLeft: 34 }}>
-                    <SupportCard
-                      href="https://wa.me/5513991169000"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <SupportCard href="https://wa.me/5513991169000" target="_blank" rel="noopener noreferrer">
                       <SupportIcon><Phone size={15} color="#1a7a4a" /></SupportIcon>
                       <SupportText>
                         <strong>(13) 99116-9000</strong>
@@ -266,20 +227,13 @@ export function ChatbotWidget() {
                 )}
               </div>
             ))}
-
-            {loading && (
-              <MsgRow>
-                <MsgAvatar><Bot size={12} color="#6b7280" /></MsgAvatar>
-                <Typing><span /><span /><span /></Typing>
-              </MsgRow>
-            )}
             <div ref={bottomRef} />
           </Messages>
 
           {showSuggestions && (
             <SuggestionsArea>
-              {QUICK_SUGGESTIONS.map(s => (
-                <SuggestionBtn key={s} onClick={() => send(s)}>{s}</SuggestionBtn>
+              {SUGGESTIONS.map(s => (
+                <SuggestionBtn key={s} onClick={() => handleSuggestion(s)}>{s}</SuggestionBtn>
               ))}
             </SuggestionsArea>
           )}
@@ -290,9 +244,9 @@ export function ChatbotWidget() {
               placeholder="Digite sua dúvida..."
               value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(input)}
+              onKeyDown={e => e.key === 'Enter' && handleFreeText()}
             />
-            <SendBtn onClick={() => send(input)} disabled={!input.trim() || loading}>
+            <SendBtn onClick={handleFreeText} disabled={!input.trim()}>
               <Send size={14} />
             </SendBtn>
           </Footer>
