@@ -23,6 +23,23 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18 (permissões por role)
+
+### Feat: aplicar usePermission nas páginas principais
+
+**Contexto:** O hook `usePermission` foi criado junto com o multi-usuário mas nenhuma página o utilizava — membros `assistente` podiam deletar tudo.
+
+**Arquivos alterados:** ClientsPage, AccountingPage, ObligationsPage, PayrollPage, HonorariosPage, NfsePage, AtendimentosPage
+
+**Regra aplicada:**
+- Botões de criar/editar: `disabled={!canEdit}` + opacity 0.4 quando bloqueado
+- Botões de excluir: `disabled={!canDelete}` + opacity 0.4 quando bloqueado
+- Botões visíveis porém desabilitados (não ocultados)
+
+**Nenhum SQL necessário.**
+
+---
+
 ## Sessão — 2026-03-18 (multi-usuário)
 
 ### Feat: multi-usuário por escritório com permissões
