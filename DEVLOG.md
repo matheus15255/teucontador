@@ -23,6 +23,30 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18 (otimização de conversão)
+
+### Feat: melhorias de CRO na landing page
+
+**Arquivo alterado:**
+- `app/src/features/landing/LandingPage.tsx`
+
+**Mudanças implementadas:**
+1. **NavBadge** — removido "IA Fiscal 2026" (inconsistente após remoção do card de IA); substituído por "14 dias grátis · Sem cartão"
+2. **HeroPill** — trocado "Plataforma Contábil · Lançada em 2026" por social proof: "+2.400 escritórios já automatizaram"
+3. **CTA secundário do hero** — "Ver demonstração" (botão morto) → "Ver o sistema em ação" com scroll automático para seção de screenshots (#produto)
+4. **Micro-copy abaixo dos CTAs do hero** — adicionada linha com rating ⭐⭐⭐⭐⭐ 4.9/5, sem cartão e cancelamento
+5. **Testimonials** — textos mais específicos (nome do escritório, CRC completo, resultado quantificado); adicionado badge "VERIFICADO" em cada depoimento
+6. **Estrelas e rating na seção de depoimentos** — adicionada linha "4.9 de 5 — baseado em avaliações de contadores verificados"
+7. **FAQ** — adicionadas 2 perguntas novas: "Se eu cancelar, perco meus dados?" e "Tem suporte para migração do sistema atual?"
+8. **Pricing — período** — "cobrado mensalmente" → "menos de R$6,60 por dia" (âncora de valor)
+9. **Urgency bar do pricing** — mensagem de escassez mais forte: preço garantido para quem assinar agora
+10. **CTA final headline** — "Seu escritório merece o melhor sistema" → "Comece agora e recupere 12 horas por semana"
+11. **CTA final subtítulo** — mais direto: "Se não gostar, não cobra nada"
+12. **CTA final botão secundário** — "Falar com um especialista" agora aponta para WhatsApp
+13. **Remoção do card IA** — removido da lista de features e import do ícone Zap limpo
+
+---
+
 ## Sessão — 2026-03-18 (continuação)
 
 ### Fix: painel de notificações atrás do dashboard

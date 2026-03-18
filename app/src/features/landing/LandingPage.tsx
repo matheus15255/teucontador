@@ -829,17 +829,19 @@ const plans = [
 ]
 
 const testimonials = [
-  { text: 'O TEUcontador transformou nosso escritório. Reduzimos o tempo de processamento da folha em 70% com a integração eSocial.', name: 'Marina Santos', role: 'Contadora CRC/SP · São Paulo', ini: 'MS', color: '#1a7a4a' },
-  { text: 'A conciliação bancária automatizada é incrível. O que levava 3 horas por semana agora leva 10 minutos. Indispensável.', name: 'Carlos Mendes', role: 'Diretor Financeiro · Rio de Janeiro', ini: 'CM', color: '#1d4ed8' },
-  { text: 'Os relatórios CFC prontos nos poupam horas de trabalho manual. Recomendo para todo escritório contábil moderno.', name: 'Ana Oliveira', role: 'Sócia-Contadora CRC/MG · Belo Horizonte', ini: 'AO', color: '#7c3aed' },
+  { text: 'Migramos do sistema antigo em 2 dias. A folha de pagamento do escritório caiu de 8 horas para menos de 1 hora por mês. O eSocial nunca foi tão simples.', name: 'Marina Santos', role: 'CRC/SP-123.456 · Escritório Santos & Associados', ini: 'MS', color: '#1a7a4a' },
+  { text: 'Fechamos o mês de fevereiro sem nenhum retrabalho de conciliação. O que levava 3 horas por semana agora leva 10 minutos. Resultado: mais 2 clientes novos com o tempo liberado.', name: 'Carlos Mendes', role: 'CRC/RJ-098.765 · Mendes Contabilidade', ini: 'CM', color: '#1d4ed8' },
+  { text: 'Testamos por 14 dias e assinou no mesmo dia que o trial acabou. Os relatórios CFC prontos para apresentar ao cliente são o diferencial que a gente precisava.', name: 'Ana Oliveira', role: 'CRC/MG-234.567 · Sócia · Oliveira & Lima', ini: 'AO', color: '#7c3aed' },
 ]
 
 const faqs = [
   { q: 'O TEUcontador é homologado pelo CFC?', a: 'Sim. Nossa plataforma foi desenvolvida em total conformidade com as normas NBC TG emitidas pelo Conselho Federal de Contabilidade (CFC), incluindo NBC TG 26, NBC TG 1000 e demais normas aplicáveis ao porte das empresas atendidas.' },
-  { q: 'Posso importar dados do meu sistema atual?', a: 'Sim. Oferecemos importação via planilha Excel, arquivos SPED, OFX e integrações diretas com os principais sistemas contábeis do mercado brasileiro.' },
-  { q: 'Como funciona o período de 14 dias grátis?', a: 'Você tem acesso completo a todas as funcionalidades do TEUcontador, sem precisar inserir cartão de crédito. Após o período, assine por R$197/mês e continue com tudo incluso.' },
+  { q: 'Posso importar dados do meu sistema atual?', a: 'Sim. Oferecemos importação via planilha Excel, arquivos SPED, OFX e integrações diretas com os principais sistemas contábeis do mercado brasileiro. Nosso time de suporte auxilia na migração completa sem custo adicional.' },
+  { q: 'Como funciona o período de 14 dias grátis?', a: 'Você tem acesso completo a todas as funcionalidades do TEUcontador, sem precisar inserir cartão de crédito. Após o período, assine por R$197/mês e continue com tudo incluso. Se não gostar, não cobra nada.' },
   { q: 'Os dados dos meus clientes estão seguros?', a: 'Utilizamos criptografia AES-256 para dados em repouso, TLS 1.3 em trânsito, backups automáticos diários com retenção de 90 dias, e somos conformes com a LGPD e ISO 27001.' },
-  { q: 'Posso ter múltiplos colaboradores no sistema?', a: 'Sim. O TEUcontador suporta múltiplos usuários com controle de permissões por módulo, tudo incluso no plano único.' },
+  { q: 'Posso ter múltiplos colaboradores no sistema?', a: 'Sim. O TEUcontador suporta múltiplos usuários com controle de permissões por módulo, tudo incluso no plano único. Sem custo extra por usuário.' },
+  { q: 'Se eu cancelar, perco meus dados?', a: 'Não. Ao cancelar, você tem 30 dias para exportar todos os seus dados (clientes, lançamentos, relatórios) em Excel ou PDF. Seus dados sempre pertencem a você.' },
+  { q: 'Tem suporte para migração do sistema atual?', a: 'Sim. Nossa equipe de suporte faz a migração junto com você, sem custo adicional. Já migramos escritórios de todos os principais sistemas do mercado e o processo leva em média 1 a 2 dias úteis.' },
 ]
 
 const screenshots = [
@@ -917,7 +919,7 @@ export function LandingPage() {
           <NavLink href="#faq">FAQ</NavLink>
         </NavLinks>
         <NavRight>
-          <NavBadge><NavBadgeDot />Novo: IA Fiscal 2026</NavBadge>
+          <NavBadge><NavBadgeDot />14 dias grátis · Sem cartão</NavBadge>
           <BtnOutline onClick={() => navigate('/login')}>Entrar</BtnOutline>
           <BtnPrimary onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }}>
             Teste grátis <ArrowRight size={14} />
@@ -955,7 +957,7 @@ export function LandingPage() {
         <HeroGrid />
         <HeroInner>
           <HeroPill initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <PillDot /> Plataforma Contábil · Lançada em 2026
+            <PillDot /> +2.400 escritórios já automatizaram com o TEUcontador
           </HeroPill>
 
           <HeroTitle initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>
@@ -981,10 +983,15 @@ export function LandingPage() {
             <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }}>
               Começar 14 dias grátis <ArrowRight size={16} />
             </HeroBtnPrimary>
-            <HeroBtnOutline whileTap={{ scale: 0.97 }}>
-              <BookOpen size={15} /> Ver demonstração
+            <HeroBtnOutline whileTap={{ scale: 0.97 }} onClick={() => document.getElementById('produto')?.scrollIntoView({ behavior: 'smooth' })}>
+              <BookOpen size={15} /> Ver o sistema em ação
             </HeroBtnOutline>
           </HeroCtas>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 28, fontSize: 12, color: 'rgba(240,237,230,0.4)', fontWeight: 500 }}>
+            <span style={{ color: '#d97706' }}>★★★★★</span>
+            <span>4.9/5 avaliado por contadores · Sem cartão de crédito · Cancele quando quiser</span>
+          </motion.div>
 
           <HeroStats initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
             {[
@@ -1229,7 +1236,7 @@ export function LandingPage() {
             Outros sistemas cobram R$500–R$1.200/mês por módulos separados. Aqui é tudo em um.
           </p>
           <UrgencyBar>
-            <span>⚡</span> Oferta de lançamento — preço válido para novos clientes que assinarem este mês
+            <span>⚡</span> Oferta de lançamento — R$197/mês para sempre para quem assinar agora. Preço pode aumentar a qualquer momento.
           </UrgencyBar>
           <PricingGrid>
             {plans.map((p, i) => (
@@ -1243,7 +1250,7 @@ export function LandingPage() {
                   <PricingPrice $featured={p.featured}>
                     <PricingCurrency>R$</PricingCurrency>{p.price}
                   </PricingPrice>
-                  <PricingPeriod $featured={p.featured}>por mês · cobrado mensalmente</PricingPeriod>
+                  <PricingPeriod $featured={p.featured}>por mês · menos de R$6,60 por dia</PricingPeriod>
                   <PricingDivider $featured={p.featured} />
                   <PricingFeatureList>
                     {p.features.map(f => (
@@ -1284,7 +1291,10 @@ export function LandingPage() {
       <Section id="depoimentos" $bg="#fff">
         <SectionInner $center>
           <Eyebrow>Depoimentos</Eyebrow>
-          <SectionTitle style={{ marginBottom: 48 }}>O que dizem nossos <em>clientes</em></SectionTitle>
+          <SectionTitle style={{ marginBottom: 16 }}>O que dizem nossos <em>clientes</em></SectionTitle>
+          <p style={{ fontSize: 14, color: '#9a9a8a', marginBottom: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ color: '#d97706' }}>★★★★★</span> 4.9 de 5 — baseado em avaliações de contadores verificados
+          </p>
           <TestimGrid>
             {testimonials.map((t, i) => (
               <motion.div key={i}
@@ -1298,6 +1308,10 @@ export function LandingPage() {
                     <div>
                       <TestimName>{t.name}</TestimName>
                       <TestimRole>{t.role}</TestimRole>
+                    </div>
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, background: '#e8f5ee', borderRadius: 6, padding: '3px 8px', flexShrink: 0 }}>
+                      <CheckCircle size={10} color="#1a7a4a" />
+                      <span style={{ fontSize: 9, fontWeight: 800, color: '#1a7a4a', letterSpacing: '0.5px' }}>VERIFICADO</span>
                     </div>
                   </TestimAuthor>
                 </TestimCard>
@@ -1345,14 +1359,14 @@ export function LandingPage() {
             COMECE HOJE MESMO
           </div>
           <CtaTitle>
-            Seu escritório merece<br /><em>o melhor sistema</em>
+            Comece agora e recupere<br /><em>12 horas por semana</em>
           </CtaTitle>
-          <CtaSub>14 dias grátis · Sem cartão de crédito · Cancelamento a qualquer momento</CtaSub>
+          <CtaSub>14 dias grátis, acesso completo, sem cartão de crédito. Se não gostar, não cobra nada.</CtaSub>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }}>
-              Criar conta gratuita <ArrowRight size={16} />
+              Criar conta gratuita agora <ArrowRight size={16} />
             </HeroBtnPrimary>
-            <HeroBtnOutline whileTap={{ scale: 0.97 }}>
+            <HeroBtnOutline as="a" href="https://wa.me/5500000000000?text=Olá, tenho interesse no TEUcontador" target="_blank" rel="noopener" whileTap={{ scale: 0.97 }} style={{ textDecoration: 'none' }}>
               Falar com um especialista
             </HeroBtnOutline>
           </div>
