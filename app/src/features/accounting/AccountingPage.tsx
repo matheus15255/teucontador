@@ -570,9 +570,14 @@ export function AccountingPage() {
       if (val.length >= 10) {
         aiDebounceRef.current = setTimeout(async () => {
           setAiLoading(true)
-          const sugestao = await sugerirContasLancamento(val, contas)
-          setAiSugestao(sugestao)
-          setAiLoading(false)
+          try {
+            const sugestao = await sugerirContasLancamento(val, contas)
+            setAiSugestao(sugestao)
+          } catch (err: any) {
+            toast.error('IA indisponível: ' + (err?.message || 'erro desconhecido'))
+          } finally {
+            setAiLoading(false)
+          }
         }, 700)
       }
     }

@@ -20,7 +20,7 @@ async function callAI(system: string, userMessage: string, maxTokens = 400): Pro
   })
 
   const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Erro na IA')
+  if (!res.ok) throw new Error(data.error || `Erro na IA (${res.status})`)
   return data.content?.[0]?.text ?? ''
 }
 
@@ -53,14 +53,10 @@ Se não tiver contas suficientes para sugerir com segurança, retorne {"conta_de
 Plano de contas disponível:
 ${contasList || 'Nenhuma conta cadastrada ainda.'}`
 
-  try {
-    const text = await callAI(system, userMessage, 200)
-    const json = JSON.parse(text.trim())
-    if (!json.conta_debito && !json.conta_credito) return null
-    return json as AISugestaoLancamento
-  } catch {
-    return null
-  }
+  const text = await callAI(system, userMessage, 200)
+  const json = JSON.parse(text.trim())
+  if (!json.conta_debito && !json.conta_credito) return null
+  return json as AISugestaoLancamento
 }
 
 // ─── Sugestões de conciliação ────────────────────────────────────────────────
@@ -95,12 +91,8 @@ Responda APENAS com JSON válido:
 Lançamentos disponíveis:
 ${lancList}`
 
-  try {
-    const text = await callAI(system, userMessage, 300)
-    const json = JSON.parse(text.trim())
-    if (!Array.isArray(json.ids) || json.ids.length === 0) return null
-    return { ids: json.ids.slice(0, 3), explicacao: json.explicacao }
-  } catch {
-    return null
-  }
+  const text = await callAI(system, userMessage, 300)
+  const json = JSON.parse(text.trim())
+  if (!Array.isArray(json.ids) || json.ids.length === 0) return null
+  return { ids: json.ids.slice(0, 3), explicacao: json.explicacao }
 }
