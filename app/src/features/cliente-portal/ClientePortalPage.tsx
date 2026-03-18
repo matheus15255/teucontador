@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { motion } from 'framer-motion'
-import { LogOut, TrendingUp, TrendingDown, DollarSign, AlertCircle, Download, FileText, Link2, Clock, Sun, Moon } from 'lucide-react'
+import { LogOut, TrendingUp, TrendingDown, DollarSign, AlertCircle, Download, FileText, Link2, Clock, Sun, Moon, MessageCircle, Inbox, Receipt, CheckCircle, XCircle } from 'lucide-react'
 import ReactApexChart from 'react-apexcharts'
 import { supabase } from '../../lib/supabase'
 import { useClientePortalStore } from '../../stores/clientePortalStore'
@@ -46,6 +46,32 @@ interface Arquivo {
   size_bytes: number
   mimetype: string
   created_at: string
+}
+
+interface PortalHonorario {
+  id: string
+  mes_ref: string
+  valor: number
+  status: 'pendente' | 'pago' | 'atrasado'
+  data_pagamento?: string
+}
+
+interface PortalGuia {
+  id: string
+  tipo: string
+  descricao?: string
+  mes_ref: string
+  valor?: number
+  data_vencimento?: string
+  status: 'pendente' | 'emitida' | 'paga'
+}
+
+interface PortalDoc {
+  id: string
+  mes_ref: string
+  tipo_documento: string
+  status: 'aguardando' | 'recebido'
+  observacoes?: string
 }
 
 interface ClienteDados {
@@ -479,6 +505,201 @@ const Tab = styled.button<{ $active: boolean }>`
   &:hover { border-color: ${({ theme }) => theme.green}; color: ${({ $active, theme }) => $active ? '#fff' : theme.green}; }
 `
 
+// ─── New Portal Styled Components ─────────────────────────────────────────────
+
+const WhatsAppFab = styled.a`
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25d366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45);
+  z-index: 999;
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(37, 211, 102, 0.6); }
+  @media (max-width: 600px) { bottom: 18px; right: 16px; }
+`
+
+const UrgencyDays = styled.span<{ $urgency: 'atrasado' | 'critico' | 'urgente' | 'normal' | 'ok' }>`
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  background: ${({ $urgency, theme }) =>
+    $urgency === 'atrasado' ? theme.negBg :
+    $urgency === 'critico'  ? '#fff3cd' :
+    $urgency === 'urgente'  ? '#fff8e6' :
+    $urgency === 'ok'       ? theme.posBg : theme.surface3};
+  color: ${({ $urgency, theme }) =>
+    $urgency === 'atrasado' ? theme.neg :
+    $urgency === 'critico'  ? '#92400e' :
+    $urgency === 'urgente'  ? '#b45309' :
+    $urgency === 'ok'       ? theme.pos : theme.textDim};
+`
+
+const HonorGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+`
+
+const HonorCard = styled.div<{ $status: string }>`
+  background: ${({ theme, $status }) =>
+    $status === 'pago' ? theme.posBg :
+    $status === 'atrasado' ? theme.negBg : theme.warnBg};
+  border: 1.5px solid ${({ theme, $status }) =>
+    $status === 'pago' ? theme.pos + '44' :
+    $status === 'atrasado' ? theme.neg + '44' : theme.warn + '44'};
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`
+
+const HonorMes = styled.div`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textMid};
+`
+
+const HonorValor = styled.div`
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.text};
+`
+
+const HonorStatusTag = styled.div<{ $status: string }>`
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${({ theme, $status }) =>
+    $status === 'pago' ? theme.pos :
+    $status === 'atrasado' ? theme.neg : theme.warn};
+`
+
+const GuiaPortalList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`
+
+const GuiaPortalItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  &:last-child { border-bottom: none; }
+`
+
+const GuiaTipoTag = styled.div`
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #1a7a4a;
+  background: #e8f5ee;
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+`
+
+const GuiaPortalInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`
+
+const GuiaPortalDesc = styled.div`
+  font-size: 13px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+const GuiaPortalMeta = styled.div`
+  font-size: 11px;
+  color: ${({ theme }) => theme.textDim};
+  margin-top: 2px;
+`
+
+const GuiaPortalValor = styled.div<{ $status: string }>`
+  font-size: 15px;
+  font-weight: 700;
+  color: ${({ theme, $status }) => $status === 'paga' ? theme.pos : theme.text};
+  white-space: nowrap;
+  flex-shrink: 0;
+`
+
+const DocPortalList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`
+
+const DocPortalItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  &:last-child { border-bottom: none; }
+`
+
+const DocPortalIconWrap = styled.div<{ $recebido: boolean }>`
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: ${({ theme, $recebido }) => $recebido ? theme.posBg : theme.warnBg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme, $recebido }) => $recebido ? theme.pos : theme.warn};
+  flex-shrink: 0;
+`
+
+const DocPortalInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`
+
+const DocPortalTipo = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+`
+
+const DocPortalMeta = styled.div`
+  font-size: 11px;
+  color: ${({ theme }) => theme.textDim};
+  margin-top: 2px;
+`
+
+const DocPortalStatus = styled.div<{ $recebido: boolean }>`
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: ${({ theme, $recebido }) => $recebido ? theme.posBg : theme.warnBg};
+  color: ${({ theme, $recebido }) => $recebido ? theme.pos : theme.warn};
+  white-space: nowrap;
+  flex-shrink: 0;
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmtCurrency = (v: number) =>
@@ -493,6 +714,39 @@ const fmtDate = (d: string) => {
 const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth() + 1
 
+const diffDays = (dateStr: string): number => {
+  const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
+  const venc = new Date(dateStr + 'T00:00:00')
+  return Math.ceil((venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+const obrigUrgency = (o: Obrigacao): 'atrasado' | 'critico' | 'urgente' | 'normal' | 'ok' => {
+  if (o.status === 'transmitido') return 'ok'
+  if (o.status === 'atrasado') return 'atrasado'
+  const d = diffDays(o.vencimento)
+  if (d < 0) return 'atrasado'
+  if (d <= 3) return 'critico'
+  if (d <= 7) return 'urgente'
+  return 'normal'
+}
+
+const urgencyLabel = (o: Obrigacao): string => {
+  if (o.status === 'transmitido') return 'Transmitido'
+  const d = diffDays(o.vencimento)
+  if (d < 0) return `${Math.abs(d)}d atrasado`
+  if (d === 0) return 'Vence hoje!'
+  if (d === 1) return 'Vence amanhã'
+  return `${d} dias`
+}
+
+const fmtMesRef = (m: string) => {
+  if (!m) return '—'
+  const [y, mo] = m.split('-')
+  const names = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+  return `${names[parseInt(mo) - 1]}/${y}`
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ClientePortalPage() {
@@ -502,6 +756,9 @@ export function ClientePortalPage() {
   const [dados, setDados] = useState<ClienteDados | null>(null)
   const [loading, setLoading] = useState(true)
   const [concilTab, setConcilTab] = useState<'todas' | 'conciliadas' | 'pendentes'>('todas')
+  const [honorarios, setHonorarios] = useState<PortalHonorario[]>([])
+  const [guias, setGuias] = useState<PortalGuia[]>([])
+  const [docs, setDocs] = useState<PortalDoc[]>([])
 
   useEffect(() => {
     if (!session) {
@@ -510,16 +767,21 @@ export function ClientePortalPage() {
     }
     const fetchDados = async () => {
       setLoading(true)
-      const { data, error } = await supabase.rpc('get_cliente_dados', {
-        p_id: session.id,
-        p_senha: session.senha_acesso,
-      })
-      if (error || !data) {
-        console.error(error)
+      const [dadosRes, honorRes, guiasRes, docsRes] = await Promise.allSettled([
+        supabase.rpc('get_cliente_dados',    { p_id: session.id, p_senha: session.senha_acesso }),
+        supabase.rpc('get_cliente_honorarios', { p_id: session.id, p_senha: session.senha_acesso }),
+        supabase.rpc('get_cliente_guias',    { p_id: session.id, p_senha: session.senha_acesso }),
+        supabase.rpc('get_cliente_docs',     { p_id: session.id, p_senha: session.senha_acesso }),
+      ])
+      if (dadosRes.status === 'rejected' || !('value' in dadosRes) || dadosRes.value.error || !dadosRes.value.data) {
+        console.error('Portal fetch failed')
         navigate('/portal')
         return
       }
-      setDados(data as ClienteDados)
+      setDados(dadosRes.value.data as ClienteDados)
+      if (honorRes.status === 'fulfilled' && honorRes.value.data) setHonorarios((honorRes.value.data as PortalHonorario[]) || [])
+      if (guiasRes.status === 'fulfilled' && guiasRes.value.data) setGuias((guiasRes.value.data as PortalGuia[]) || [])
+      if (docsRes.status === 'fulfilled' && docsRes.value.data) setDocs((docsRes.value.data as PortalDoc[]) || [])
       setLoading(false)
     }
     fetchDados()
@@ -745,7 +1007,12 @@ export function ClientePortalPage() {
               {/* Obrigações */}
               <Section>
                 <SectionHeader>
-                  <SectionTitle>Obrigações</SectionTitle>
+                  <SectionTitle>Obrigações Fiscais</SectionTitle>
+                  {obrigacoesPendentes > 0 && (
+                    <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+                      {obrigacoesPendentes} pendente{obrigacoesPendentes > 1 ? 's' : ''}
+                    </span>
+                  )}
                 </SectionHeader>
                 <Card>
                   <Table>
@@ -753,20 +1020,27 @@ export function ClientePortalPage() {
                       <tr>
                         <Th>Tipo</Th>
                         <Th>Vencimento</Th>
+                        <Th>Prazo</Th>
                         <Th>Status</Th>
                       </tr>
                     </thead>
                     <tbody>
-                      {obrigacoes.slice(0, 10).length === 0 ? (
-                        <EmptyRow><td colSpan={3}>Nenhuma obrigação registrada</td></EmptyRow>
+                      {obrigacoes.slice(0, 12).length === 0 ? (
+                        <EmptyRow><td colSpan={4}>Nenhuma obrigação registrada</td></EmptyRow>
                       ) : (
-                        obrigacoes.slice(0, 10).map(o => (
-                          <TRow key={o.id}>
-                            <Td>{o.tipo}</Td>
-                            <Td>{fmtDate(o.vencimento)}</Td>
-                            <Td><StatusBadge $status={o.status}>{o.status ?? '—'}</StatusBadge></Td>
-                          </TRow>
-                        ))
+                        obrigacoes.slice(0, 12).map(o => {
+                          const urgency = obrigUrgency(o)
+                          return (
+                            <TRow key={o.id}>
+                              <Td style={{ fontWeight: 600 }}>{o.tipo}</Td>
+                              <Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(o.vencimento)}</Td>
+                              <Td>
+                                <UrgencyDays $urgency={urgency}>{urgencyLabel(o)}</UrgencyDays>
+                              </Td>
+                              <Td><StatusBadge $status={o.status}>{o.status === 'transmitido' ? 'Transmitido' : o.status === 'atrasado' ? 'Atrasado' : 'Pendente'}</StatusBadge></Td>
+                            </TRow>
+                          )
+                        })
                       )}
                     </tbody>
                   </Table>
@@ -806,6 +1080,106 @@ export function ClientePortalPage() {
                 </Card>
               </Section>
             </TwoColGrid>
+
+            {/* Honorários */}
+            {honorarios.length > 0 && (
+              <Section>
+                <SectionHeader>
+                  <SectionTitle>Seus Honorários</SectionTitle>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>Mensalidade do escritório</span>
+                </SectionHeader>
+                <HonorGrid>
+                  {honorarios.map(h => (
+                    <HonorCard key={h.id} $status={h.status}>
+                      <HonorMes>{fmtMesRef(h.mes_ref)}</HonorMes>
+                      <HonorValor>{fmtCurrency(h.valor)}</HonorValor>
+                      <HonorStatusTag $status={h.status}>
+                        {h.status === 'pago' ? '✓ Pago' : h.status === 'atrasado' ? '⚠ Atrasado' : '⏳ Pendente'}
+                      </HonorStatusTag>
+                      {h.data_pagamento && (
+                        <div style={{ fontSize: 10, opacity: 0.6 }}>Pago em {fmtDate(h.data_pagamento)}</div>
+                      )}
+                    </HonorCard>
+                  ))}
+                </HonorGrid>
+              </Section>
+            )}
+
+            {/* Guias para Pagar */}
+            {guias.length > 0 && (
+              <Section>
+                <SectionHeader>
+                  <SectionTitle>Guias para Pagar</SectionTitle>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>
+                    {guias.filter(g => g.status !== 'paga').length} pendente{guias.filter(g => g.status !== 'paga').length !== 1 ? 's' : ''}
+                  </span>
+                </SectionHeader>
+                <Card>
+                  <GuiaPortalList>
+                    {guias.map(g => (
+                      <GuiaPortalItem key={g.id}>
+                        <GuiaTipoTag>{g.tipo}</GuiaTipoTag>
+                        <GuiaPortalInfo>
+                          <GuiaPortalDesc>{g.descricao || g.tipo}</GuiaPortalDesc>
+                          <GuiaPortalMeta>
+                            {fmtMesRef(g.mes_ref)}
+                            {g.data_vencimento && (
+                              <>
+                                {' · Vence '}
+                                <UrgencyDays $urgency={g.status === 'paga' ? 'ok' : (() => { const d = diffDays(g.data_vencimento!); return d < 0 ? 'atrasado' : d <= 3 ? 'critico' : d <= 7 ? 'urgente' : 'normal' })()}>
+                                  {fmtDate(g.data_vencimento)}
+                                </UrgencyDays>
+                              </>
+                            )}
+                          </GuiaPortalMeta>
+                        </GuiaPortalInfo>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                          {g.valor != null && (
+                            <GuiaPortalValor $status={g.status}>{fmtCurrency(g.valor)}</GuiaPortalValor>
+                          )}
+                          <StatusBadge $status={g.status === 'paga' ? 'transmitido' : g.status === 'emitida' ? 'pendente' : 'pendente'}>
+                            {g.status === 'paga' ? 'Paga' : g.status === 'emitida' ? 'Emitida' : 'Pendente'}
+                          </StatusBadge>
+                        </div>
+                      </GuiaPortalItem>
+                    ))}
+                  </GuiaPortalList>
+                </Card>
+              </Section>
+            )}
+
+            {/* Documentos Aguardados */}
+            {docs.length > 0 && (
+              <Section>
+                <SectionHeader>
+                  <SectionTitle>Documentos Aguardados</SectionTitle>
+                  <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+                    {docs.filter(d => d.status === 'aguardando').length} aguardando envio
+                  </span>
+                </SectionHeader>
+                <Card>
+                  <DocPortalList>
+                    {docs.map(d => (
+                      <DocPortalItem key={d.id}>
+                        <DocPortalIconWrap $recebido={d.status === 'recebido'}>
+                          {d.status === 'recebido' ? <CheckCircle size={16} /> : <Inbox size={16} />}
+                        </DocPortalIconWrap>
+                        <DocPortalInfo>
+                          <DocPortalTipo>{d.tipo_documento}</DocPortalTipo>
+                          <DocPortalMeta>
+                            {fmtMesRef(d.mes_ref)}
+                            {d.observacoes && ` · ${d.observacoes}`}
+                          </DocPortalMeta>
+                        </DocPortalInfo>
+                        <DocPortalStatus $recebido={d.status === 'recebido'}>
+                          {d.status === 'recebido' ? '✓ Recebido' : '⏳ Aguardando'}
+                        </DocPortalStatus>
+                      </DocPortalItem>
+                    ))}
+                  </DocPortalList>
+                </Card>
+              </Section>
+            )}
 
             {/* Meus Arquivos */}
             <Section>
@@ -948,6 +1322,16 @@ export function ClientePortalPage() {
           </>
         )}
       </Content>
+
+      {/* WhatsApp Floating Button */}
+      <WhatsAppFab
+        href="https://wa.me/5513991169000?text=Olá, sou cliente do escritório e gostaria de falar com o contador"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Falar com o escritório pelo WhatsApp"
+      >
+        <MessageCircle size={26} color="#fff" fill="#fff" />
+      </WhatsAppFab>
     </Wrapper>
   )
 }
