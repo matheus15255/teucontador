@@ -2,10 +2,25 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Lock, User, Building2, Eye, EyeOff, Check, ChevronRight } from 'lucide-react'
+import { Mail, Lock, User, Building2, Eye, EyeOff, Check, ChevronRight, Hash } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
+
+function formatCpfCnpj(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 14)
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+  }
+  return digits
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+}
 
 type View = 'login' | 'register' | 'forgot' | 'forgot-ok' | 'success'
 
@@ -545,6 +560,7 @@ export function LoginPage() {
   const [regEmail, setRegEmail] = useState('')
   const [regPwd, setRegPwd] = useState('')
   const [regEscritorio, setRegEscritorio] = useState('')
+  const [regCpfCnpj, setRegCpfCnpj] = useState('')
   const [terms, setTerms] = useState(false)
 
   const [forgotEmail, setForgotEmail] = useState('')
@@ -580,12 +596,23 @@ export function LoginPage() {
     })
     if (error) { toast.error(error.message); setLoading(false); return }
     if (data.user) {
-      await supabase.from('escritorios').insert({
+      const { error: insertError } = await supabase.from('escritorios').insert({
         user_id: data.user.id,
         nome: regEscritorio || `${regNome} ${regSobrenome}`.trim(),
         plano: selectedPlan,
-        email: regEmail
+        email: regEmail,
+        cpf_cnpj: regCpfCnpj.replace(/\D/g, '')
       })
+      if (insertError) {
+        if (insertError.code === '23505') {
+          toast.error('CPF/CNPJ já cadastrado. Se você já tem uma conta, faça login.')
+        } else {
+          toast.error(insertError.message)
+        }
+        await supabase.auth.signOut()
+        setLoading(false)
+        return
+      }
     }
     setLoading(false)
     setView('success')
@@ -841,6 +868,17 @@ export function LoginPage() {
                           <Input placeholder="Ex: Contabilidade Silva & Associados" value={regEscritorio} onChange={e => setRegEscritorio(e.target.value)} />
                         </InputWrap>
                       </Field>
+                      <Field>
+                        <FieldLabel>CPF ou CNPJ do Responsável</FieldLabel>
+                        <InputWrap>
+                          <Hash size={15} />
+                          <Input
+                            placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                            value={regCpfCnpj}
+                            onChange={e => setRegCpfCnpj(formatCpfCnpj(e.target.value))}
+                          />
+                        </InputWrap>
+                      </Field>
                       <FieldLabel>Escolha seu plano</FieldLabel>
                       <PlanGrid>
                         {plans.map(p => (
@@ -855,7 +893,19 @@ export function LoginPage() {
                         <BackBtn type="button" onClick={() => setRegStep(1)} whileTap={{ scale: 0.98 }}>
                           Voltar
                         </BackBtn>
-                        <SubmitBtn type="button" onClick={() => setRegStep(3)} whileTap={{ scale: 0.98 }} style={{ flex: 1 }}>
+                        <SubmitBtn
+                          type="button"
+                          onClick={() => {
+                            const digits = regCpfCnpj.replace(/\D/g, '')
+                            if (digits.length !== 11 && digits.length !== 14) {
+                              toast.error('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido')
+                              return
+                            }
+                            setRegStep(3)
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                          style={{ flex: 1 }}
+                        >
                           Continuar <ChevronRight size={16} />
                         </SubmitBtn>
                       </BtnRow>
@@ -869,6 +919,7 @@ export function LoginPage() {
                         <div>👤 {regNome} {regSobrenome}</div>
                         <div>📧 {regEmail}</div>
                         <div>🏢 {regEscritorio || `${regNome} ${regSobrenome}`}</div>
+                        <div>🪪 {regCpfCnpj}</div>
                         <div>📦 Plano {plans.find(p => p.id === selectedPlan)?.name} — {plans.find(p => p.id === selectedPlan)?.price}/mês</div>
                       </div>
                       <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>

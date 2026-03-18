@@ -23,6 +23,29 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18 (anti-trial abuse)
+
+### Feat: CPF/CNPJ obrigatório no cadastro + constraint UNIQUE
+
+**Problema:** Usuários podiam criar múltiplas contas com e-mails diferentes para reutilizar o período de trial de 14 dias.
+
+**Solução implementada:**
+
+**Arquivos alterados:**
+- `app/src/features/auth/LoginPage.tsx` — adicionado campo CPF/CNPJ no Step 2 do cadastro com máscara automática (CPF/CNPJ), validação de dígitos e tratamento de erro de duplicidade (código PostgreSQL `23505`)
+- `supabase/add_cpf_cnpj_unique.sql` — migration que adiciona `UNIQUE CONSTRAINT` na coluna `cpf_cnpj` da tabela `escritorios`
+
+**Lógica:**
+- CPF/CNPJ é formatado automaticamente conforme digitação
+- Não avança para o Step 3 sem CPF/CNPJ válido (11 ou 14 dígitos)
+- Armazenado apenas os dígitos no banco (sem formatação)
+- Se o CPF/CNPJ já existe, o `signUp` do Supabase é desfeito com `signOut()` e o usuário vê mensagem clara de que já possui conta
+- Step 3 (resumo) agora exibe o CPF/CNPJ informado
+
+**SQL a rodar no Supabase:** `supabase/add_cpf_cnpj_unique.sql`
+
+---
+
 ## Sessão — 2026-03-18 (portal do cliente)
 
 ### Feat: seções novas no portal do cliente
