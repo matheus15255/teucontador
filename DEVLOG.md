@@ -22,6 +22,23 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18
+
+### Fix: modal de conciliação dark mode + IA carregando dados
+
+**Arquivos alterados:**
+- `app/src/features/reconciliation/ReconciliationPage.tsx`
+
+**Problemas resolvidos:**
+
+1. **Dark mode**: O modal "Vincular Lançamento" ficava todo branco no tema escuro porque usava inline styles com cores hardcoded (`#f3f4f6`, `#9ca3af`). Substituídos por styled-components temáticos: `TransInfoBox` (usa `theme.surface2`/`theme.border`), `AISugestaoItem`, `AIDimText` (usa `theme.textDim`), `StatusPill` (usa `theme.posBg`/`theme.pos`).
+
+2. **IA não carregava**: `sugerirConciliacao` nunca rodava porque `useDataStore.getState().lancamentos` ficava vazio quando o usuário não tinha visitado a página de Contabilidade nessa sessão. Adicionado fallback: se cache vazio, busca direto do Supabase (limit 200).
+
+3. **Erros silenciosos da IA**: Adicionado `try/catch` com `toast.error` para exibir mensagem quando a IA falha.
+
+---
+
 ## Sessão — 2026-03-14
 
 ### Responsividade global — todas as páginas adaptadas para mobile
