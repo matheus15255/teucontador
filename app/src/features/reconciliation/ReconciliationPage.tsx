@@ -22,6 +22,32 @@ const AISugestaoBar = styled.div`
   color: ${({ theme }) => theme.textDim}; font-style: italic;
 `
 
+const TransInfoBox = styled.div`
+  font-size: 12px; margin-bottom: 16px; padding: 10px 14px;
+  background: ${({ theme }) => theme.surface2}; border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.border};
+`
+
+const AISugestaoItem = styled.div<{ $selected?: boolean }>`
+  padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;
+  background: ${({ $selected }) => $selected ? 'rgba(26,122,74,0.12)' : 'rgba(26,122,74,0.05)'};
+  border: 1.5px solid ${({ $selected }) => $selected ? 'rgba(26,122,74,0.4)' : 'rgba(26,122,74,0.15)'};
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  transition: background 0.15s, border-color 0.15s;
+  &:hover { background: rgba(26,122,74,0.1); border-color: rgba(26,122,74,0.3); }
+`
+
+const AIDimText = styled.span`
+  font-size: 11px; color: ${({ theme }) => theme.textDim};
+`
+
+const StatusPill = styled.span<{ $done?: boolean }>`
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px;
+  border-radius: 20px; font-size: 10.5px; font-weight: 600;
+  background: ${({ theme, $done }) => $done ? theme.posBg : theme.surface2};
+  color: ${({ theme, $done }) => $done ? theme.pos : theme.textDim};
+`
+
 const overlayIn = keyframes`from { opacity: 0; } to { opacity: 1; }`
 const modalIn = keyframes`from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); }`
 
@@ -340,27 +366,45 @@ export function ReconciliationPage() {
     setLancamentoSelecionado('')
     setAiSugestoesConc([])
     setAiExplicacao('')
-    const cached = useDataStore.getState().lancamentos.map((l: any) => ({
+
+    let cached = useDataStore.getState().lancamentos.map((l: any) => ({
       id: l.id,
       historico: l.historico,
       valor: l.valor,
       tipo: l.tipo,
       data_lanc: l.data_lanc,
     }))
+
+    // Se o cache estiver vazio, busca do Supabase diretamente
+    if (cached.length === 0 && escId) {
+      const { data } = await supabase
+        .from('lancamentos')
+        .select('id, historico, valor, tipo, data_lanc')
+        .eq('escritorio_id', escId)
+        .order('data_lanc', { ascending: false })
+        .limit(200)
+      if (data && data.length > 0) cached = data
+    }
+
     setLancamentos(cached)
 
     // Pede sugestões da IA em background
     if (cached.length > 0) {
       setAiLoadingConc(true)
-      const sugestao = await sugerirConciliacao(
-        { descricao: t.descricao, valor: t.valor, tipo: t.tipo ?? '', data_transacao: t.data_transacao },
-        cached
-      )
-      if (sugestao) {
-        setAiSugestoesConc(sugestao.ids)
-        setAiExplicacao(sugestao.explicacao)
+      try {
+        const sugestao = await sugerirConciliacao(
+          { descricao: t.descricao, valor: t.valor, tipo: t.tipo ?? '', data_transacao: t.data_transacao },
+          cached
+        )
+        if (sugestao) {
+          setAiSugestoesConc(sugestao.ids)
+          setAiExplicacao(sugestao.explicacao)
+        }
+      } catch {
+        toast.error('IA indisponível no momento')
+      } finally {
+        setAiLoadingConc(false)
       }
-      setAiLoadingConc(false)
     }
   }
 
@@ -592,14 +636,9 @@ export function ReconciliationPage() {
                         {fmt(t.valor)}
                       </td>
                       <td>
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 9px',
-                          borderRadius: 20, fontSize: 10.5, fontWeight: 600,
-                          background: t.lancamento_id ? '#dcfce7' : '#f3f4f6',
-                          color: t.lancamento_id ? '#166534' : '#6b7280',
-                        }}>
+                        <StatusPill $done={!!t.lancamento_id}>
                           {t.lancamento_id ? '✓ Conciliada' : 'Pendente'}
-                        </span>
+                        </StatusPill>
                       </td>
                       <td>
                         {t.lancamento_id ? (
@@ -633,12 +672,12 @@ export function ReconciliationPage() {
               Vincular Lançamento
               <X size={18} style={{ cursor: 'pointer', opacity: 0.5 }} onClick={() => setConciliarTransacao(null)} />
             </ModalTitle>
-            <div style={{ fontSize: 12, marginBottom: 16, padding: '10px 14px', background: '#f3f4f6', borderRadius: 8 }}>
+            <TransInfoBox>
               <strong>{conciliarTransacao.descricao}</strong>
               <span style={{ float: 'right', fontWeight: 600, color: conciliarTransacao.tipo === 'credito' ? '#1a7a4a' : '#c53030' }}>
                 {fmt(conciliarTransacao.valor)}
               </span>
-            </div>
+            </TransInfoBox>
             {/* Sugestões da IA */}
             {aiLoadingConc && (
               <AISugestaoBar>
@@ -650,31 +689,24 @@ export function ReconciliationPage() {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <AIBadge><Sparkles size={10} /> Sugestões da IA</AIBadge>
-                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{aiExplicacao}</span>
+                  <AIDimText>{aiExplicacao}</AIDimText>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {aiSugestoesConc.map((id, idx) => {
                     const l = lancamentos.find(x => x.id === id)
                     if (!l) return null
                     return (
-                      <div key={id}
-                        onClick={() => setLancamentoSelecionado(id)}
-                        style={{
-                          padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12,
-                          background: lancamentoSelecionado === id ? 'rgba(26,122,74,0.12)' : 'rgba(26,122,74,0.05)',
-                          border: `1.5px solid ${lancamentoSelecionado === id ? 'rgba(26,122,74,0.4)' : 'rgba(26,122,74,0.15)'}`,
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
-                        }}>
+                      <AISugestaoItem key={id} $selected={lancamentoSelecionado === id} onClick={() => setLancamentoSelecionado(id)}>
                         <span>
                           <span style={{ fontWeight: 700, marginRight: 6, color: '#1a7a4a' }}>#{idx + 1}</span>
                           {l.data_lanc ? new Date(l.data_lanc + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} · {l.historico}
                         </span>
                         <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{fmt(l.valor)}</span>
-                      </div>
+                      </AISugestaoItem>
                     )
                   })}
                 </div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, marginBottom: 4 }}>— ou escolha manualmente —</div>
+                <AIDimText style={{ display: 'block', marginTop: 6, marginBottom: 4 }}>— ou escolha manualmente —</AIDimText>
               </div>
             )}
 
@@ -690,9 +722,9 @@ export function ReconciliationPage() {
               </Select>
             </Field>
             {lancamentos.length === 0 && (
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>
-                Nenhum lançamento do mesmo tipo encontrado. Crie o lançamento em Contabilidade primeiro.
-              </div>
+              <AIDimText style={{ display: 'block', fontSize: 12, marginBottom: 12 }}>
+                Nenhum lançamento encontrado. Crie o lançamento em Contabilidade primeiro.
+              </AIDimText>
             )}
             <SaveBtn onClick={confirmarConciliar} disabled={!lancamentoSelecionado || conciliando}>
               {conciliando ? 'Salvando…' : 'Confirmar Conciliação'}
