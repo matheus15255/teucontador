@@ -15,6 +15,7 @@ import { NotificacoesDropdown } from '../NotificacoesDropdown'
 import { useSubscription } from '../../hooks/useSubscription'
 import { TrialBanner } from '../../features/subscription/TrialBanner'
 import { PaywallModal } from '../../features/subscription/PaywallModal'
+import { ChatbotWidget } from '../ChatbotWidget'
 
 const navGroups = [
   {
@@ -493,6 +494,7 @@ export function AppLayout() {
           <Outlet />
         </Content>
       </Main>
+      <ChatbotWidget />
     </Wrap>
   )
 }
