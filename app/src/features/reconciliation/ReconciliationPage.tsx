@@ -1,12 +1,26 @@
 import { useEffect, useState, useRef } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { motion } from 'framer-motion'
-import { Upload, Search, Link, Plus, X, Trash2 } from 'lucide-react'
+import { Upload, Search, Link, Plus, X, Trash2, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import type { TransacaoBancaria, Cliente } from '../../types'
+import { sugerirConciliacao } from '../../lib/aiHelper'
+
+const AIBadge = styled.div`
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(26,122,74,0.1); border: 1px solid rgba(26,122,74,0.25);
+  border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+  color: ${({ theme }) => theme.green}; letter-spacing: .3px; white-space: nowrap;
+`
+const AISugestaoBar = styled.div`
+  background: linear-gradient(135deg, rgba(26,122,74,0.07), rgba(26,122,74,0.03));
+  border: 1px solid rgba(26,122,74,0.18); border-radius: 9px;
+  padding: 10px 14px; margin-bottom: 10px; font-size: 12px;
+  color: ${({ theme }) => theme.textDim}; font-style: italic;
+`
 
 const overlayIn = keyframes`from { opacity: 0; } to { opacity: 1; }`
 const modalIn = keyframes`from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); }`
@@ -260,6 +274,9 @@ export function ReconciliationPage() {
   const [lancamentoSelecionado, setLancamentoSelecionado] = useState('')
   const [conciliando, setConciliando] = useState(false)
   const [desfazendoId, setDesfazendoId] = useState<string | null>(null)
+  const [aiSugestoesConc, setAiSugestoesConc] = useState<string[]>([])
+  const [aiExplicacao, setAiExplicacao] = useState('')
+  const [aiLoadingConc, setAiLoadingConc] = useState(false)
   const [ofxParsed, setOfxParsed] = useState<{ date: string; amount: number; description: string }[]>([])
   const [ofxClienteId, setOfxClienteId] = useState('')
   const [showOFXModal, setShowOFXModal] = useState(false)
@@ -318,10 +335,11 @@ export function ReconciliationPage() {
   const conciliadas  = transacoes.filter(t => t.lancamento_id).length
   const pendentes    = transacoes.filter(t => !t.lancamento_id).length
 
-  const abrirConciliar = (t: TransacaoBancaria) => {
+  const abrirConciliar = async (t: TransacaoBancaria) => {
     setConciliarTransacao(t)
     setLancamentoSelecionado('')
-    // Usa cache do dataStore — sem query adicional ao Supabase
+    setAiSugestoesConc([])
+    setAiExplicacao('')
     const cached = useDataStore.getState().lancamentos.map((l: any) => ({
       id: l.id,
       historico: l.historico,
@@ -330,6 +348,20 @@ export function ReconciliationPage() {
       data_lanc: l.data_lanc,
     }))
     setLancamentos(cached)
+
+    // Pede sugestões da IA em background
+    if (cached.length > 0) {
+      setAiLoadingConc(true)
+      const sugestao = await sugerirConciliacao(
+        { descricao: t.descricao, valor: t.valor, tipo: t.tipo ?? '', data_transacao: t.data_transacao },
+        cached
+      )
+      if (sugestao) {
+        setAiSugestoesConc(sugestao.ids)
+        setAiExplicacao(sugestao.explicacao)
+      }
+      setAiLoadingConc(false)
+    }
   }
 
   const confirmarConciliar = async () => {
@@ -607,6 +639,45 @@ export function ReconciliationPage() {
                 {fmt(conciliarTransacao.valor)}
               </span>
             </div>
+            {/* Sugestões da IA */}
+            {aiLoadingConc && (
+              <AISugestaoBar>
+                <Sparkles size={12} style={{ display: 'inline', marginRight: 6 }} />
+                IA analisando lançamentos mais prováveis...
+              </AISugestaoBar>
+            )}
+            {!aiLoadingConc && aiSugestoesConc.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <AIBadge><Sparkles size={10} /> Sugestões da IA</AIBadge>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{aiExplicacao}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {aiSugestoesConc.map((id, idx) => {
+                    const l = lancamentos.find(x => x.id === id)
+                    if (!l) return null
+                    return (
+                      <div key={id}
+                        onClick={() => setLancamentoSelecionado(id)}
+                        style={{
+                          padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12,
+                          background: lancamentoSelecionado === id ? 'rgba(26,122,74,0.12)' : 'rgba(26,122,74,0.05)',
+                          border: `1.5px solid ${lancamentoSelecionado === id ? 'rgba(26,122,74,0.4)' : 'rgba(26,122,74,0.15)'}`,
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
+                        }}>
+                        <span>
+                          <span style={{ fontWeight: 700, marginRight: 6, color: '#1a7a4a' }}>#{idx + 1}</span>
+                          {l.data_lanc ? new Date(l.data_lanc + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} · {l.historico}
+                        </span>
+                        <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{fmt(l.valor)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, marginBottom: 4 }}>— ou escolha manualmente —</div>
+              </div>
+            )}
+
             <Field>
               <Label>Selecione o lançamento correspondente</Label>
               <Select value={lancamentoSelecionado} onChange={e => setLancamentoSelecionado(e.target.value)}>
