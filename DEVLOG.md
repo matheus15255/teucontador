@@ -861,4 +861,61 @@ setXxx(fresh || [])
 
 **Pendente para produção:**
 - Trocar chave AbacatePay dev → live (`abc_live_...`)
-- Coletar CPF/telefone real do usuário no checkout (hoje usa placeholder)
+- ~~Coletar CPF/telefone real do usuário no checkout (hoje usa placeholder)~~ ✅ resolvido em 2026-03-17
+
+---
+
+## Sessão — 2026-03-17
+
+### Landing page — simplificação para plano único
+
+**O que foi feito:**
+- `landing.html`: removidos planos Starter (R$149), Pro (R$349) e Enterprise (R$699), substituídos por 1 único card "TEUcontador — Plano Completo" a R$197/mês com todos os recursos
+- `css/landing.css`: adicionado `.plans-grid--single` para centralizar o card único (max-width 480px)
+- FAQ de suporte atualizado para refletir suporte único por WhatsApp
+- `app/src/features/landing/LandingPage.tsx`: array `plans` reduzido para 1 item, `PricingGrid` ajustado para coluna única, badge "Mais Popular" → "Plano Completo", FAQs atualizados removendo referências a Starter/Pro/Enterprise
+- `PaywallModal.tsx`: "Plano Pro" → "Plano Completo"
+
+---
+
+### Segurança e correções críticas no fluxo de pagamento
+
+#### 1. CPF/telefone hardcoded removidos do checkout
+**Problema:** `create-checkout` usava `'529.982.247-25'` e `'11999999999'` como fallback quando o escritório não tinha dados — pagamentos eram criados com CPF de outra pessoa.
+
+**Correção em `supabase/functions/create-checkout/index.ts`:**
+- Se `telefone` ou `cpf_cnpj` estiverem ausentes, retorna HTTP 422 com mensagem clara antes de chamar o AbacatePay
+- Validação de resposta da API: `custRes.ok` e `billingRes.ok` verificados — erros retornam 502 com detalhes reais
+- Removidos todos os `console.log` de dados sensíveis
+- Deploy realizado via Supabase CLI
+
+#### 2. Webhook com verificação de token
+**Problema:** Qualquer pessoa podia enviar POST forjado e marcar assinatura como `active` sem pagar.
+
+**Correção em `supabase/functions/abacatepay-webhook/index.ts`:**
+- Verifica `?token=` na URL ou header `x-webhook-token` contra env `ABACATEPAY_WEBHOOK_TOKEN`
+- Retorna 401 se token ausente ou inválido
+- Parse do body com tratamento de erro (JSON inválido → 400)
+
+**Configuração necessária:** definir `ABACATEPAY_WEBHOOK_TOKEN` nos Secrets do Supabase e atualizar URL do webhook no AbacatePay com `?token=SEU_TOKEN`
+
+#### 3. Coleta de perfil antes do checkout
+**Novos arquivos:**
+- `app/src/features/subscription/useCheckout.ts` — hook compartilhado: verifica se `telefone` e `cpf_cnpj` estão preenchidos; se não, abre `ProfileFormModal`; após salvar, prossegue para checkout
+- `app/src/features/subscription/ProfileFormModal.tsx` — modal com campos de telefone e CPF/CNPJ, salva no banco e segue para pagamento
+- `app/src/types/index.ts`: adicionados campos `telefone` e `cpf_cnpj` ao tipo `Escritorio`
+- `supabase/add_profile_fields.sql`: migration `ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS telefone TEXT, ADD COLUMN IF NOT EXISTS cpf_cnpj TEXT`
+
+**`TrialBanner.tsx` e `PaywallModal.tsx`** refatorados para usar `useCheckout` — lógica de checkout centralizada.
+
+#### 4. Extração de erro real da edge function
+**Problema:** Supabase client mascara erros de edge function com "Edge Function returned a non-2xx status code".
+
+**Correção em `useCheckout.ts`:** tenta parsear `error.context` como JSON para extrair a mensagem real da função antes de exibir no toast.
+
+#### 5. TrialBanner — preço visível no botão
+- Botão agora mostra "Assinar agora — R$ 197/mês" em vez de apenas "Assinar agora"
+
+#### 6. Deploy das edge functions via CLI
+- Instalado Supabase CLI (`/tmp/supabase.exe`)
+- Deploy de `create-checkout` e `abacatepay-webhook` para o projeto `qyjpuisuwaroftoilrvc`
