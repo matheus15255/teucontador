@@ -193,7 +193,9 @@ export function ChatbotWidget() {
       const token = session?.access_token
       if (!token) throw new Error('Não autenticado')
 
-      const apiMessages = history.map(m => ({ role: m.role, content: m.content }))
+      // Anthropic requires conversation to start with a user message
+      const firstUserIdx = history.findIndex(m => m.role === 'user')
+      const apiMessages = history.slice(firstUserIdx).map(m => ({ role: m.role, content: m.content }))
 
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chat`,
