@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 import type { Cliente } from '../../types'
 
 // ─── Styled Components ───────────────────────────────────────────────────────
@@ -550,6 +551,7 @@ function exportCsv(clients: Cliente[]) {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function ClientsPage() {
+  const { canEdit, canDelete } = usePermission()
   const { escritorio } = useAuthStore()
   const { clientes: cachedClientes, setClientes: setCachedClientes } = useDataStore()
   const [clientes, setClientes] = useState<Cliente[]>(cachedClientes)
@@ -731,7 +733,7 @@ export function ClientsPage() {
             <ExportBtn onClick={() => exportCsv(filtered)} whileTap={{ scale: 0.97 }} title="Exportar CSV">
               <Download size={14} /> Exportar CSV
             </ExportBtn>
-            <AddBtn onClick={openAdd} whileTap={{ scale: 0.97 }}>
+            <AddBtn onClick={openAdd} whileTap={{ scale: 0.97 }} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}>
               <Plus size={15} /> Novo Cliente
             </AddBtn>
           </HeaderActions>
@@ -805,11 +807,13 @@ export function ClientsPage() {
                       <td>
                         <ActionRow>
                           <ActBtn onClick={() => openView(c)} title="Visualizar"><Eye size={13} /></ActBtn>
-                          <ActBtn onClick={() => openEdit(c)} title="Editar"><Edit2 size={13} /></ActBtn>
+                          <ActBtn onClick={() => openEdit(c)} title="Editar" disabled={!canEdit}><Edit2 size={13} /></ActBtn>
                           <ActBtn onClick={() => openArquivos(c)} title="Arquivos do cliente"><FolderOpen size={13} /></ActBtn>
                           <ActBtn
                             onClick={() => handleDelete(c)}
                             title="Excluir"
+                            disabled={!canDelete}
+                            style={{ opacity: !canDelete ? 0.4 : undefined, cursor: !canDelete ? 'not-allowed' : undefined }}
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fdf0f0'; (e.currentTarget as HTMLButtonElement).style.color = '#c53030' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ''; (e.currentTarget as HTMLButtonElement).style.color = '' }}
                           ><Trash2 size={13} /></ActBtn>
@@ -1242,7 +1246,7 @@ export function ClientsPage() {
               <ModalFooter>
                 <CancelBtn onClick={closeModal}>{modal === 'view' ? 'Fechar' : 'Cancelar'}</CancelBtn>
                 {modal !== 'view' && (
-                  <SaveBtn onClick={handleSave} whileTap={{ scale: 0.97 }} disabled={saving}>
+                  <SaveBtn onClick={handleSave} whileTap={{ scale: 0.97 }} disabled={saving || !canEdit}>
                     {saving ? 'Salvando...' : modal === 'add' ? 'Cadastrar Cliente' : 'Salvar Alterações'}
                   </SaveBtn>
                 )}
@@ -1308,7 +1312,8 @@ export function ClientsPage() {
                           <ExternalLink size={15} />
                         </button>
                         <button onClick={() => handleArquivoDelete(a.id, a.storage_path)} title="Remover"
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}>
+                          disabled={!canDelete}
+                          style={{ background: 'none', border: 'none', cursor: !canDelete ? 'not-allowed' : 'pointer', color: '#9ca3af', padding: 4, opacity: !canDelete ? 0.4 : 1 }}>
                           <Trash2 size={14} />
                         </button>
                       </div>

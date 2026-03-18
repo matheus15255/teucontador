@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 import * as XLSX from 'xlsx'
 
 // ─── Styled ────────────────────────────────────────────────────────────────────
@@ -183,6 +184,7 @@ const mesLabel = (mes: string) => {
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 export function HonorariosPage() {
+  const { canEdit } = usePermission()
   const { escritorio } = useAuthStore()
   const { clientes, honorarios, setHonorarios } = useDataStore()
   const escId = escritorio?.id
@@ -355,7 +357,7 @@ export function HonorariosPage() {
         <Spacer />
         <ActionBtn onClick={exportExcel}><Download size={13} />Excel</ActionBtn>
         <ActionBtn onClick={gerarMes}><RefreshCw size={13} />Gerar Mês</ActionBtn>
-        <ActionBtn $variant="primary" onClick={() => setShowModal(true)}><Plus size={14} />Novo</ActionBtn>
+        <ActionBtn $variant="primary" onClick={() => setShowModal(true)} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}><Plus size={14} />Novo</ActionBtn>
       </Toolbar>
 
       <StatsRow>
@@ -402,12 +404,12 @@ export function HonorariosPage() {
             <Td>
               <BtnRow>
                 {h.status !== 'pago' && (
-                  <SmBtn $variant="green" disabled={updatingId === h.id} onClick={() => marcarPago(h)}>
+                  <SmBtn $variant="green" disabled={updatingId === h.id || !canEdit} onClick={() => marcarPago(h)}>
                     {updatingId === h.id ? '...' : '✓ Pago'}
                   </SmBtn>
                 )}
                 {h.status === 'pendente' && (
-                  <SmBtn disabled={updatingId === h.id} onClick={() => marcarAtrasado(h)}>
+                  <SmBtn disabled={updatingId === h.id || !canEdit} onClick={() => marcarAtrasado(h)}>
                     Atrasado
                   </SmBtn>
                 )}
@@ -462,7 +464,7 @@ export function HonorariosPage() {
             </ModalBody>
             <ModalFooter>
               <CancelBtn onClick={() => setShowModal(false)}>Cancelar</CancelBtn>
-              <SaveBtn disabled={saving} onClick={handleSave}>{saving ? 'Salvando...' : 'Salvar'}</SaveBtn>
+              <SaveBtn disabled={saving || !canEdit} onClick={handleSave}>{saving ? 'Salvando...' : 'Salvar'}</SaveBtn>
             </ModalFooter>
           </Modal>
         </Overlay>

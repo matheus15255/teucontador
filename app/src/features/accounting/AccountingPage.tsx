@@ -15,6 +15,7 @@ import autoTable from 'jspdf-autotable'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 import type { Lancamento, Cliente, ContaPlano, LancamentoModelo } from '../../types'
 
 // ─── Styled ─────────────────────────────────────────────────────────────────
@@ -228,6 +229,7 @@ const modalAnim = { initial: { scale: 0.93, opacity: 0, y: 20 }, animate: { scal
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function AccountingPage() {
+  const { canEdit, canDelete } = usePermission()
   const { escritorio } = useAuthStore()
   const escId = escritorio?.id
   const {
@@ -566,10 +568,10 @@ export function AccountingPage() {
             <Btn $variant="outline" onClick={exportExcel} whileTap={{ scale: 0.97 }}>
               <FileSpreadsheet size={14} /> Exportar Excel
             </Btn>
-            <Btn $variant="outline" onClick={() => { setModeloForm({ ...blankModelo }); setShowModeloModal(true) }} whileTap={{ scale: 0.97 }}>
+            <Btn $variant="outline" onClick={() => { setModeloForm({ ...blankModelo }); setShowModeloModal(true) }} whileTap={{ scale: 0.97 }} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}>
               <Star size={14} /> Novo Modelo
             </Btn>
-            <Btn $variant="primary" onClick={openAdd} whileTap={{ scale: 0.97 }}>
+            <Btn $variant="primary" onClick={openAdd} whileTap={{ scale: 0.97 }} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}>
               <Plus size={15} /> Novo Lançamento
             </Btn>
           </BtnRow>
@@ -688,10 +690,10 @@ export function AccountingPage() {
                           <td style={{ fontSize: 11.5 }}>{(l as any).clientes?.razao_social || '—'}</td>
                           <td>
                             <div style={{ display: 'flex', gap: 3 }}>
-                              <ActBtn onClick={() => openEdit(l)} title="Editar"><Edit2 size={12} /></ActBtn>
+                              <ActBtn onClick={() => openEdit(l)} title="Editar" disabled={!canEdit}><Edit2 size={12} /></ActBtn>
                               <ActBtn onClick={() => handleDuplicate(l)} title="Duplicar"><Copy size={12} /></ActBtn>
                               <ActBtn onClick={() => saveAsModelo(l)} title="Salvar como modelo"><Star size={12} /></ActBtn>
-                              <ActBtnDanger onClick={() => handleDelete(l)} title="Excluir"><Trash2 size={12} /></ActBtnDanger>
+                              <ActBtnDanger onClick={() => handleDelete(l)} title="Excluir" disabled={!canDelete} style={{ opacity: !canDelete ? 0.4 : 1, cursor: !canDelete ? 'not-allowed' : 'pointer' }}><Trash2 size={12} /></ActBtnDanger>
                             </div>
                           </td>
                         </tr>
@@ -740,7 +742,7 @@ export function AccountingPage() {
                       <ActBtn onClick={() => useModelo(m)} title="Usar modelo" style={{ width: 'auto', padding: '4px 10px', fontSize: 11, fontWeight: 600 }}>
                         <Download size={11} /> Usar
                       </ActBtn>
-                      <ActBtnDanger onClick={() => deleteModelo(m.id)} title="Excluir modelo">
+                      <ActBtnDanger onClick={() => deleteModelo(m.id)} title="Excluir modelo" disabled={!canDelete} style={{ opacity: !canDelete ? 0.4 : 1, cursor: !canDelete ? 'not-allowed' : 'pointer' }}>
                         <Trash2 size={11} />
                       </ActBtnDanger>
                     </ModeloActions>
@@ -814,7 +816,7 @@ export function AccountingPage() {
               </ModalBody>
               <ModalFooter>
                 <CancelBtn onClick={() => setShowModal(false)}>Cancelar</CancelBtn>
-                <SaveBtn onClick={handleSave} disabled={saving}>
+                <SaveBtn onClick={handleSave} disabled={saving || !canEdit}>
                   {saving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Registrar Lançamento'}
                 </SaveBtn>
               </ModalFooter>
@@ -870,7 +872,7 @@ export function AccountingPage() {
               </ModalBody>
               <ModalFooter>
                 <CancelBtn onClick={() => setShowModeloModal(false)}>Cancelar</CancelBtn>
-                <SaveBtn onClick={saveModelo} disabled={saving}>
+                <SaveBtn onClick={saveModelo} disabled={saving || !canEdit}>
                   {saving ? 'Salvando...' : 'Salvar Modelo'}
                 </SaveBtn>
               </ModalFooter>

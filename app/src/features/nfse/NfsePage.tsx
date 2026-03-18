@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 
 // ─── Styled ─────────────────────────────────────────────────────────────────
 const overlayIn = keyframes`from{opacity:0}to{opacity:1}`
@@ -238,6 +239,7 @@ function gerarPDF(nota: any, escritorio: any) {
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 export function NfsePage() {
+  const { canEdit, canDelete } = usePermission()
   const { escritorio } = useAuthStore()
   const { clientes, notasServico, setNotasServico } = useDataStore()
   const escId = escritorio?.id
@@ -358,7 +360,7 @@ export function NfsePage() {
 
       <Toolbar>
         <Spacer />
-        <AddBtn onClick={() => setShowModal(true)}><Plus size={14} />Emitir Nota</AddBtn>
+        <AddBtn onClick={() => setShowModal(true)} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}><Plus size={14} />Emitir Nota</AddBtn>
       </Toolbar>
 
       <Table>
@@ -386,7 +388,7 @@ export function NfsePage() {
               <BtnRow>
                 <SmBtn title="Baixar PDF" onClick={() => gerarPDF(n, escritorio)}><Download size={12} /></SmBtn>
                 {n.status === 'emitida' && (
-                  <SmBtn $danger title="Cancelar" onClick={() => handleCancelar(n.id)}><XCircle size={12} /></SmBtn>
+                  <SmBtn $danger title="Cancelar" onClick={() => handleCancelar(n.id)} disabled={!canDelete} style={{ opacity: !canDelete ? 0.4 : 1, cursor: !canDelete ? 'not-allowed' : 'pointer' }}><XCircle size={12} /></SmBtn>
                 )}
               </BtnRow>
             </Td>
@@ -481,7 +483,7 @@ export function NfsePage() {
             </ModalBody>
             <ModalFooter>
               <CancelBtn onClick={() => setShowModal(false)}>Cancelar</CancelBtn>
-              <SaveBtn disabled={saving} onClick={handleSave}>
+              <SaveBtn disabled={saving || !canEdit} onClick={handleSave}>
                 {saving ? 'Emitindo...' : '✓ Emitir e Baixar PDF'}
               </SaveBtn>
             </ModalFooter>

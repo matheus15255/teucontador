@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 import type { Colaborador } from '../../types'
 
 // ─── Cálculos Trabalhistas 2024 ───────────────────────────────────────────────
@@ -460,6 +461,7 @@ const blank = (): Partial<Colaborador> => ({
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function PayrollPage() {
+  const { canEdit, canDelete } = usePermission()
   const { escritorio } = useAuthStore()
   const {
     colaboradores: cachedColaboradores, setColaboradores: setCachedColaboradores,
@@ -953,7 +955,7 @@ export function PayrollPage() {
             <SecBtn onClick={() => exportarFolha(filtered)} whileTap={{ scale: 0.97 }}>
               <Download size={14} /> Exportar Folha
             </SecBtn>
-            <AddBtn onClick={openAdd} whileTap={{ scale: 0.97 }}>
+            <AddBtn onClick={openAdd} whileTap={{ scale: 0.97 }} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}>
               <Plus size={15} /> Novo Colaborador
             </AddBtn>
           </HeaderActions>
@@ -1064,11 +1066,13 @@ export function PayrollPage() {
                         <td>
                           <ActionRow>
                             <ActBtn onClick={() => openView(c)} title="Visualizar"><Eye size={13} /></ActBtn>
-                            <ActBtn onClick={() => openEdit(c)} title="Editar"><Edit2 size={13} /></ActBtn>
+                            <ActBtn onClick={() => openEdit(c)} title="Editar" disabled={!canEdit}><Edit2 size={13} /></ActBtn>
                             <ActBtn onClick={() => handleHolerite(c)} title="Gerar Holerite"><FileText size={13} /></ActBtn>
                             <ActBtn
                               onClick={() => handleDelete(c)}
                               title="Excluir"
+                              disabled={!canDelete}
+                              style={{ opacity: !canDelete ? 0.4 : undefined, cursor: !canDelete ? 'not-allowed' : undefined }}
                               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fdf0f0'; (e.currentTarget as HTMLButtonElement).style.color = '#c53030' }}
                               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ''; (e.currentTarget as HTMLButtonElement).style.color = '' }}
                             ><Trash2 size={13} /></ActBtn>
@@ -1099,12 +1103,12 @@ export function PayrollPage() {
               <ModalFooter>
                 <CancelBtn onClick={closeModal}>{modal === 'view' ? 'Fechar' : 'Cancelar'}</CancelBtn>
                 {modal === 'view' && (
-                  <SaveBtn onClick={() => { closeModal(); setTimeout(() => { openEdit(selected as Colaborador) }, 100) }} whileTap={{ scale: 0.97 }}>
+                  <SaveBtn onClick={() => { closeModal(); setTimeout(() => { openEdit(selected as Colaborador) }, 100) }} whileTap={{ scale: 0.97 }} disabled={!canEdit}>
                     <Edit2 size={13} style={{ marginRight: 4 }} /> Editar
                   </SaveBtn>
                 )}
                 {modal !== 'view' && (
-                  <SaveBtn onClick={handleSave} whileTap={{ scale: 0.97 }} disabled={saving}>
+                  <SaveBtn onClick={handleSave} whileTap={{ scale: 0.97 }} disabled={saving || !canEdit}>
                     {saving ? 'Salvando...' : modal === 'add' ? 'Cadastrar' : 'Salvar'}
                   </SaveBtn>
                 )}

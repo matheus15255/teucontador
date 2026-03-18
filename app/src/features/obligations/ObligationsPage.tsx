@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 import type { Obrigacao, Cliente } from '../../types'
 
 const PageHeader = styled.div`display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;`
@@ -173,6 +174,7 @@ const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, trans
 const itemVariants = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }
 
 export function ObligationsPage() {
+  const { canEdit } = usePermission()
   const { escritorio } = useAuthStore()
   const escId = escritorio?.id
   const {
@@ -268,7 +270,7 @@ export function ObligationsPage() {
             <PageTitle>Obrigações <em>Acessórias</em></PageTitle>
             <PageSub>Calendário fiscal — {obrigacoes.length} obrigações registradas</PageSub>
           </div>
-          <AddBtn onClick={() => setShowModal(true)} whileTap={{ scale: 0.97 }}>
+          <AddBtn onClick={() => setShowModal(true)} whileTap={{ scale: 0.97 }} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}>
             <Plus size={15} /> Nova Obrigação
           </AddBtn>
         </PageHeader>
@@ -403,7 +405,7 @@ export function ObligationsPage() {
               </ModalBody>
               <ModalFooter>
                 <CancelBtn onClick={() => setShowModal(false)}>Cancelar</CancelBtn>
-                <SaveBtn onClick={handleSave} whileTap={{ scale: 0.97 }} disabled={saving}>
+                <SaveBtn onClick={handleSave} whileTap={{ scale: 0.97 }} disabled={saving || !canEdit}>
                   {saving ? 'Salvando...' : 'Cadastrar Obrigação'}
                 </SaveBtn>
               </ModalFooter>

@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { usePermission } from '../../hooks/usePermission'
 
 // ─── Styled ─────────────────────────────────────────────────────────────────
 const overlayIn = keyframes`from{opacity:0}to{opacity:1}`
@@ -169,6 +170,7 @@ const tipoInfo = (t: string) => TIPOS.find(x => x.value === t) || TIPOS[4]
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 export function AtendimentosPage() {
+  const { canEdit, canDelete } = usePermission()
   const { escritorio } = useAuthStore()
   const { clientes, atendimentos, setAtendimentos } = useDataStore()
   const escId = escritorio?.id
@@ -286,7 +288,7 @@ export function AtendimentosPage() {
           {clientes.map((c: any) => <option key={c.id} value={c.id}>{c.razao_social}</option>)}
         </Select>
         <Spacer />
-        <AddBtn onClick={() => setShowModal(true)}><Plus size={14} />Novo Atendimento</AddBtn>
+        <AddBtn onClick={() => setShowModal(true)} disabled={!canEdit} style={{ opacity: !canEdit ? 0.4 : 1, cursor: !canEdit ? 'not-allowed' : 'pointer' }}><Plus size={14} />Novo Atendimento</AddBtn>
       </Toolbar>
 
       {filtered.length === 0 ? (
@@ -310,7 +312,7 @@ export function AtendimentosPage() {
                   {a.descricao && <CardDesc>{a.descricao}</CardDesc>}
                 </CardBody>
                 <CardActions>
-                  <DelBtn onClick={() => handleDelete(a.id)}><Trash2 size={12} /></DelBtn>
+                  <DelBtn onClick={() => handleDelete(a.id)} disabled={!canDelete} style={{ opacity: !canDelete ? 0.4 : 1, cursor: !canDelete ? 'not-allowed' : 'pointer' }}><Trash2 size={12} /></DelBtn>
                 </CardActions>
               </Card>
             )
@@ -369,7 +371,7 @@ export function AtendimentosPage() {
             </ModalBody>
             <ModalFooter>
               <CancelBtn onClick={() => setShowModal(false)}>Cancelar</CancelBtn>
-              <SaveBtn disabled={saving} onClick={handleSave}>{saving ? 'Salvando...' : 'Registrar'}</SaveBtn>
+              <SaveBtn disabled={saving || !canEdit} onClick={handleSave}>{saving ? 'Salvando...' : 'Registrar'}</SaveBtn>
             </ModalFooter>
           </Modal>
         </Overlay>
