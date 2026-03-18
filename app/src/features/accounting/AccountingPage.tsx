@@ -328,7 +328,7 @@ export function AccountingPage() {
   }
 
   // ── CRUD ─────────────────────────────────────────────────────────────────
-  const openAdd = () => { setForm({ ...blankForm }); setEditingId(null); setAiSugestao(null); setShowModal(true) }
+  const openAdd = () => { setForm({ ...blankForm }); setEditingId(null); setShowModal(true) }
 
   const openEdit = (l: Lancamento) => {
     setForm({
