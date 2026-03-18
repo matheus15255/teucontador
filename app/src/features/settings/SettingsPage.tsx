@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
-import { Save, User, Building2, Shield, Bell, Moon, Sun, Key } from 'lucide-react'
+import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useTheme } from '../../styles/ThemeProvider'
-import type { Escritorio } from '../../types'
+import type { Escritorio, MembroEscritorio } from '../../types'
 
 const PageHeader = styled.div`margin-bottom: 24px;`
 const PageTitle = styled.h1`
@@ -106,21 +106,87 @@ const AvatarLarge = styled.div`
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } }
 const itemVariants = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }
 
+const RoleBadge = styled.span<{ $role: string }>`
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  background: ${({ $role }) =>
+    $role === 'admin'      ? '#dcfce7' :
+    $role === 'contador'   ? '#dbeafe' : '#fef9c3'};
+  color: ${({ $role }) =>
+    $role === 'admin'      ? '#166534' :
+    $role === 'contador'   ? '#1e40af' : '#854d0e'};
+`
+
+const StatusBadge = styled.span<{ $status: string }>`
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: ${({ $status }) => $status === 'ativo' ? '#dcfce7' : '#fef3c7'};
+  color: ${({ $status }) => $status === 'ativo' ? '#166534' : '#92400e'};
+`
+
+const MemberRow = styled.div`
+  display: flex; align-items: center; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  &:last-child { border-bottom: none; }
+`
+const MemberAvatar = styled.div`
+  width: 36px; height: 36px; border-radius: 50%; background: ${({ theme }) => theme.green};
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+`
+const MemberInfo = styled.div`flex: 1; min-width: 0;`
+const MemberEmail = styled.div`font-size: 13px; color: ${({ theme }) => theme.text}; font-weight: 500;`
+const MemberMeta = styled.div`display: flex; align-items: center; gap: 6px; margin-top: 3px;`
+
+const InviteRow = styled.div`
+  display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end;
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+`
+const SmallBtn = styled.button`
+  display: flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 9px;
+  font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+  border: none; white-space: nowrap; transition: all 0.2s;
+`
+const InviteBtn = styled(SmallBtn)`
+  background: ${({ theme }) => theme.green}; color: #fff;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+const RemoveBtn = styled(SmallBtn)`
+  background: transparent; color: #dc2626;
+  border: 1px solid #fecaca;
+  &:hover { background: #fee2e2; }
+`
+
+const roleLabels: Record<string, string> = {
+  admin: 'Admin',
+  contador: 'Contador',
+  assistente: 'Assistente',
+}
+
 const sections = [
   { id: 'perfil', label: 'Perfil', icon: User },
   { id: 'escritorio', label: 'Escritório', icon: Building2 },
+  { id: 'equipe', label: 'Equipe', icon: Users },
   { id: 'aparencia', label: 'Aparência', icon: Moon },
   { id: 'seguranca', label: 'Segurança', icon: Shield },
 ]
 
 export function SettingsPage() {
-  const { user } = useAuthStore()
+  const { user, escritorio: escStore } = useAuthStore()
   const { isDark, toggleTheme } = useTheme()
   const [section, setSection] = useState('perfil')
   const [saving, setSaving] = useState(false)
   const [escritorio, setEscritorioData] = useState<Partial<Escritorio>>({})
   const [nome, setNome] = useState(user?.user_metadata?.nome_completo || '')
   const [notifications, setNotifications] = useState({ email: true, push: false, weekly: true })
+
+  // Equipe
+  const [membros, setMembros] = useState<MembroEscritorio[]>([])
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'contador' | 'assistente'>('contador')
+  const [inviting, setInviting] = useState(false)
+  const isOwner = escStore?.user_id === user?.id
 
   useEffect(() => {
     const loadEscritorio = async () => {
@@ -129,6 +195,54 @@ export function SettingsPage() {
     }
     loadEscritorio()
   }, [])
+
+  useEffect(() => {
+    if (section === 'equipe' && escStore?.id) loadMembros()
+  }, [section, escStore?.id])
+
+  const loadMembros = async () => {
+    const { data } = await supabase
+      .from('membros_escritorio')
+      .select('*')
+      .eq('escritorio_id', escStore!.id)
+      .order('created_at', { ascending: true })
+    if (data) setMembros(data)
+  }
+
+  const handleInvite = async () => {
+    if (!inviteEmail || !escStore?.id) return
+    setInviting(true)
+    const { error } = await supabase.from('membros_escritorio').insert({
+      escritorio_id: escStore.id,
+      email: inviteEmail.toLowerCase().trim(),
+      role: inviteRole,
+      invited_by: user?.id,
+    })
+    setInviting(false)
+    if (error) {
+      if (error.code === '23505') toast.error('Este e-mail já foi convidado.')
+      else toast.error(error.message)
+      return
+    }
+    toast.success(`Convite enviado para ${inviteEmail}`)
+    setInviteEmail('')
+    loadMembros()
+  }
+
+  const handleRemoveMembro = async (id: string, email: string) => {
+    if (!confirm(`Remover ${email} da equipe?`)) return
+    const { error } = await supabase.from('membros_escritorio').delete().eq('id', id)
+    if (error) { toast.error(error.message); return }
+    toast.success('Membro removido.')
+    setMembros(prev => prev.filter(m => m.id !== id))
+  }
+
+  const handleChangeRole = async (id: string, role: string) => {
+    const { error } = await supabase.from('membros_escritorio').update({ role }).eq('id', id)
+    if (error) { toast.error(error.message); return }
+    setMembros(prev => prev.map(m => m.id === id ? { ...m, role: role as any } : m))
+    toast.success('Função atualizada.')
+  }
 
   const handleSavePerfil = async () => {
     setSaving(true)
@@ -236,6 +350,108 @@ export function SettingsPage() {
                   <SaveBtn onClick={handleSaveEscritorio} whileTap={{ scale: 0.97 }} disabled={saving || !escritorio.id}>
                     <Save size={14} /> {saving ? 'Salvando...' : 'Salvar Escritório'}
                   </SaveBtn>
+                </CardBody>
+              </Card>
+            )}
+
+            {section === 'equipe' && (
+              <Card>
+                <CardHead>
+                  <CardTitle>Equipe</CardTitle>
+                  <CardSub>Convide pessoas para acessar este escritório</CardSub>
+                </CardHead>
+                <CardBody>
+                  {/* Dono */}
+                  <FieldLabel style={{ marginBottom: 10 }}>Proprietário</FieldLabel>
+                  <MemberRow>
+                    <MemberAvatar>{(user?.email?.[0] || '?').toUpperCase()}</MemberAvatar>
+                    <MemberInfo>
+                      <MemberEmail>{user?.user_metadata?.nome_completo || user?.email}</MemberEmail>
+                      <MemberMeta>
+                        <RoleBadge $role="admin"><Crown size={9} style={{ display: 'inline', marginRight: 3 }} />Proprietário</RoleBadge>
+                        <StatusBadge $status="ativo"><CheckCircle size={9} />Ativo</StatusBadge>
+                      </MemberMeta>
+                    </MemberInfo>
+                  </MemberRow>
+
+                  {/* Membros */}
+                  {membros.length > 0 && (
+                    <>
+                      <FieldLabel style={{ marginTop: 20, marginBottom: 10 }}>Membros ({membros.length})</FieldLabel>
+                      {membros.map(m => (
+                        <MemberRow key={m.id}>
+                          <MemberAvatar style={{ background: m.status === 'pendente' ? '#9ca3af' : undefined }}>
+                            {m.email[0].toUpperCase()}
+                          </MemberAvatar>
+                          <MemberInfo>
+                            <MemberEmail>{m.email}</MemberEmail>
+                            <MemberMeta>
+                              {isOwner ? (
+                                <Select
+                                  value={m.role}
+                                  onChange={e => handleChangeRole(m.id, e.target.value)}
+                                  style={{ width: 'auto', padding: '2px 6px', fontSize: 11, height: 'auto' }}
+                                >
+                                  <option value="admin">Admin</option>
+                                  <option value="contador">Contador</option>
+                                  <option value="assistente">Assistente</option>
+                                </Select>
+                              ) : (
+                                <RoleBadge $role={m.role}>{roleLabels[m.role]}</RoleBadge>
+                              )}
+                              <StatusBadge $status={m.status}>
+                                {m.status === 'ativo' ? <><CheckCircle size={9} />Ativo</> : <><Clock size={9} />Pendente</>}
+                              </StatusBadge>
+                            </MemberMeta>
+                          </MemberInfo>
+                          {isOwner && (
+                            <RemoveBtn onClick={() => handleRemoveMembro(m.id, m.email)}>
+                              <Trash2 size={13} />
+                            </RemoveBtn>
+                          )}
+                        </MemberRow>
+                      ))}
+                    </>
+                  )}
+
+                  {/* Convidar */}
+                  {isOwner && (
+                    <>
+                      <FieldLabel style={{ marginTop: 24, marginBottom: 10 }}>Convidar membro</FieldLabel>
+                      <InviteRow>
+                        <Field style={{ marginBottom: 0 }}>
+                          <Input
+                            type="email"
+                            placeholder="email@exemplo.com"
+                            value={inviteEmail}
+                            onChange={e => setInviteEmail(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleInvite()}
+                          />
+                        </Field>
+                        <Field style={{ marginBottom: 0 }}>
+                          <Select value={inviteRole} onChange={e => setInviteRole(e.target.value as any)}>
+                            <option value="contador">Contador</option>
+                            <option value="assistente">Assistente</option>
+                            <option value="admin">Admin</option>
+                          </Select>
+                        </Field>
+                        <InviteBtn onClick={handleInvite} disabled={inviting || !inviteEmail}>
+                          <UserPlus size={14} />{inviting ? 'Enviando...' : 'Convidar'}
+                        </InviteBtn>
+                      </InviteRow>
+                      <div style={{ marginTop: 10, fontSize: 11, color: '#8a8a8a', lineHeight: 1.5 }}>
+                        A pessoa receberá acesso ao criar conta ou fazer login com este e-mail.
+                        <br />
+                        <strong>Admin:</strong> acesso total · <strong>Contador:</strong> cria e edita · <strong>Assistente:</strong> somente leitura
+                      </div>
+                    </>
+                  )}
+
+                  {!isOwner && (
+                    <div style={{ marginTop: 16, fontSize: 13, color: '#8a8a8a' }}>
+                      Apenas o proprietário pode convidar ou remover membros.
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             )}

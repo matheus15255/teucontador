@@ -12,6 +12,17 @@ export interface Escritorio {
   abacatepay_customer_id?: string
 }
 
+export interface MembroEscritorio {
+  id: string
+  escritorio_id: string
+  user_id?: string
+  email: string
+  role: 'admin' | 'contador' | 'assistente'
+  status: 'pendente' | 'ativo'
+  invited_by?: string
+  created_at?: string
+}
+
 export interface Cliente {
   id: string
   escritorio_id?: string

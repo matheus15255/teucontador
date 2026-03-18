@@ -23,6 +23,31 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18 (multi-usuário)
+
+### Feat: multi-usuário por escritório com permissões
+
+**Arquivos criados/alterados:**
+- `supabase/add_multi_user.sql` — tabela `membros_escritorio` com RLS (owner_all, self_select, self_accept)
+- `app/src/types/index.ts` — novo type `MembroEscritorio`
+- `app/src/stores/authStore.ts` — `memberRole` no estado; `loadEscritorio` agora detecta: dono → membro ativo → convite pendente (aceita automaticamente) → cria novo
+- `app/src/hooks/usePermission.ts` — hook novo com `canEdit`, `canDelete`, `canInvite`, `role`, `isOwner`
+- `app/src/features/settings/SettingsPage.tsx` — nova aba "Equipe": lista proprietário + membros, convite por email, troca de role inline, remoção de membro
+
+**Roles:**
+- `admin` (proprietário): acesso total, pode convidar/remover
+- `contador`: pode criar e editar, não pode deletar
+- `assistente`: somente leitura
+
+**Fluxo de convite:**
+1. Admin convida email → registro `pendente` criado
+2. Convidado cria conta ou faz login com o mesmo email
+3. `loadEscritorio` detecta convite pendente, aceita automaticamente (status → ativo, user_id preenchido)
+
+**SQL a rodar no Supabase:** `supabase/add_multi_user.sql`
+
+---
+
 ## Sessão — 2026-03-18 (webhook de pagamento)
 
 ### Fix: webhook AbacatePay não ativava subscription após pagamento
