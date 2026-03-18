@@ -10,14 +10,14 @@ import {
   ArrowRight, ChevronLeft, ChevronRight, RefreshCw,
   FileText, UserPlus, Layers, ArrowLeftRight,
   Calendar, CheckSquare, Clock, Plus, X, AlertTriangle,
-  CheckCircle, Circle,
+  CheckCircle, Circle, Key, Package, Inbox, Send,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import { useTheme } from '../../styles/ThemeProvider'
-import type { Cliente, Lancamento, Obrigacao, Tarefa } from '../../types'
+import type { Cliente, Lancamento, Obrigacao, Tarefa, Guia, ChecklistDocumento } from '../../types'
 
 // ─── Styled Components ─────────────────────────────────────────────────────────
 
@@ -1103,6 +1103,150 @@ const AddTaskBtn = styled.button`
   &:hover { opacity: 0.88; }
 `
 
+// ─── Hoje ─────────────────────────────────────────────────────────────────────
+
+const TodayBanner = styled(motion.div)`
+  background: ${({ theme }) => theme.surface};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: ${({ theme }) => theme.radius};
+  box-shadow: ${({ theme }) => theme.shadow};
+  overflow: hidden;
+`
+
+const TodayList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`
+
+const TodayItem = styled.div<{ $type: 'tarefa' | 'obrig' | 'hon' }>`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  cursor: default;
+  transition: background 0.15s;
+  &:last-child { border-bottom: none; }
+  &:hover { background: ${({ theme }) => theme.surface2}; }
+`
+
+const TodayDot = styled.div<{ $type: 'tarefa' | 'obrig' | 'hon' }>`
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: ${({ $type }) =>
+    $type === 'tarefa' ? '#d97706' : $type === 'obrig' ? '#dc2626' : '#7c3aed'};
+`
+
+const TodayText = styled.div`flex: 1; min-width: 0;`
+const TodayTitle = styled.div`font-size: 12.5px; font-weight: 500; color: ${({ theme }) => theme.text}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`
+const TodayMeta = styled.div`font-size: 11px; color: ${({ theme }) => theme.textDim}; margin-top: 1px;`
+
+// ─── Guias ────────────────────────────────────────────────────────────────────
+
+const GuiaList = styled.div`
+  display: flex; flex-direction: column; gap: 0;
+  max-height: 280px; overflow-y: auto;
+`
+
+const GuiaItem = styled.div`
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  &:last-child { border-bottom: none; }
+  &:hover { background: ${({ theme }) => theme.surface2}; }
+`
+
+const GuiaTipo = styled.div<{ $tipo: string }>`
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.3px; text-align: center; line-height: 1.2;
+  background: ${({ $tipo }) =>
+    $tipo === 'DARF' ? '#fee2e2' : $tipo === 'GPS' ? '#d1fae5' :
+    $tipo === 'DAS' ? '#dbeafe' : $tipo === 'DAE' ? '#fef3c7' : '#ede9fe'};
+  color: ${({ $tipo }) =>
+    $tipo === 'DARF' ? '#dc2626' : $tipo === 'GPS' ? '#059669' :
+    $tipo === 'DAS' ? '#2563eb' : $tipo === 'DAE' ? '#d97706' : '#7c3aed'};
+`
+
+const GuiaInfo = styled.div`flex: 1; min-width: 0;`
+const GuiaCliente = styled.div`font-size: 12.5px; font-weight: 500; color: ${({ theme }) => theme.text}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`
+const GuiaSub = styled.div`font-size: 11px; color: ${({ theme }) => theme.textDim}; margin-top: 1px;`
+
+const GuiaStatusBtn = styled.button<{ $status: Guia['status'] }>`
+  padding: 3px 9px; border-radius: 20px; border: none; cursor: pointer;
+  font-size: 10.5px; font-weight: 700; font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+  background: ${({ $status }) =>
+    $status === 'pendente' ? '#fef3c7' : $status === 'emitida' ? '#dbeafe' : '#d1fae5'};
+  color: ${({ $status }) =>
+    $status === 'pendente' ? '#92400e' : $status === 'emitida' ? '#1e40af' : '#065f46'};
+  &:hover { opacity: 0.8; transform: scale(1.05); }
+`
+
+// ─── Checklist Documentos ─────────────────────────────────────────────────────
+
+const DocList = styled.div`
+  display: flex; flex-direction: column; gap: 0;
+  max-height: 280px; overflow-y: auto;
+`
+
+const DocItem = styled.div`
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  &:last-child { border-bottom: none; }
+  &:hover { background: ${({ theme }) => theme.surface2}; }
+`
+
+const DocIconWrap = styled.div`
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: #fef3c7; display: flex; align-items: center; justify-content: center;
+`
+
+const DocInfo = styled.div`flex: 1; min-width: 0;`
+const DocCliente = styled.div`font-size: 12.5px; font-weight: 500; color: ${({ theme }) => theme.text}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`
+const DocTipo = styled.div`font-size: 11px; color: ${({ theme }) => theme.textDim}; margin-top: 1px;`
+
+const DocReceberBtn = styled.button`
+  padding: 4px 10px; border-radius: 20px;
+  background: #d1fae5; border: none; cursor: pointer;
+  font-size: 10.5px; font-weight: 700; color: #065f46;
+  font-family: 'Inter', sans-serif; transition: all 0.15s;
+  &:hover { background: #a7f3d0; }
+`
+
+// ─── Certificados ─────────────────────────────────────────────────────────────
+
+const CertList = styled.div`
+  display: flex; flex-direction: column; gap: 0;
+  max-height: 240px; overflow-y: auto;
+`
+
+const CertItem = styled.div<{ $dias: number }>`
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  background: ${({ $dias }) => $dias <= 0 ? '#fef2f2' : $dias <= 30 ? '#fff7ed' : 'transparent'};
+  &:last-child { border-bottom: none; }
+`
+
+const CertIconWrap = styled.div<{ $dias: number }>`
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: ${({ $dias }) => $dias <= 0 ? '#fee2e2' : $dias <= 30 ? '#fef3c7' : '#ede9fe'};
+`
+
+const CertInfo = styled.div`flex: 1; min-width: 0;`
+const CertCliente = styled.div`font-size: 12.5px; font-weight: 500; color: ${({ theme }) => theme.text}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`
+const CertSub = styled.div`font-size: 11px; color: ${({ theme }) => theme.textDim}; margin-top: 1px;`
+
+const CertDaysBadge = styled.div<{ $dias: number }>`
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 10.5px; font-weight: 700; white-space: nowrap;
+  background: ${({ $dias }) => $dias <= 0 ? '#fee2e2' : $dias <= 30 ? '#fef3c7' : $dias <= 60 ? '#ffedd5' : '#fef9e7'};
+  color: ${({ $dias }) => $dias <= 0 ? '#dc2626' : $dias <= 30 ? '#92400e' : $dias <= 60 ? '#c2410c' : '#a16207'};
+`
+
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 const avatarColors = [
@@ -1155,6 +1299,8 @@ export function DashboardPage() {
     obrigacoes: storeObrigacoes,
     colaboradores: storeColaboradores,
     tarefas: storeTarefas,
+    guias: storeGuias,
+    checklistDocumentos: storeChecklistDocs,
     preloading,
   } = useDataStore()
 
@@ -1162,6 +1308,20 @@ export function DashboardPage() {
   const [showAddTarefa, setShowAddTarefa] = useState(false)
   const [novaT, setNovaT] = useState({ ...blankTarefa })
   const [savingTarefa, setSavingTarefa] = useState(false)
+
+  const mesRef = format(new Date(), 'yyyy-MM')
+
+  // Guias modal state
+  const blankGuia = { tipo: 'DARF', descricao: '', cliente_id: '', valor: '', data_vencimento: '', mes_ref: mesRef }
+  const [showAddGuia, setShowAddGuia] = useState(false)
+  const [novaGuia, setNovaGuia] = useState({ ...blankGuia })
+  const [savingGuia, setSavingGuia] = useState(false)
+
+  // Checklist docs modal state
+  const blankDoc = { tipo_documento: 'Extrato Bancário', cliente_id: '', mes_ref: mesRef, observacoes: '' }
+  const [showAddDoc, setShowAddDoc] = useState(false)
+  const [novoDoc, setNovoDoc] = useState({ ...blankDoc })
+  const [savingDoc, setSavingDoc] = useState(false)
 
   // Dados reativos vindos do store — sem fetch próprio
   const clientesAll = storeClientes as Cliente[]
@@ -1246,9 +1406,69 @@ export function DashboardPage() {
   }
 
   async function deleteTarefa(id: string) {
-    // Optimistic update no store
     useDataStore.getState().setTarefas(storeTarefas.filter((t: any) => t.id !== id))
     await supabase.from('tarefas').delete().eq('id', id).eq('escritorio_id', escId!)
+  }
+
+  // ── Guias CRUD ───────────────────────────────────────────────────────────────
+  async function addGuia() {
+    if (!novaGuia.tipo || !escId) return
+    setSavingGuia(true)
+    try {
+      const { error } = await supabase.from('guias').insert({
+        escritorio_id: escId,
+        tipo: novaGuia.tipo,
+        descricao: novaGuia.descricao || null,
+        cliente_id: novaGuia.cliente_id || null,
+        valor: novaGuia.valor ? Number(novaGuia.valor) : null,
+        data_vencimento: novaGuia.data_vencimento || null,
+        mes_ref: novaGuia.mes_ref || mesRef,
+        status: 'pendente',
+      })
+      if (error) { toast.error('Erro ao salvar guia'); return }
+      toast.success('Guia adicionada!')
+      setShowAddGuia(false)
+      setNovaGuia({ ...blankGuia })
+    } finally { setSavingGuia(false) }
+  }
+
+  async function updateGuiaStatus(id: string, status: Guia['status']) {
+    const nextStatus: Guia['status'] = status === 'pendente' ? 'emitida' : status === 'emitida' ? 'paga' : 'pendente'
+    useDataStore.getState().setGuias(storeGuias.map((g: any) => g.id === id ? { ...g, status: nextStatus } : g))
+    await supabase.from('guias').update({ status: nextStatus, ...(nextStatus === 'paga' ? { data_pagamento: format(new Date(), 'yyyy-MM-dd') } : {}) }).eq('id', id).eq('escritorio_id', escId!)
+  }
+
+  async function deleteGuia(id: string) {
+    useDataStore.getState().setGuias(storeGuias.filter((g: any) => g.id !== id))
+    await supabase.from('guias').delete().eq('id', id).eq('escritorio_id', escId!)
+  }
+
+  // ── Checklist Documentos CRUD ────────────────────────────────────────────────
+  async function addDoc() {
+    if (!novoDoc.tipo_documento || !novoDoc.cliente_id || !escId) return
+    setSavingDoc(true)
+    try {
+      const { error } = await supabase.from('checklist_documentos').insert({
+        escritorio_id: escId,
+        cliente_id: novoDoc.cliente_id,
+        tipo_documento: novoDoc.tipo_documento,
+        mes_ref: novoDoc.mes_ref || mesRef,
+        observacoes: novoDoc.observacoes || null,
+        status: 'aguardando',
+      })
+      if (error) { toast.error('Erro ao salvar solicitação'); return }
+      toast.success('Documento solicitado registrado!')
+      setShowAddDoc(false)
+      setNovoDoc({ ...blankDoc })
+    } finally { setSavingDoc(false) }
+  }
+
+  async function marcarDocRecebido(id: string) {
+    useDataStore.getState().setChecklistDocumentos(
+      storeChecklistDocs.map((d: any) => d.id === id ? { ...d, status: 'recebido', data_recebimento: format(new Date(), 'yyyy-MM-dd') } : d)
+    )
+    await supabase.from('checklist_documentos').update({ status: 'recebido', data_recebimento: format(new Date(), 'yyyy-MM-dd') }).eq('id', id).eq('escritorio_id', escId!)
+    toast.success('Documento marcado como recebido!')
   }
 
   // ── Greeting ────────────────────────────────────────────────────────────────
@@ -1365,6 +1585,87 @@ export function DashboardPage() {
     { icon: <UserPlus size={15} />, label: 'Novo Cliente', sub: 'Cadastrar', color: '#dc2626', path: '/app/clientes' },
   ]
 
+  // ── Tarefas do dia (vencidas ou vencendo hoje) ────────────────────────────────
+  const hojeItems = useMemo(() => {
+    const today = new Date(); today.setHours(23, 59, 59, 999)
+    return storeTarefas
+      .filter((t: any) => {
+        if (t.status === 'concluida') return false
+        if (!t.data_vencimento) return false
+        return new Date(t.data_vencimento + 'T00:00:00') <= today
+      })
+      .slice(0, 8) as unknown as Tarefa[]
+  }, [storeTarefas])
+
+  // ── DRE: mês anterior para comparação ────────────────────────────────────────
+  const prevMesNum  = currentMonth === 0 ? 11 : currentMonth - 1
+  const prevYearNum = currentMonth === 0 ? year - 1 : year
+
+  const recPrevMes = useMemo(() => {
+    return storeLancamentos.filter((l: any) => {
+      if (!l.data_lanc || l.tipo !== 'credito') return false
+      const d = new Date(l.data_lanc + 'T00:00:00')
+      return d.getFullYear() === prevYearNum && d.getMonth() === prevMesNum
+    }).reduce((s: number, l: any) => s + (Number(l.valor) || 0), 0)
+  }, [storeLancamentos, prevMesNum, prevYearNum])
+
+  const despPrevMes = useMemo(() => {
+    return storeLancamentos.filter((l: any) => {
+      if (!l.data_lanc || l.tipo !== 'debito') return false
+      const d = new Date(l.data_lanc + 'T00:00:00')
+      return d.getFullYear() === prevYearNum && d.getMonth() === prevMesNum
+    }).reduce((s: number, l: any) => s + (Number(l.valor) || 0), 0)
+  }, [storeLancamentos, prevMesNum, prevYearNum])
+
+  // ── Guias do mês atual ────────────────────────────────────────────────────────
+  const guiasMes = useMemo(() =>
+    (storeGuias as Guia[]).filter(g => g.mes_ref === mesRef),
+    [storeGuias, mesRef]
+  )
+
+  // ── Documentos aguardando ─────────────────────────────────────────────────────
+  const docsAguardando = useMemo(() =>
+    (storeChecklistDocs as ChecklistDocumento[]).filter(d => d.mes_ref === mesRef && d.status === 'aguardando'),
+    [storeChecklistDocs, mesRef]
+  )
+
+  // ── Certificados vencendo (90 dias) ──────────────────────────────────────────
+  const certsVencendo = useMemo(() => {
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+    const limite = new Date(hoje.getTime() + 90 * 24 * 60 * 60 * 1000)
+    const results: { cliente: Cliente; tipo: string; vencimento: Date; dias: number }[] = []
+    clientesAll.forEach(c => {
+      const ecnpj = (c as any).cert_ecnpj_vencimento
+      const ecpf  = (c as any).cert_ecpf_vencimento
+      if (ecnpj) {
+        const d = new Date(ecnpj + 'T00:00:00')
+        if (d <= limite) results.push({ cliente: c, tipo: 'e-CNPJ', vencimento: d, dias: differenceInDays(d, hoje) })
+      }
+      if (ecpf) {
+        const d = new Date(ecpf + 'T00:00:00')
+        if (d <= limite) results.push({ cliente: c, tipo: 'e-CPF', vencimento: d, dias: differenceInDays(d, hoje) })
+      }
+    })
+    return results.sort((a, b) => a.dias - b.dias).slice(0, 8)
+  }, [clientesAll])
+
+  // ── Clientes em risco (honorários + obrigações atrasadas) ────────────────────
+  const clientesRiscoEnhanced = useMemo(() => {
+    const riscoMap = new Map<string, { cliente: Cliente; motivos: string[] }>()
+    clientesAll.filter(c => c.situacao !== 'em_dia').forEach(c => {
+      if (!riscoMap.has(c.id)) riscoMap.set(c.id, { cliente: c, motivos: [] })
+      riscoMap.get(c.id)!.motivos.push(c.situacao === 'atrasado' ? 'Honorário atrasado' : 'Honorário pendente')
+    })
+    storeObrigacoes.filter((o: any) => o.status === 'atrasado' && o.cliente_id).forEach((o: any) => {
+      const c = clientesAll.find(cl => cl.id === o.cliente_id)
+      if (!c) return
+      if (!riscoMap.has(c.id)) riscoMap.set(c.id, { cliente: c, motivos: [] })
+      const motivo = `${o.tipo} atrasado`
+      if (!riscoMap.get(c.id)!.motivos.includes(motivo)) riscoMap.get(c.id)!.motivos.push(motivo)
+    })
+    return Array.from(riscoMap.values()).slice(0, 8)
+  }, [clientesAll, storeObrigacoes])
+
   return (
     <Page variants={fade} initial="hidden" animate="visible">
 
@@ -1401,6 +1702,43 @@ export function DashboardPage() {
             </TickerItems>
             <TickerLink onClick={() => navigate('/app/obrigacoes')}>Ver obrigações →</TickerLink>
           </TickerBar>
+        </motion.div>
+      )}
+
+      {/* O que fazer hoje */}
+      {hojeItems.length > 0 && (
+        <motion.div variants={item}>
+          <TodayBanner>
+            <CardHead>
+              <div>
+                <CardTitle>O que fazer hoje</CardTitle>
+                <CardSub>{hojeItems.length} tarefa{hojeItems.length > 1 ? 's' : ''} vencida{hojeItems.length > 1 ? 's' : ''} ou vencendo hoje</CardSub>
+              </div>
+              <CardLink onClick={() => navigate('/app/agenda')}>
+                Ver agenda <ArrowRight size={11} />
+              </CardLink>
+            </CardHead>
+            <TodayList>
+              {hojeItems.map((t, i) => {
+                const dias = t.data_vencimento ? differenceInDays(new Date(t.data_vencimento + 'T00:00:00'), new Date()) : 0
+                return (
+                  <TodayItem key={t.id} $type="tarefa">
+                    <TodayDot $type="tarefa" />
+                    <TodayText>
+                      <TodayTitle>{t.titulo}</TodayTitle>
+                      <TodayMeta>
+                        {(t.clientes as any)?.razao_social ? `${(t.clientes as any).razao_social} · ` : ''}
+                        Prioridade {t.prioridade}
+                      </TodayMeta>
+                    </TodayText>
+                    <Badge $type={dias < 0 ? 'late' : 'warn'}>
+                      {dias < 0 ? `${Math.abs(dias)}d atrasado` : dias === 0 ? 'Hoje' : `${dias}d`}
+                    </Badge>
+                  </TodayItem>
+                )
+              })}
+            </TodayList>
+          </TodayBanner>
         </motion.div>
       )}
 
@@ -1501,34 +1839,53 @@ export function DashboardPage() {
           <CardHead>
             <div>
               <CardTitle>DRE — Escritório</CardTitle>
-              <CardSub>Resultado de {MONTHS[currentMonth]} × acumulado {year}</CardSub>
+              <CardSub>Resultado de {MONTHS[currentMonth]} × mês anterior ({MONTHS[prevMesNum]})</CardSub>
             </div>
           </CardHead>
           <DreGrid>
-            <DreItem>
-              <DreLabel>Receitas do Mês</DreLabel>
-              <DreValue $color="#059669">{fmt(dreData.recMes)}</DreValue>
-              <DreSub>Ano: {fmt(dreData.recAno)}</DreSub>
-            </DreItem>
-            <DreItem>
-              <DreLabel>Despesas do Mês</DreLabel>
-              <DreValue $color="#dc2626">{fmt(dreData.despMes)}</DreValue>
-              <DreSub>Ano: {fmt(dreData.despAno)}</DreSub>
-            </DreItem>
-            <DreItem>
-              <DreLabel>Resultado do Mês</DreLabel>
-              <DreValue $color={dreData.resultadoMes >= 0 ? '#059669' : '#dc2626'}>
-                {fmt(dreData.resultadoMes)}
-              </DreValue>
-              <DreSub>Ano: {fmt(dreData.resultadoAno)}</DreSub>
-            </DreItem>
-            <DreItem>
-              <DreLabel>Margem Operacional</DreLabel>
-              <DreValue $color={dreData.margem >= 0 ? '#059669' : '#dc2626'}>
-                {dreData.margem.toFixed(1)}%
-              </DreValue>
-              <DreSub>Receitas − Despesas / Receitas</DreSub>
-            </DreItem>
+            {(() => {
+              const recDelta  = recPrevMes > 0 ? ((dreData.recMes - recPrevMes) / recPrevMes * 100) : null
+              const despDelta = despPrevMes > 0 ? ((dreData.despMes - despPrevMes) / despPrevMes * 100) : null
+              const resMes    = dreData.recMes - dreData.despMes
+              const resPrev   = recPrevMes - despPrevMes
+              const resDelta  = Math.abs(resPrev) > 0 ? ((resMes - resPrev) / Math.abs(resPrev) * 100) : null
+              return (
+                <>
+                  <DreItem>
+                    <DreLabel>Receitas do Mês</DreLabel>
+                    <DreValue $color="#059669">{fmt(dreData.recMes)}</DreValue>
+                    <DreSub>
+                      {recDelta !== null
+                        ? <span style={{ color: recDelta >= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>{recDelta >= 0 ? '▲' : '▼'} {Math.abs(recDelta).toFixed(1)}% vs {MONTHS[prevMesNum]}</span>
+                        : `Acumulado: ${fmt(dreData.recAno)}`}
+                    </DreSub>
+                  </DreItem>
+                  <DreItem>
+                    <DreLabel>Despesas do Mês</DreLabel>
+                    <DreValue $color="#dc2626">{fmt(dreData.despMes)}</DreValue>
+                    <DreSub>
+                      {despDelta !== null
+                        ? <span style={{ color: despDelta <= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>{despDelta >= 0 ? '▲' : '▼'} {Math.abs(despDelta).toFixed(1)}% vs {MONTHS[prevMesNum]}</span>
+                        : `Acumulado: ${fmt(dreData.despAno)}`}
+                    </DreSub>
+                  </DreItem>
+                  <DreItem>
+                    <DreLabel>Resultado do Mês</DreLabel>
+                    <DreValue $color={resMes >= 0 ? '#059669' : '#dc2626'}>{fmt(resMes)}</DreValue>
+                    <DreSub>
+                      {resDelta !== null
+                        ? <span style={{ color: resDelta >= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>{resDelta >= 0 ? '▲' : '▼'} {Math.abs(resDelta).toFixed(1)}% vs {MONTHS[prevMesNum]}</span>
+                        : `Acumulado: ${fmt(dreData.resultadoAno)}`}
+                    </DreSub>
+                  </DreItem>
+                  <DreItem>
+                    <DreLabel>Margem Operacional</DreLabel>
+                    <DreValue $color={dreData.margem >= 0 ? '#059669' : '#dc2626'}>{dreData.margem.toFixed(1)}%</DreValue>
+                    <DreSub>Receitas − Despesas / Receitas</DreSub>
+                  </DreItem>
+                </>
+              )
+            })()}
           </DreGrid>
         </Card>
       </motion.div>
@@ -1586,6 +1943,86 @@ export function DashboardPage() {
         </MainGrid>
       </motion.div>
 
+      {/* Guias do Mês + Documentos Aguardados */}
+      <motion.div variants={item}>
+        <MainGrid>
+          <Card>
+            <CardHead>
+              <div>
+                <CardTitle>Guias do Mês</CardTitle>
+                <CardSub>DARF, GPS, DAS, DAE — {MONTHS[currentMonth]}/{year}</CardSub>
+              </div>
+              <AddTaskBtn onClick={() => setShowAddGuia(true)}>
+                <Plus size={13} /> Nova Guia
+              </AddTaskBtn>
+            </CardHead>
+            {guiasMes.length === 0 ? (
+              <EmptyMsg>Nenhuma guia cadastrada para {MONTHS[currentMonth]}</EmptyMsg>
+            ) : (
+              <GuiaList>
+                {guiasMes.map((g: Guia) => (
+                  <GuiaItem key={g.id}>
+                    <GuiaTipo $tipo={g.tipo}>{g.tipo}</GuiaTipo>
+                    <GuiaInfo>
+                      <GuiaCliente>{(g.clientes as any)?.razao_social || 'Sem cliente'}</GuiaCliente>
+                      <GuiaSub>
+                        {g.descricao ? `${g.descricao} · ` : ''}
+                        {g.valor ? fmt(g.valor) : '—'}
+                        {g.data_vencimento ? ` · Venc. ${format(new Date(g.data_vencimento + 'T00:00:00'), 'dd/MM')}` : ''}
+                      </GuiaSub>
+                    </GuiaInfo>
+                    <GuiaStatusBtn $status={g.status} onClick={() => updateGuiaStatus(g.id, g.status)} title="Clique para avançar status">
+                      {g.status === 'pendente' ? 'Pendente' : g.status === 'emitida' ? 'Emitida' : 'Paga ✓'}
+                    </GuiaStatusBtn>
+                    <button onClick={() => deleteGuia(g.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex', alignItems: 'center' }}>
+                      <X size={12} />
+                    </button>
+                  </GuiaItem>
+                ))}
+              </GuiaList>
+            )}
+            {guiasMes.length > 0 && (
+              <div style={{ padding: '10px 16px', borderTop: `1px solid`, borderColor: 'inherit', display: 'flex', gap: 12, fontSize: 11.5 }}>
+                {(['pendente','emitida','paga'] as Guia['status'][]).map(s => {
+                  const n = guiasMes.filter((g: Guia) => g.status === s).length
+                  return <span key={s} style={{ color: s === 'pendente' ? '#92400e' : s === 'emitida' ? '#1e40af' : '#065f46', fontWeight: 600 }}>{n} {s}</span>
+                })}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <CardHead>
+              <div>
+                <CardTitle>Documentos Aguardados</CardTitle>
+                <CardSub>{docsAguardando.length} cliente{docsAguardando.length !== 1 ? 's' : ''} com documentos pendentes</CardSub>
+              </div>
+              <AddTaskBtn onClick={() => setShowAddDoc(true)}>
+                <Plus size={13} /> Solicitar
+              </AddTaskBtn>
+            </CardHead>
+            {docsAguardando.length === 0 ? (
+              <EmptyMsg>✓ Todos os documentos recebidos</EmptyMsg>
+            ) : (
+              <DocList>
+                {docsAguardando.map((d: ChecklistDocumento) => (
+                  <DocItem key={d.id}>
+                    <DocIconWrap><Inbox size={15} color="#d97706" /></DocIconWrap>
+                    <DocInfo>
+                      <DocCliente>{(d.clientes as any)?.razao_social || 'Cliente não vinculado'}</DocCliente>
+                      <DocTipo>{d.tipo_documento}{d.observacoes ? ` — ${d.observacoes}` : ''}</DocTipo>
+                    </DocInfo>
+                    <DocReceberBtn onClick={() => marcarDocRecebido(d.id)}>
+                      Recebido ✓
+                    </DocReceberBtn>
+                  </DocItem>
+                ))}
+              </DocList>
+            )}
+          </Card>
+        </MainGrid>
+      </motion.div>
+
       {/* Calendário Fiscal + Clientes em Risco */}
       <motion.div variants={item}>
         <MainGrid>
@@ -1618,31 +2055,32 @@ export function DashboardPage() {
             <CardHead>
               <div>
                 <CardTitle>Clientes em Risco</CardTitle>
-                <CardSub>Pendências e honorários em aberto</CardSub>
+                <CardSub>Honorários atrasados + obrigações vencidas</CardSub>
               </div>
-              {clientesRisco.length > 0 && (
+              {clientesRiscoEnhanced.length > 0 && (
                 <CardLink onClick={() => navigate('/app/clientes')}>
                   Ver todos <ArrowRight size={11} />
                 </CardLink>
               )}
             </CardHead>
-            {clientesRisco.length === 0 ? (
-              <EmptyMsg>✓ Todos os clientes em dia</EmptyMsg>
+            {clientesRiscoEnhanced.length === 0 ? (
+              <EmptyMsg>✓ Nenhum cliente em risco fiscal</EmptyMsg>
             ) : (
               <RiskList>
-                {clientesRisco.map((c, i) => {
+                {clientesRiscoEnhanced.map(({ cliente: c, motivos }, i) => {
                   const ini = (c.razao_social || '?').split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()
-                  const bt: 'pend' | 'late' = c.situacao === 'pendente' ? 'pend' : 'late'
-                  const bl = c.situacao === 'pendente' ? 'Pendente' : 'Atrasado'
+                  const hasLate = motivos.some(m => m.toLowerCase().includes('atrasado'))
                   return (
                     <RiskItem key={c.id}>
                       <RiskAvatar $bg={avatarColors[i % avatarColors.length]}>{ini}</RiskAvatar>
                       <RiskInfo>
                         <RiskName>{c.razao_social}</RiskName>
-                        <RiskSub>{c.regime || '—'}</RiskSub>
+                        <RiskSub title={motivos.join(' · ')} style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {motivos.join(' · ')}
+                        </RiskSub>
                       </RiskInfo>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                        <Badge $type={bt}>{bl}</Badge>
+                        <Badge $type={hasLate ? 'late' : 'pend'}>{motivos.length} risco{motivos.length > 1 ? 's' : ''}</Badge>
                         {c.honorarios ? <span style={{ fontSize: 11, fontWeight: 600, color: '#d97706' }}>{fmt(c.honorarios)}</span> : null}
                       </div>
                     </RiskItem>
@@ -1653,6 +2091,36 @@ export function DashboardPage() {
           </Card>
         </MainGrid>
       </motion.div>
+
+      {/* Certificados Digitais Vencendo */}
+      {certsVencendo.length > 0 && (
+        <motion.div variants={item}>
+          <Card>
+            <CardHead>
+              <div>
+                <CardTitle>Certificados Digitais Vencendo</CardTitle>
+                <CardSub>{certsVencendo.length} certificado{certsVencendo.length > 1 ? 's' : ''} vencendo nos próximos 90 dias</CardSub>
+              </div>
+            </CardHead>
+            <CertList>
+              {certsVencendo.map(({ cliente, tipo, vencimento, dias }, i) => (
+                <CertItem key={`${cliente.id}-${tipo}`} $dias={dias}>
+                  <CertIconWrap $dias={dias}>
+                    <Key size={15} color={dias <= 0 ? '#dc2626' : dias <= 30 ? '#d97706' : '#7c3aed'} />
+                  </CertIconWrap>
+                  <CertInfo>
+                    <CertCliente>{cliente.razao_social}</CertCliente>
+                    <CertSub>{tipo} · Vence em {format(vencimento, "dd/MM/yyyy")}</CertSub>
+                  </CertInfo>
+                  <CertDaysBadge $dias={dias}>
+                    {dias < 0 ? `Vencido há ${Math.abs(dias)}d` : dias === 0 ? 'Vence hoje!' : `${dias}d restantes`}
+                  </CertDaysBadge>
+                </CertItem>
+              ))}
+            </CertList>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Tarefas Kanban */}
       <motion.div variants={item}>
@@ -1839,6 +2307,102 @@ export function DashboardPage() {
           </TableWrap>
         </Card>
       </motion.div>
+
+      {/* Modal — Nova Guia */}
+      {showAddGuia && (
+        <ModalOverlay onClick={e => { if (e.target === e.currentTarget) setShowAddGuia(false) }}>
+          <ModalBox>
+            <ModalHead>
+              <ModalTitle>Nova Guia</ModalTitle>
+              <ModalClose onClick={() => setShowAddGuia(false)}><X size={14} /></ModalClose>
+            </ModalHead>
+            <ModalBody>
+              <ModalRow>
+                <ModalField>
+                  <ModalLabel>Tipo *</ModalLabel>
+                  <ModalSelect value={novaGuia.tipo} onChange={e => setNovaGuia(p => ({ ...p, tipo: e.target.value }))}>
+                    {['DARF','GPS','DAS','DAE','GFIP','DCTF','Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </ModalSelect>
+                </ModalField>
+                <ModalField>
+                  <ModalLabel>Mês Ref.</ModalLabel>
+                  <ModalInput type="month" value={novaGuia.mes_ref} onChange={e => setNovaGuia(p => ({ ...p, mes_ref: e.target.value }))} />
+                </ModalField>
+              </ModalRow>
+              <ModalField>
+                <ModalLabel>Cliente</ModalLabel>
+                <ModalSelect value={novaGuia.cliente_id} onChange={e => setNovaGuia(p => ({ ...p, cliente_id: e.target.value }))}>
+                  <option value="">— Sem cliente —</option>
+                  {clientesAll.map(c => <option key={c.id} value={c.id}>{c.razao_social}</option>)}
+                </ModalSelect>
+              </ModalField>
+              <ModalField>
+                <ModalLabel>Descrição</ModalLabel>
+                <ModalInput placeholder="Ex: Competência fevereiro/2026" value={novaGuia.descricao} onChange={e => setNovaGuia(p => ({ ...p, descricao: e.target.value }))} />
+              </ModalField>
+              <ModalRow>
+                <ModalField>
+                  <ModalLabel>Valor (R$)</ModalLabel>
+                  <ModalInput type="number" step="0.01" placeholder="0,00" value={novaGuia.valor} onChange={e => setNovaGuia(p => ({ ...p, valor: e.target.value }))} />
+                </ModalField>
+                <ModalField>
+                  <ModalLabel>Vencimento</ModalLabel>
+                  <ModalInput type="date" value={novaGuia.data_vencimento} onChange={e => setNovaGuia(p => ({ ...p, data_vencimento: e.target.value }))} />
+                </ModalField>
+              </ModalRow>
+            </ModalBody>
+            <ModalFooter>
+              <ModalCancelBtn onClick={() => setShowAddGuia(false)}>Cancelar</ModalCancelBtn>
+              <ModalSaveBtn onClick={addGuia} disabled={savingGuia || !novaGuia.tipo}>
+                {savingGuia ? 'Salvando...' : 'Adicionar Guia'}
+              </ModalSaveBtn>
+            </ModalFooter>
+          </ModalBox>
+        </ModalOverlay>
+      )}
+
+      {/* Modal — Novo Documento */}
+      {showAddDoc && (
+        <ModalOverlay onClick={e => { if (e.target === e.currentTarget) setShowAddDoc(false) }}>
+          <ModalBox>
+            <ModalHead>
+              <ModalTitle>Solicitar Documento</ModalTitle>
+              <ModalClose onClick={() => setShowAddDoc(false)}><X size={14} /></ModalClose>
+            </ModalHead>
+            <ModalBody>
+              <ModalField>
+                <ModalLabel>Cliente *</ModalLabel>
+                <ModalSelect value={novoDoc.cliente_id} onChange={e => setNovoDoc(p => ({ ...p, cliente_id: e.target.value }))}>
+                  <option value="">— Selecione o cliente —</option>
+                  {clientesAll.map(c => <option key={c.id} value={c.id}>{c.razao_social}</option>)}
+                </ModalSelect>
+              </ModalField>
+              <ModalRow>
+                <ModalField>
+                  <ModalLabel>Tipo de Documento *</ModalLabel>
+                  <ModalSelect value={novoDoc.tipo_documento} onChange={e => setNovoDoc(p => ({ ...p, tipo_documento: e.target.value }))}>
+                    {['Extrato Bancário','Notas Fiscais de Entrada','Notas Fiscais de Saída','Folha Ponto','Comprovantes de Pagamento','Recibos','Contratos','Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </ModalSelect>
+                </ModalField>
+                <ModalField>
+                  <ModalLabel>Mês Ref.</ModalLabel>
+                  <ModalInput type="month" value={novoDoc.mes_ref} onChange={e => setNovoDoc(p => ({ ...p, mes_ref: e.target.value }))} />
+                </ModalField>
+              </ModalRow>
+              <ModalField>
+                <ModalLabel>Observações</ModalLabel>
+                <ModalInput placeholder="Detalhe o que precisa ser enviado..." value={novoDoc.observacoes} onChange={e => setNovoDoc(p => ({ ...p, observacoes: e.target.value }))} />
+              </ModalField>
+            </ModalBody>
+            <ModalFooter>
+              <ModalCancelBtn onClick={() => setShowAddDoc(false)}>Cancelar</ModalCancelBtn>
+              <ModalSaveBtn onClick={addDoc} disabled={savingDoc || !novoDoc.cliente_id || !novoDoc.tipo_documento}>
+                {savingDoc ? 'Salvando...' : 'Registrar Solicitação'}
+              </ModalSaveBtn>
+            </ModalFooter>
+          </ModalBox>
+        </ModalOverlay>
+      )}
 
       {/* Modal — Nova Tarefa */}
       {showAddTarefa && (

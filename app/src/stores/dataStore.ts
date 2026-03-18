@@ -14,6 +14,8 @@ interface DataState {
   atendimentos: any[]
   registrosTempo: any[]
   notasServico: any[]
+  guias: any[]
+  checklistDocumentos: any[]
   loadedEscId: string | null
   preloading: boolean
   realtimeChannel: RealtimeChannel | null
@@ -32,6 +34,8 @@ interface DataState {
   setAtendimentos: (d: any[]) => void
   setRegistrosTempo: (d: any[]) => void
   setNotasServico: (d: any[]) => void
+  setGuias: (d: any[]) => void
+  setChecklistDocumentos: (d: any[]) => void
   invalidate: () => void
 }
 
@@ -104,6 +108,24 @@ async function fetchNotasServico(escId: string) {
     .limit(300)
   return data || []
 }
+async function fetchGuias(escId: string) {
+  const { data } = await supabase
+    .from('guias')
+    .select('*,clientes(razao_social)')
+    .eq('escritorio_id', escId)
+    .order('data_vencimento', { ascending: true })
+    .limit(300)
+  return data || []
+}
+async function fetchChecklistDocumentos(escId: string) {
+  const { data } = await supabase
+    .from('checklist_documentos')
+    .select('*,clientes(razao_social)')
+    .eq('escritorio_id', escId)
+    .order('created_at', { ascending: false })
+    .limit(300)
+  return data || []
+}
 
 export const useDataStore = create<DataState>((set, get) => ({
   clientes: [],
@@ -117,6 +139,8 @@ export const useDataStore = create<DataState>((set, get) => ({
   atendimentos: [],
   registrosTempo: [],
   notasServico: [],
+  guias: [],
+  checklistDocumentos: [],
   loadedEscId: null,
   preloading: false,
   realtimeChannel: null,
@@ -129,6 +153,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         clientes, lancamentos, obrigacoes, colaboradores,
         planoContas, transacoes, tarefas,
         honorarios, atendimentos, registrosTempo, notasServico,
+        guias, checklistDocumentos,
       ] = await Promise.all([
         fetchClientes(escId),
         fetchLancamentos(escId),
@@ -141,11 +166,14 @@ export const useDataStore = create<DataState>((set, get) => ({
         fetchAtendimentos(escId),
         fetchRegistrosTempo(escId),
         fetchNotasServico(escId),
+        fetchGuias(escId),
+        fetchChecklistDocumentos(escId),
       ])
       set({
         clientes, lancamentos, obrigacoes, colaboradores,
         planoContas, transacoes, tarefas,
         honorarios, atendimentos, registrosTempo, notasServico,
+        guias, checklistDocumentos,
         loadedEscId: escId,
       })
       get().subscribe(escId)
@@ -169,6 +197,8 @@ export const useDataStore = create<DataState>((set, get) => ({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'atendimentos',          filter: `escritorio_id=eq.${escId}` }, async () => { set({ atendimentos:    await fetchAtendimentos(escId) }) })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_tempo',       filter: `escritorio_id=eq.${escId}` }, async () => { set({ registrosTempo:  await fetchRegistrosTempo(escId) }) })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notas_servico',         filter: `escritorio_id=eq.${escId}` }, async () => { set({ notasServico:    await fetchNotasServico(escId) }) })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'guias',                 filter: `escritorio_id=eq.${escId}` }, async () => { set({ guias:            await fetchGuias(escId) }) })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checklist_documentos',  filter: `escritorio_id=eq.${escId}` }, async () => { set({ checklistDocumentos: await fetchChecklistDocumentos(escId) }) })
       .subscribe()
     set({ realtimeChannel: channel })
   },
@@ -188,6 +218,8 @@ export const useDataStore = create<DataState>((set, get) => ({
   setHonorarios:     (d) => set({ honorarios: d }),
   setAtendimentos:   (d) => set({ atendimentos: d }),
   setRegistrosTempo: (d) => set({ registrosTempo: d }),
-  setNotasServico:   (d) => set({ notasServico: d }),
+  setNotasServico:        (d) => set({ notasServico: d }),
+  setGuias:               (d) => set({ guias: d }),
+  setChecklistDocumentos: (d) => set({ checklistDocumentos: d }),
   invalidate:        ()  => set({ loadedEscId: null }),
 }))

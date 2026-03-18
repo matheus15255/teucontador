@@ -206,6 +206,35 @@ export interface RegistroTempo {
   clientes?: { razao_social: string }
 }
 
+export interface Guia {
+  id: string
+  escritorio_id?: string
+  cliente_id?: string
+  tipo: string
+  descricao?: string
+  mes_ref: string
+  valor?: number
+  data_vencimento?: string
+  status: 'pendente' | 'emitida' | 'paga'
+  data_pagamento?: string
+  observacoes?: string
+  created_at?: string
+  clientes?: { razao_social: string }
+}
+
+export interface ChecklistDocumento {
+  id: string
+  escritorio_id?: string
+  cliente_id?: string
+  mes_ref: string
+  tipo_documento: string
+  status: 'aguardando' | 'recebido'
+  observacoes?: string
+  data_recebimento?: string
+  created_at?: string
+  clientes?: { razao_social: string }
+}
+
 export interface NotaServico {
   id: string
   escritorio_id?: string
