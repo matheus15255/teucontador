@@ -919,3 +919,37 @@ setXxx(fresh || [])
 #### 6. Deploy das edge functions via CLI
 - Instalado Supabase CLI (`/tmp/supabase.exe`)
 - Deploy de `create-checkout` e `abacatepay-webhook` para o projeto `qyjpuisuwaroftoilrvc`
+
+---
+
+## Sessão — 2026-03-17 (continuação)
+
+### Landing page — redesign para máxima conversão (ads)
+
+**Objetivo:** Maximizar conversão de tráfego pago. Adicionadas seções e elementos baseados em boas práticas de CRO.
+
+**Imagens do produto copiadas para** `app/public/img/` (Screenshot_1, 2, 3 — Dashboard, Clientes, Lançamentos)
+
+**Novas seções adicionadas ao `LandingPage.tsx`:**
+
+1. **Hero screenshot** — browser chrome animado mostrando o Dashboard real logo abaixo dos CTAs. Primeiro elemento visual do produto acima do fold.
+
+2. **Seção Dor vs Solução** (Pain/Solution VS grid):
+   - Coluna esquerda (vermelho): "Sem o TEUcontador" — planilhas, prazos, honorários sem controle
+   - Coluna direita (verde): "Com o TEUcontador" — conciliação automática, agenda fiscal, honorários visíveis
+   - CTA embutido: "Resolver isso agora — 14 dias grátis"
+
+3. **Showcase de screenshots interativo** — 3 tabs (Dashboard / Clientes & Empresas / Lançamentos Contábeis) com transição animada e browser chrome. Cada tab com legenda descritiva.
+
+4. **Pricing redesenhado** para dark background (fundo verde escuro):
+   - Urgency bar: "Oferta de lançamento — preço válido para novos clientes deste mês"
+   - Âncora de preço: "Sistemas similares cobram R$600–1.200/mês"
+   - Saving callout: "Você economiza até R$1.000/mês"
+   - Guarantee pills: Sem cartão · 14 dias grátis · Cancele quando quiser · Suporte WhatsApp
+   - CTA atualizado: "Começar 14 dias grátis →"
+
+**Novos styled components:** `HeroScreenshot`, `BrowserChrome`, `BrowserBar`, `BrowserDot`, `BrowserUrl`, `ScreenshotImg`, `HeroGradientFade`, `PainSection`, `PainVsGrid`, `PainCard`, `ShowcaseSection`, `ShowcaseTabs`, `ShowcaseTab`, `UrgencyBar`, `GuaranteeRow`, `GuaranteePill`, `PriceAnchor`, `PriceAnchorSaving`
+
+**Compilação:** zero erros TypeScript
+- Instalado Supabase CLI (`/tmp/supabase.exe`)
+- Deploy de `create-checkout` e `abacatepay-webhook` para o projeto `qyjpuisuwaroftoilrvc`
