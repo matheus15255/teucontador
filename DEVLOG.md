@@ -23,6 +23,71 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18 (portal do cliente)
+
+### Feat: seções novas no portal do cliente
+
+**Arquivo alterado:** `app/src/features/cliente-portal/ClientePortalPage.tsx`
+
+**O que foi adicionado:**
+
+1. **Honorários** — cliente vê o histórico de mensalidades (últimas 12) com status (pago/pendente/atrasado) e data de pagamento. Dados via nova RPC `get_cliente_honorarios`.
+
+2. **Guias para Pagar** — seção mostrando DARF/GPS/DAS/etc que o escritório emitiu para o cliente pagar, com urgência colorida por prazo. Dados via nova RPC `get_cliente_guias`.
+
+3. **Documentos Aguardados** — checklist mostrando quais documentos o escritório está esperando do cliente (e quais já foram recebidos). Dados via nova RPC `get_cliente_docs`.
+
+4. **Obrigações com urgência** — tabela atualizada com badge colorido de prazo: atrasado (vermelho), crítico ≤3d (laranja), urgente ≤7d (amarelo), normal (cinza), transmitido (verde).
+
+5. **WhatsApp FAB** — botão flutuante verde no canto inferior direito linkando para `wa.me/5513991169000`.
+
+**Todas as novas chamadas usam `Promise.allSettled`** — se as RPCs não existirem ainda, o portal carrega normalmente sem quebrar.
+
+**SQL necessário no Supabase (rodar uma vez):**
+
+```sql
+-- Honorários do cliente no portal
+CREATE OR REPLACE FUNCTION get_cliente_honorarios(p_id uuid, p_senha text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE v_c clientes%ROWTYPE;
+BEGIN
+  SELECT * INTO v_c FROM clientes WHERE id = p_id AND senha_acesso = p_senha LIMIT 1;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  RETURN (SELECT json_agg(row_to_json(h)) FROM (
+    SELECT id, mes_ref, valor, status, data_pagamento FROM honorarios
+    WHERE cliente_id = p_id ORDER BY mes_ref DESC LIMIT 12
+  ) h);
+END; $$;
+
+-- Guias do cliente no portal
+CREATE OR REPLACE FUNCTION get_cliente_guias(p_id uuid, p_senha text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE v_c clientes%ROWTYPE;
+BEGIN
+  SELECT * INTO v_c FROM clientes WHERE id = p_id AND senha_acesso = p_senha LIMIT 1;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  RETURN (SELECT json_agg(row_to_json(g)) FROM (
+    SELECT id, tipo, descricao, mes_ref, valor, data_vencimento, status FROM guias
+    WHERE cliente_id = p_id ORDER BY data_vencimento ASC LIMIT 50
+  ) g);
+END; $$;
+
+-- Documentos aguardados do cliente no portal
+CREATE OR REPLACE FUNCTION get_cliente_docs(p_id uuid, p_senha text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE v_c clientes%ROWTYPE;
+BEGIN
+  SELECT * INTO v_c FROM clientes WHERE id = p_id AND senha_acesso = p_senha LIMIT 1;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  RETURN (SELECT json_agg(row_to_json(d)) FROM (
+    SELECT id, mes_ref, tipo_documento, status, observacoes FROM checklist_documentos
+    WHERE cliente_id = p_id ORDER BY created_at DESC LIMIT 50
+  ) d);
+END; $$;
+```
+
+---
+
 ## Sessão — 2026-03-18 (otimização de conversão)
 
 ### Feat: melhorias de CRO na landing page
