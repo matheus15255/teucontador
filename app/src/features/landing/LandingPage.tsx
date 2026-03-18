@@ -918,7 +918,7 @@ export function LandingPage() {
           <NavLink href="#faq">FAQ</NavLink>
         </NavLinks>
         <NavRight>
-          <NavBadge><NavBadgeDot />Novo: IA Fiscal 2025</NavBadge>
+          <NavBadge><NavBadgeDot />Novo: IA Fiscal 2026</NavBadge>
           <BtnOutline onClick={() => navigate('/login')}>Entrar</BtnOutline>
           <BtnPrimary onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }}>
             Teste grátis <ArrowRight size={14} />
@@ -956,7 +956,7 @@ export function LandingPage() {
         <HeroGrid />
         <HeroInner>
           <HeroPill initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <PillDot /> Plataforma Contábil · Lançada em 2024
+            <PillDot /> Plataforma Contábil · Lançada em 2026
           </HeroPill>
 
           <HeroTitle initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>
