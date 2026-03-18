@@ -5,6 +5,30 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Roadmap — O que falta implementar
+
+### Fase 2 — Em andamento
+- [ ] **Notificações de obrigações vencendo** — via email (Supabase) ou WhatsApp (Z-API). Alertar quando obrigação vence em X dias.
+- [ ] **Importação de dados** — migração de ContaAzul/Omie via CSV. Permitir importar clientes, lançamentos e obrigações em massa.
+
+### Fase 3 — Diferencial competitivo
+- [ ] **App mobile** — React Native ou Flutter
+- [ ] **Classificação automática de lançamentos com IA** — sugerir conta contábil com base no histórico
+- [ ] **API REST pública** — para integradores e parceiros
+- [ ] **Open Finance** — integração com bancos via API oficial
+- [ ] **MFA / autenticação em dois fatores** — segurança adicional
+- [ ] **Assinatura digital de documentos**
+
+### Fase 4 — Enterprise
+- [ ] **Audit trail completo** — log de quem editou o quê e quando
+- [ ] **Workflow de aprovação de lançamentos** — contador cria, admin aprova
+- [ ] **Exportação para BI** — Power BI, Looker
+- [ ] **Webhooks para eventos** — notificar sistemas externos
+- [ ] **NFS-e com integração real de prefeituras** — hoje é só CRUD
+- [ ] **eSocial / SPED** — transmissão oficial
+
+---
+
 ## Estrutura do Projeto
 
 | Caminho | Descrição |
