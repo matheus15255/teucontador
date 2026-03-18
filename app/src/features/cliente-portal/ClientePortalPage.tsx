@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { motion } from 'framer-motion'
-import { LogOut, TrendingUp, TrendingDown, DollarSign, AlertCircle, Download, FileText, Link2, Clock, Sun, Moon, MessageCircle, Inbox, Receipt, CheckCircle, XCircle } from 'lucide-react'
+import { LogOut, TrendingUp, TrendingDown, DollarSign, AlertCircle, Download, FileText, Link2, Clock, Sun, Moon, Inbox, CheckCircle } from 'lucide-react'
 import ReactApexChart from 'react-apexcharts'
 import { supabase } from '../../lib/supabase'
 import { useClientePortalStore } from '../../stores/clientePortalStore'
@@ -1323,15 +1323,6 @@ export function ClientePortalPage() {
         )}
       </Content>
 
-      {/* WhatsApp Floating Button */}
-      <WhatsAppFab
-        href="https://wa.me/5513991169000?text=Olá, sou cliente do escritório e gostaria de falar com o contador"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Falar com o escritório pelo WhatsApp"
-      >
-        <MessageCircle size={26} color="#fff" fill="#fff" />
-      </WhatsAppFab>
     </Wrapper>
   )
 }
