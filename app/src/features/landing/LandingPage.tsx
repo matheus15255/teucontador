@@ -473,8 +473,7 @@ const StatLabel = styled.div`font-size: 12.5px; color: rgba(240,237,230,0.45); m
 
 // ─── Pricing ──────────────────────────────────────────────────────────────────
 const PricingGrid = styled.div`
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1000px; margin: 0 auto;
-  @media (max-width: 820px) { grid-template-columns: 1fr; max-width: 400px; }
+  display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 480px; margin: 0 auto;
 `
 
 const PricingCard = styled(motion.div)<{ $featured?: boolean }>`
@@ -701,9 +700,7 @@ const steps = [
 ]
 
 const plans = [
-  { name: 'Starter', tagline: 'Para escritórios iniciantes', price: '197', features: ['Até 10 clientes', 'Dashboard completo', 'Lançamentos ilimitados', 'Plano de contas CFC', 'Relatórios básicos', 'Suporte por e-mail'] },
-  { name: 'Pro', tagline: 'Para escritórios em crescimento', price: '397', featured: true, features: ['Até 50 clientes', 'SPED Fiscal completo', 'Folha & eSocial', 'Open Finance', 'Relatórios CFC avançados', 'IA — classificação auto', 'Suporte prioritário 24h'] },
-  { name: 'Enterprise', tagline: 'Para grandes escritórios', price: '897', features: ['Clientes ilimitados', 'Multi-usuário ilimitado', 'API pública REST', 'SLA 99.9% garantido', 'Gerente de conta dedicado', 'Customizações sob medida'] },
+  { name: 'TEUcontador', tagline: 'Acesso total a todas as funcionalidades', price: '197', featured: true, features: ['Clientes e empresas ilimitados', 'SPED Fiscal e Contábil', 'DCTF, PGDAS e obrigações fiscais', 'Folha de pagamento / DP', 'eSocial integrado', 'Plano de contas CFC', 'Honorários e NFS-e', 'Fluxo de caixa e relatórios', 'Portal do cliente', 'Suporte por WhatsApp'] },
 ]
 
 const testimonials = [
@@ -715,9 +712,9 @@ const testimonials = [
 const faqs = [
   { q: 'O TEUcontador é homologado pelo CFC?', a: 'Sim. Nossa plataforma foi desenvolvida em total conformidade com as normas NBC TG emitidas pelo Conselho Federal de Contabilidade (CFC), incluindo NBC TG 26, NBC TG 1000 e demais normas aplicáveis ao porte das empresas atendidas.' },
   { q: 'Posso importar dados do meu sistema atual?', a: 'Sim. Oferecemos importação via planilha Excel, arquivos SPED, OFX e integrações diretas com os principais sistemas contábeis do mercado brasileiro.' },
-  { q: 'Como funciona o período de 14 dias grátis?', a: 'Você tem acesso completo a todas as funcionalidades do plano Pro, sem precisar inserir cartão de crédito. Após o período, escolha o plano ideal para seu escritório.' },
+  { q: 'Como funciona o período de 14 dias grátis?', a: 'Você tem acesso completo a todas as funcionalidades do TEUcontador, sem precisar inserir cartão de crédito. Após o período, assine por R$197/mês e continue com tudo incluso.' },
   { q: 'Os dados dos meus clientes estão seguros?', a: 'Utilizamos criptografia AES-256 para dados em repouso, TLS 1.3 em trânsito, backups automáticos diários com retenção de 90 dias, e somos conformes com a LGPD e ISO 27001.' },
-  { q: 'Posso ter múltiplos colaboradores no sistema?', a: 'Sim. Os planos Pro e Enterprise suportam múltiplos usuários com controle de permissões por módulo. O Enterprise permite colaboradores ilimitados.' },
+  { q: 'Posso ter múltiplos colaboradores no sistema?', a: 'Sim. O TEUcontador suporta múltiplos usuários com controle de permissões por módulo, tudo incluso no plano único.' },
 ]
 
 const marqueeItems = ['SPED Fiscal', 'eSocial', 'Open Finance', 'NBC TG 26', 'DCTF', 'ECF', 'DIRF', 'GFIP', 'Conciliação Bancária', 'DRE', 'Balanço Patrimonial', 'Livro Razão', 'IRPJ', 'CSLL', 'PIS/COFINS']
@@ -990,7 +987,7 @@ export function LandingPage() {
                 initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
                 <PricingCard $featured={p.featured}>
-                  {p.featured && <PricingPopular>Mais Popular</PricingPopular>}
+                  {p.featured && <PricingPopular>Plano Completo</PricingPopular>}
                   <PricingName $featured={p.featured}>{p.name}</PricingName>
                   <PricingTagline $featured={p.featured}>{p.tagline}</PricingTagline>
                   <PricingPrice $featured={p.featured}>
