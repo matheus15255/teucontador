@@ -682,6 +682,132 @@ const FooterCert = styled.span`
   font-size: 10px; font-weight: 700; letter-spacing: 1px; color: rgba(240,237,230,0.35);
 `
 
+// ─── Hero Screenshot ──────────────────────────────────────────────────────────
+const HeroScreenshot = styled(motion.div)`
+  margin-top: 56px; position: relative; max-width: 960px;
+  margin-left: auto; margin-right: auto; padding: 0 0 60px;
+`
+const BrowserChrome = styled.div`
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 48px 130px rgba(0,0,0,0.7), 0 0 0 1px rgba(74,222,128,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+`
+const BrowserBar = styled.div`
+  display: flex; align-items: center; gap: 6px; padding: 10px 14px;
+  background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.06);
+`
+const BrowserDot = styled.span<{ $c: string }>`
+  width: 10px; height: 10px; border-radius: 50%; background: ${({ $c }) => $c}; flex-shrink: 0;
+`
+const BrowserUrl = styled.div`
+  flex: 1; background: rgba(255,255,255,0.05); border-radius: 5px;
+  padding: 4px 12px; font-size: 11px; color: rgba(255,255,255,0.25); font-family: monospace; text-align: center;
+`
+const ScreenshotImg = styled.img`
+  width: 100%; display: block; border-radius: 0 0 13px 13px;
+`
+const HeroGradientFade = styled.div`
+  position: absolute; bottom: 0; left: 0; right: 0; height: 120px;
+  background: linear-gradient(to top, #0a1f14, transparent);
+  pointer-events: none;
+`
+
+// ─── Pain / Solution ──────────────────────────────────────────────────────────
+const PainSection = styled.section`
+  background: #fff; padding: 96px 48px;
+  @media (max-width: 768px) { padding: 64px 24px; }
+`
+const PainHeader = styled.div`
+  text-align: center; max-width: 700px; margin: 0 auto 56px;
+`
+const PainVsGrid = styled.div`
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; max-width: 1100px; margin: 0 auto;
+  align-items: start;
+  @media (max-width: 860px) { grid-template-columns: 1fr; }
+`
+const PainCol = styled.div`display: flex; flex-direction: column; gap: 14px;`
+const PainCard = styled(motion.div)<{ $bad?: boolean }>`
+  padding: 20px 22px; border-radius: 14px; display: flex; gap: 14px; align-items: flex-start;
+  background: ${({ $bad }) => $bad ? '#fef5f5' : '#f0fdf4'};
+  border: 1.5px solid ${({ $bad }) => $bad ? '#fecaca' : '#bbf7d0'};
+`
+const PainEmoji = styled.div`font-size: 20px; flex-shrink: 0; margin-top: 2px;`
+const PainCardTitle = styled.div<{ $bad?: boolean }>`
+  font-size: 13.5px; font-weight: 700; color: ${({ $bad }) => $bad ? '#991b1b' : '#14532d'};
+  margin-bottom: 3px;
+`
+const PainCardDesc = styled.div<{ $bad?: boolean }>`
+  font-size: 12.5px; line-height: 1.65; color: ${({ $bad }) => $bad ? '#7f1d1d' : '#166534'}; opacity: .8;
+`
+const VsDivider = styled.div`
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  @media (max-width: 860px) { flex-direction: row; }
+`
+const VsBadge = styled.div`
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #1a7a4a, #0f5233);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; color: #fff; letter-spacing: .5px;
+  box-shadow: 0 4px 16px rgba(26,122,74,.35);
+`
+const VsLine = styled.div`
+  flex: 1; width: 1px; background: linear-gradient(to bottom, transparent, #d4d0c8, transparent);
+  @media (max-width: 860px) { width: 40px; height: 1px; flex: unset; }
+`
+
+// ─── Screenshots Showcase ─────────────────────────────────────────────────────
+const ShowcaseSection = styled.section`
+  background: linear-gradient(165deg, #081a10 0%, #0d2818 60%, #081a10 100%);
+  padding: 100px 48px; position: relative; overflow: hidden;
+  @media (max-width: 768px) { padding: 72px 24px; }
+`
+const ShowcaseBg = styled.div`
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(26,122,74,.18) 0%, transparent 65%);
+`
+const ShowcaseTabs = styled.div`
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px;
+`
+const ShowcaseTab = styled.button<{ $active: boolean }>`
+  padding: 9px 20px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  font-family: 'Inter', sans-serif; cursor: pointer; transition: all .2s;
+  background: ${({ $active }) => $active ? 'rgba(74,222,128,.15)' : 'rgba(255,255,255,.04)'};
+  border: 1px solid ${({ $active }) => $active ? 'rgba(74,222,128,.4)' : 'rgba(255,255,255,.08)'};
+  color: ${({ $active }) => $active ? '#4ade80' : 'rgba(240,237,230,.45)'};
+  &:hover { color: rgba(240,237,230,.8); border-color: rgba(74,222,128,.2); }
+`
+const ShowcaseCaption = styled.div`
+  text-align: center; margin-top: 22px;
+  font-size: 13.5px; color: rgba(240,237,230,.45); max-width: 600px; margin-left: auto; margin-right: auto;
+`
+
+// ─── Guarantee & Urgency ──────────────────────────────────────────────────────
+const UrgencyBar = styled.div`
+  background: rgba(74,222,128,.07); border: 1px solid rgba(74,222,128,.2); border-radius: 12px;
+  padding: 13px 20px; margin-bottom: 32px; text-align: center;
+  font-size: 13px; font-weight: 600; color: #4ade80;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+`
+const GuaranteeRow = styled.div`
+  display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap; justify-content: center;
+`
+const GuaranteePill = styled.div`
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 20px;
+  background: rgba(74,222,128,.07); border: 1px solid rgba(74,222,128,.15);
+  font-size: 12px; font-weight: 600; color: rgba(240,237,230,.65);
+`
+const PriceAnchor = styled.div`
+  text-align: center; margin-bottom: 8px;
+  font-size: 12px; color: rgba(240,237,230,.35); text-decoration: line-through;
+`
+const PriceAnchorSaving = styled.div`
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.25);
+  border-radius: 6px; padding: 3px 10px; margin-top: 6px;
+  font-size: 11px; font-weight: 700; color: #4ade80; letter-spacing: .3px;
+`
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const features = [
   { icon: BarChart2,  bg: '#e8f5ee', ic: '#1a7a4a', accent: 'linear-gradient(90deg,#1a7a4a,#22a062)', title: 'Lançamentos Contábeis', desc: 'Partidas dobradas com plano de contas CFC. Exporte DRE, Balanço e Razão em segundos.', tags: ['DRE','Balanço','Razão'] },
@@ -717,6 +843,36 @@ const faqs = [
   { q: 'Posso ter múltiplos colaboradores no sistema?', a: 'Sim. O TEUcontador suporta múltiplos usuários com controle de permissões por módulo, tudo incluso no plano único.' },
 ]
 
+const screenshots = [
+  {
+    label: 'Dashboard',
+    img: '/img/Screenshot_1.png',
+    caption: 'Visão completa do escritório: KPIs financeiros, honorários recebidos/pendentes e gráfico de receitas × despesas em tempo real.',
+  },
+  {
+    label: 'Clientes & Empresas',
+    img: '/img/Screenshot_2.png',
+    caption: 'Gerencie toda a carteira de clientes com filtros por situação, regime tributário, honorários e acesso rápido a cada empresa.',
+  },
+  {
+    label: 'Lançamentos Contábeis',
+    img: '/img/Screenshot_3.png',
+    caption: 'Partidas dobradas com plano de contas CFC — visualize totais de crédito, débito e saldo líquido. Exporte PDF ou Excel em segundos.',
+  },
+]
+
+const painItems = [
+  { emoji: '😩', title: 'Planilhas que nunca fecham', desc: 'Horas conciliando lançamentos manualmente. Fórmulas quebradas, versões conflitantes, retrabalho toda semana.' },
+  { emoji: '⏰', title: 'Prazos fiscais no limite', desc: 'SPED, DCTF, eSocial espalhados em sistemas diferentes — alguma obrigação sempre fica pra última hora.' },
+  { emoji: '💸', title: 'Honorários mal controlados', desc: 'Sem visibilidade de quem pagou, quem está atrasado e quanto o escritório realmente fatura por mês.' },
+]
+
+const solutionItems = [
+  { emoji: '✅', title: 'Conciliação automática', desc: 'Importe OFX, concilie com lançamentos e feche o mês em minutos. Zero planilha, zero retrabalho.' },
+  { emoji: '🗓️', title: 'Agenda fiscal centralizada', desc: 'Todas as obrigações num só lugar com alertas automáticos de vencimento. Nunca perca um prazo.' },
+  { emoji: '📊', title: 'Honorários no controle', desc: 'Veja em tempo real quem pagou, emita NFS-e direto pelo sistema e monitore o fluxo do escritório.' },
+]
+
 const marqueeItems = ['SPED Fiscal', 'eSocial', 'Open Finance', 'NBC TG 26', 'DCTF', 'ECF', 'DIRF', 'GFIP', 'Conciliação Bancária', 'DRE', 'Balanço Patrimonial', 'Livro Razão', 'IRPJ', 'CSLL', 'PIS/COFINS']
 
 const trustBadges = [
@@ -734,6 +890,7 @@ export function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState(0)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -846,6 +1003,21 @@ export function LandingPage() {
             ))}
           </HeroStats>
         </HeroInner>
+
+        {/* Hero product screenshot */}
+        <HeroScreenshot
+          initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <BrowserChrome>
+            <BrowserBar>
+              <BrowserDot $c="#ff5f57" /><BrowserDot $c="#febc2e" /><BrowserDot $c="#28c840" />
+              <BrowserUrl>app.teucontador.com.br/dashboard</BrowserUrl>
+            </BrowserBar>
+            <ScreenshotImg src="/img/Screenshot_1.png" alt="Dashboard TEUcontador" loading="eager" />
+          </BrowserChrome>
+          <HeroGradientFade />
+        </HeroScreenshot>
       </Hero>
 
       {/* ── Marquee ── */}
@@ -871,6 +1043,82 @@ export function LandingPage() {
           </TrustBadges>
         </TrustInner>
       </TrustSection>
+
+      {/* ── Pain / Solution ── */}
+      <PainSection>
+        <PainHeader>
+          <Eyebrow>O problema</Eyebrow>
+          <SectionTitle style={{ marginBottom: 14 }}>Chega de <em>retrabalho</em></SectionTitle>
+          <SectionDesc style={{ margin: '0 auto', textAlign: 'center', maxWidth: 560 }}>
+            Contadores brasileiros perdem em média <strong>12 horas por semana</strong> em tarefas que poderiam ser automáticas. O TEUcontador muda isso.
+          </SectionDesc>
+        </PainHeader>
+        <PainVsGrid>
+          <PainCol>
+            <div style={{ textAlign: 'center', marginBottom: 16, fontSize: 11, fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#ef4444' }}>Sem o TEUcontador</div>
+            {painItems.map((p, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <PainCard $bad>
+                  <PainEmoji>{p.emoji}</PainEmoji>
+                  <div><PainCardTitle $bad>{p.title}</PainCardTitle><PainCardDesc $bad>{p.desc}</PainCardDesc></div>
+                </PainCard>
+              </motion.div>
+            ))}
+          </PainCol>
+          <VsDivider>
+            <VsLine /><VsBadge>VS</VsBadge><VsLine />
+          </VsDivider>
+          <PainCol>
+            <div style={{ textAlign: 'center', marginBottom: 16, fontSize: 11, fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#16a34a' }}>Com o TEUcontador</div>
+            {solutionItems.map((s, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <PainCard>
+                  <PainEmoji>{s.emoji}</PainEmoji>
+                  <div><PainCardTitle>{s.title}</PainCardTitle><PainCardDesc>{s.desc}</PainCardDesc></div>
+                </PainCard>
+              </motion.div>
+            ))}
+          </PainCol>
+        </PainVsGrid>
+        <div style={{ textAlign: 'center', marginTop: 52 }}>
+          <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }} style={{ display: 'inline-flex', background: 'linear-gradient(135deg,#1a7a4a,#0f5233)', boxShadow: '0 8px 28px rgba(26,122,74,.35)', color: '#fff' }}>
+            Resolver isso agora — 14 dias grátis <ArrowRight size={16} />
+          </HeroBtnPrimary>
+        </div>
+      </PainSection>
+
+      {/* ── Screenshots Showcase ── */}
+      <ShowcaseSection id="produto">
+        <ShowcaseBg />
+        <SectionInner $center style={{ position: 'relative', zIndex: 1 }}>
+          <Eyebrow>Veja em ação</Eyebrow>
+          <SectionTitle style={{ color: '#f0ede6', marginBottom: 12 }}>O sistema que <em>contadores usam</em></SectionTitle>
+          <p style={{ fontSize: 15, color: 'rgba(240,237,230,0.45)', marginBottom: 40, fontWeight: 300 }}>
+            Interface limpa, intuitiva e projetada para a rotina contábil brasileira.
+          </p>
+          <ShowcaseTabs>
+            {screenshots.map((s, i) => (
+              <ShowcaseTab key={i} $active={activeTab === i} onClick={() => setActiveTab(i)}>
+                {s.label}
+              </ShowcaseTab>
+            ))}
+          </ShowcaseTabs>
+          <AnimatePresence mode="wait">
+            <motion.div key={activeTab}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.35 }}>
+              <BrowserChrome style={{ maxWidth: 1000, margin: '0 auto', boxShadow: '0 40px 120px rgba(0,0,0,.7), 0 0 0 1px rgba(74,222,128,.1)' }}>
+                <BrowserBar>
+                  <BrowserDot $c="#ff5f57" /><BrowserDot $c="#febc2e" /><BrowserDot $c="#28c840" />
+                  <BrowserUrl>app.teucontador.com.br</BrowserUrl>
+                </BrowserBar>
+                <ScreenshotImg src={screenshots[activeTab].img} alt={screenshots[activeTab].label} style={{ borderRadius: '0 0 13px 13px' }} />
+              </BrowserChrome>
+            </motion.div>
+          </AnimatePresence>
+          <ShowcaseCaption>{screenshots[activeTab].caption}</ShowcaseCaption>
+        </SectionInner>
+      </ShowcaseSection>
 
       {/* ── Features ── */}
       <Section id="features" $bg="#f8f6f1">
@@ -974,13 +1222,16 @@ export function LandingPage() {
       </StatsSection>
 
       {/* ── Pricing ── */}
-      <Section id="pricing" $bg="#f8f6f1">
+      <Section id="pricing" $bg="linear-gradient(165deg, #081a10 0%, #0d2818 100%)">
         <SectionInner $center>
           <Eyebrow>Planos & Preços</Eyebrow>
-          <SectionTitle style={{ marginBottom: 12 }}>Simples e <em>transparente</em></SectionTitle>
-          <p style={{ fontSize: 15, color: '#9a9a8a', marginBottom: 52, fontWeight: 300 }}>
-            14 dias grátis · Sem cartão de crédito · Cancele quando quiser
+          <SectionTitle style={{ marginBottom: 12, color: '#f0ede6' }}>Um plano. <em>Tudo incluso.</em></SectionTitle>
+          <p style={{ fontSize: 15, color: 'rgba(240,237,230,0.45)', marginBottom: 32, fontWeight: 300 }}>
+            Outros sistemas cobram R$500–R$1.200/mês por módulos separados. Aqui é tudo em um.
           </p>
+          <UrgencyBar>
+            <span>⚡</span> Oferta de lançamento — preço válido para novos clientes que assinarem este mês
+          </UrgencyBar>
           <PricingGrid>
             {plans.map((p, i) => (
               <motion.div key={p.name}
@@ -1005,9 +1256,24 @@ export function LandingPage() {
                       </PricingFeature>
                     ))}
                   </PricingFeatureList>
+                  {p.featured && (
+                    <>
+                      <PriceAnchor>Sistemas similares cobram R$ 600–1.200/mês</PriceAnchor>
+                      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                        <PriceAnchorSaving>✦ Você economiza até R$ 1.000/mês</PriceAnchorSaving>
+                      </div>
+                    </>
+                  )}
                   <PricingBtn $featured={p.featured} onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }}>
-                    Começar agora
+                    Começar 14 dias grátis <ArrowRight size={14} />
                   </PricingBtn>
+                  {p.featured && (
+                    <GuaranteeRow>
+                      {['Sem cartão de crédito', '14 dias grátis', 'Cancele quando quiser', 'Suporte por WhatsApp'].map(g => (
+                        <GuaranteePill key={g}><CheckCircle size={12} color="rgba(74,222,128,0.6)" /> {g}</GuaranteePill>
+                      ))}
+                    </GuaranteeRow>
+                  )}
                 </PricingCard>
               </motion.div>
             ))}
