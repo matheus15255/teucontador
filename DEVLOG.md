@@ -23,6 +23,21 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-18 (webhook de pagamento)
+
+### Fix: webhook AbacatePay não ativava subscription após pagamento
+
+**Bug:** O `create-checkout` gerava `externalId: "${esc.id}-${Date.now()}"`. O webhook usava esse valor direto como `escritorioId` no `.eq('id', ...)` — nunca batia com nenhum UUID real.
+
+**Arquivos alterados:**
+- `supabase/functions/create-checkout/index.ts` — adicionado `metadata: { escritorio_id: esc.id }` no body do billing
+- `supabase/functions/abacatepay-webhook/index.ts` — leitura prioriza `metadata.escritorio_id` (UUID limpo); fallback extrai UUID do externalId legado via `.split('-').slice(0,5).join('-')`
+- `app/src/components/layout/AppLayout.tsx` — adicionado `useEffect` que detecta `?subscribed=1` na URL após retorno do pagamento, recarrega o escritório do Supabase e limpa o param da URL
+
+**Resultado:** Após o usuário pagar via PIX, o webhook atualiza `subscription_status = 'active'` corretamente e ao voltar para o dashboard a tela de paywall some imediatamente.
+
+---
+
 ## Sessão — 2026-03-18 (anti-trial abuse)
 
 ### Feat: CPF/CNPJ obrigatório no cadastro + constraint UNIQUE

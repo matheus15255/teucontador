@@ -98,6 +98,7 @@ serve(async (req) => {
           quantity: 1,
           price: 19700,
         }],
+        metadata: { escritorio_id: esc.id },
         methods: ['PIX'],
         frequency: 'ONE_TIME',
         returnUrl: `${APP_URL}/app/dashboard`,

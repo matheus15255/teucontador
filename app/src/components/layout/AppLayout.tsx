@@ -16,6 +16,8 @@ import { useSubscription } from '../../hooks/useSubscription'
 import { TrialBanner } from '../../features/subscription/TrialBanner'
 import { PaywallModal } from '../../features/subscription/PaywallModal'
 import { ChatbotWidget } from '../ChatbotWidget'
+import { WelcomeModal } from '../../features/onboarding/WelcomeModal'
+import { OnboardingChecklist, RELATORIOS_KEY } from '../../features/onboarding/OnboardingChecklist'
 
 const navGroups = [
   {
@@ -389,7 +391,12 @@ export function AppLayout() {
   const { preload, unsubscribe } = useDataStore()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [checklistVisible, setChecklistVisible] = useState(true)
+  const [visitedRelatorios, setVisitedRelatorios] = useState(() =>
+    !!localStorage.getItem(RELATORIOS_KEY)
+  )
   const { isTrial, isExpired, trialDaysRemaining } = useSubscription()
+  const { clientes, lancamentos, obrigacoes } = useDataStore()
 
   useEffect(() => {
     if (escritorio?.id) preload(escritorio.id)
@@ -398,6 +405,23 @@ export function AppLayout() {
   useEffect(() => {
     return () => { unsubscribe() }
   }, [])
+
+  // Após retorno do pagamento: recarrega escritório e limpa param da URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    if (params.get('subscribed') === '1' && user) {
+      useAuthStore.getState().loadEscritorio(user)
+      navigate(location.pathname, { replace: true })
+    }
+  }, [location.search])
+
+  // Track relatorios visit
+  useEffect(() => {
+    if (location.pathname.includes('/relatorios')) {
+      localStorage.setItem(RELATORIOS_KEY, '1')
+      setVisitedRelatorios(true)
+    }
+  }, [location.pathname])
 
   const currentPage = location.pathname.split('/').pop() || 'dashboard'
   const meta = user?.user_metadata || {}
@@ -417,9 +441,13 @@ export function AppLayout() {
     setSidebarOpen(false)
   }
 
+  const isDashboard = location.pathname === '/app/dashboard' || location.pathname === '/app'
+  const nomePerfil = user?.user_metadata?.nome_completo || user?.email || ''
+
   return (
     <Wrap>
       {isExpired && <PaywallModal onSignOut={handleSignOut} />}
+      <WelcomeModal nome={nomePerfil} onClose={() => {}} />
       <Overlay $visible={sidebarOpen} onClick={() => setSidebarOpen(false)} />
 
       <Sidebar $open={sidebarOpen}>
@@ -491,6 +519,15 @@ export function AppLayout() {
         {isTrial && <TrialBanner daysRemaining={trialDaysRemaining} />}
 
         <Content>
+          {isDashboard && checklistVisible && (
+            <OnboardingChecklist
+              clientes={clientes.length}
+              lancamentos={lancamentos.length}
+              obrigacoes={obrigacoes.length}
+              visitedRelatorios={visitedRelatorios}
+              onDismiss={() => setChecklistVisible(false)}
+            />
+          )}
           <Outlet />
         </Content>
       </Main>

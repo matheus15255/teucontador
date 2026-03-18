@@ -23,10 +23,12 @@ serve(async (req) => {
   const event: string = (body.event as string) ?? ''
   const billing = (body.billing ?? body.data) as Record<string, unknown> | undefined
 
-  // Identificar escritório pelo externalId do produto
+  // Identificar escritório — prioriza metadata.escritorio_id (UUID limpo),
+  // fallback para externalId do produto (formato legado "uuid-timestamp")
   const products = billing?.products as Array<Record<string, unknown>> | undefined
-  const escritorioId: string = (products?.[0]?.externalId as string) ??
-    ((billing?.metadata as Record<string, unknown>)?.escritorio_id as string) ?? ''
+  const metaEscritorioId = (billing?.metadata as Record<string, unknown>)?.escritorio_id as string | undefined
+  const externalId = products?.[0]?.externalId as string | undefined
+  const escritorioId: string = metaEscritorioId ?? externalId?.split('-').slice(0, 5).join('-') ?? ''
 
   if (!escritorioId) {
     return new Response('missing escritorio_id', { status: 400 })
