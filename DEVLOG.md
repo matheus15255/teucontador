@@ -18,11 +18,61 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 | `app/src/features/chart-of-accounts/ChartOfAccountsPage.tsx` | Plano de contas |
 | `app/src/features/settings/SettingsPage.tsx` | Configurações |
 | `app/src/types/index.ts` | Tipos TypeScript globais |
-| `supabase/functions/chat/index.ts` | Edge Function — proxy Claude API |
+| `app/src/components/ChatbotWidget.tsx` | Widget de chat flutuante com FAQ |
+| `app/src/components/NotificacoesDropdown.tsx` | Dropdown de notificações |
 
 ---
 
-## Sessão — 2026-03-18
+## Sessão — 2026-03-18 (continuação)
+
+### Fix: painel de notificações atrás do dashboard
+
+**Arquivos alterados:**
+- `app/src/components/NotificacoesDropdown.tsx`
+
+**Problema:** O painel de notificações abria atrás do conteúdo do dashboard, impedindo a visualização.
+
+**Causa:** `position: absolute` com `z-index: 999` dentro de um pai com stacking context criado pelo layout, fazendo o z-index não ter efeito fora do contêiner pai.
+
+**Solução:** Mudado para `position: fixed` com `z-index: 8000`. Posição calculada dinamicamente via `getBoundingClientRect()` do botão de sino, garantindo alinhamento correto em qualquer resolução.
+
+---
+
+### Chatbot de suporte — FAQ estático
+
+**Arquivos criados/alterados:**
+- `app/src/components/ChatbotWidget.tsx` (novo)
+- `app/src/components/layout/AppLayout.tsx` (importação do widget)
+
+**Funcionalidade:**
+- Botão flutuante verde no canto inferior direito com animação de pulso
+- Ao abrir, exibe 6 sugestões rápidas clicáveis com respostas pré-definidas:
+  - Como cadastrar um cliente?
+  - Como criar um lançamento contábil?
+  - Como importar extrato OFX?
+  - Como gerar relatório em PDF?
+  - Como lançar honorários?
+  - Como usar a conciliação bancária?
+- Ao **clicar numa sugestão** → resposta automática instantânea (sem API)
+- Ao **digitar livremente** → mensagem amigável + card do WhatsApp `(13) 99116-9000`
+- Sem dependência de IA ou créditos externos
+
+---
+
+### Remoção completa das features de IA
+
+**Arquivos alterados/deletados:**
+- `app/src/lib/aiHelper.ts` — **deletado**
+- `supabase/functions/chat/index.ts` — **deletado**
+- `supabase/functions/support-chat/index.ts` — **deletado**
+- `app/src/features/accounting/AccountingPage.tsx` — removidos import, styled-components AI, states (`aiSugestao`, `aiLoading`, `aiDebounceRef`), lógica de debounce e card de sugestão no modal
+- `app/src/features/reconciliation/ReconciliationPage.tsx` — removidos import, styled-components AI (`AIBadge`, `AISugestaoBar`, `AISugestaoItem`, `AIDimText`), states e bloco de sugestões no modal de conciliação
+
+**Motivo:** Usuário solicitou remoção de toda a funcionalidade de IA do sistema.
+
+**Bug encontrado durante remoção:** `setAiSugestao(null)` havia ficado na função `openAdd()` causando erro de build TypeScript. Corrigido.
+
+---
 
 ### Fix: modal de conciliação dark mode + IA carregando dados
 
