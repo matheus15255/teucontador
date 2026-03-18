@@ -4,6 +4,8 @@ export interface Escritorio {
   nome: string
   plano?: string
   email?: string
+  telefone?: string
+  cpf_cnpj?: string
   created_at?: string
   subscription_status?: 'trial' | 'active' | 'cancelled'
   subscription_id?: string

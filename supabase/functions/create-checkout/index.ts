@@ -36,44 +36,57 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Escritório não encontrado' }), { status: 404, headers: CORS })
     }
 
+    // Validar dados obrigatórios para o pagamento
+    const { data: authUser } = await supabase.auth.admin.getUserById(esc.user_id)
+    const email = esc.email || authUser?.user?.email
+    const telefone = esc.telefone
+    const cpf_cnpj = esc.cpf_cnpj
+
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'E-mail não cadastrado. Atualize seu perfil antes de assinar.' }), { status: 422, headers: CORS })
+    }
+    if (!telefone) {
+      return new Response(JSON.stringify({ error: 'Telefone não cadastrado. Atualize seu perfil antes de assinar.' }), { status: 422, headers: CORS })
+    }
+    if (!cpf_cnpj) {
+      return new Response(JSON.stringify({ error: 'CPF/CNPJ não cadastrado. Atualize seu perfil antes de assinar.' }), { status: 422, headers: CORS })
+    }
+
+    const name = esc.nome || 'Cliente TEUcontador'
+
     // Criar ou reutilizar customer no AbacatePay
     let customerId: string = esc.abacatepay_customer_id
     let customerData: Record<string, string>
 
     if (!customerId) {
-      const { data: user } = await supabase.auth.admin.getUserById(esc.user_id)
-      const email = esc.email || user?.user?.email || 'sem-email@teucontador.com.br'
-      const name  = esc.nome || 'Cliente TEUcontador'
-
       const custRes = await fetch(`${API}/customer/create`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${ABACATEPAY_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          email,
-          cellphone: esc.telefone || '11999999999',
-          taxId: esc.cpf_cnpj || '529.982.247-25',
-        }),
+        body: JSON.stringify({ name, email, cellphone: telefone, taxId: cpf_cnpj }),
       })
+
+      if (!custRes.ok) {
+        const errBody = await custRes.text()
+        return new Response(
+          JSON.stringify({ error: `Erro ao criar cliente no AbacatePay (${custRes.status})`, details: errBody }),
+          { status: 502, headers: { ...CORS, 'Content-Type': 'application/json' } }
+        )
+      }
+
       const custJson = await custRes.json()
-      console.log('Customer response:', JSON.stringify(custJson))
-
       customerId = custJson.data?.id
-      customerData = { id: customerId, name, email, cellphone: esc.telefone || '11999999999', taxId: esc.cpf_cnpj || '529.982.247-25' }
 
-      if (customerId) {
-        await supabase.from('escritorios').update({ abacatepay_customer_id: customerId }).eq('id', esc.id)
+      if (!customerId) {
+        return new Response(
+          JSON.stringify({ error: 'AbacatePay não retornou ID do cliente', details: custJson }),
+          { status: 502, headers: { ...CORS, 'Content-Type': 'application/json' } }
+        )
       }
-    } else {
-      const { data: user } = await supabase.auth.admin.getUserById(esc.user_id)
-      customerData = {
-        id: customerId,
-        name: esc.nome || 'Cliente',
-        email: esc.email || user?.user?.email || '',
-        cellphone: esc.telefone || '11999999999',
-        taxId: esc.cpf_cnpj || '529.982.247-25',
-      }
+
+      await supabase.from('escritorios').update({ abacatepay_customer_id: customerId }).eq('id', esc.id)
     }
+
+    customerData = { id: customerId, name, email, cellphone: telefone, taxId: cpf_cnpj }
 
     // Criar billing
     const billingRes = await fetch(`${API}/billing/create`, {
@@ -83,7 +96,7 @@ serve(async (req) => {
         customer: customerData,
         products: [{
           externalId: esc.id,
-          name: 'TEUcontador — Plano Pro',
+          name: 'TEUcontador — Plano Completo',
           quantity: 1,
           price: 19700,
         }],
@@ -94,14 +107,20 @@ serve(async (req) => {
       }),
     })
 
-    const billing = await billingRes.json()
-    console.log('Billing response:', JSON.stringify(billing))
+    if (!billingRes.ok) {
+      const errBody = await billingRes.text()
+      return new Response(
+        JSON.stringify({ error: `Erro ao criar cobrança no AbacatePay (${billingRes.status})`, details: errBody }),
+        { status: 502, headers: { ...CORS, 'Content-Type': 'application/json' } }
+      )
+    }
 
+    const billing = await billingRes.json()
     const url: string = billing.data?.url
 
     if (!url) {
       return new Response(
-        JSON.stringify({ error: 'Erro AbacatePay', details: billing }),
+        JSON.stringify({ error: 'AbacatePay não retornou URL de pagamento', details: billing }),
         { status: 502, headers: { ...CORS, 'Content-Type': 'application/json' } }
       )
     }
@@ -111,7 +130,6 @@ serve(async (req) => {
       { headers: { ...CORS, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    console.error('Error:', err)
     return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: CORS })
   }
 })

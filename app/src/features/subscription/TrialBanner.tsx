@@ -1,10 +1,6 @@
-import { useState } from 'react'
 import styled from 'styled-components'
-import { supabase } from '../../lib/supabase'
-import { useAuthStore } from '../../stores/authStore'
-import { toast } from 'sonner'
-
-
+import { useCheckout } from './useCheckout'
+import { ProfileFormModal } from './ProfileFormModal'
 
 const Banner = styled.div`
   background: linear-gradient(90deg, #92400e 0%, #b45309 100%);
@@ -48,31 +44,25 @@ interface Props {
 }
 
 export function TrialBanner({ daysRemaining }: Props) {
-  const { escritorio } = useAuthStore()
-  const [loading, setLoading] = useState(false)
-
-  const handleAssinar = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { escritorioId: escritorio?.id },
-      })
-      if (error || !data?.url) throw new Error(error?.message || 'Erro ao criar checkout')
-      window.location.href = data.url
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao iniciar pagamento')
-      setLoading(false)
-    }
-  }
+  const { loading, showProfileForm, setShowProfileForm, startCheckout, saveProfileAndCheckout } = useCheckout()
 
   const label = daysRemaining === 1 ? '1 dia restante' : `${daysRemaining} dias restantes`
 
   return (
-    <Banner>
-      <span>Período de teste gratuito — <strong>{label}</strong></span>
-      <Btn $loading={loading} onClick={handleAssinar} disabled={loading}>
-        {loading ? 'Aguarde...' : 'Assinar agora'}
-      </Btn>
-    </Banner>
+    <>
+      {showProfileForm && (
+        <ProfileFormModal
+          loading={loading}
+          onConfirm={saveProfileAndCheckout}
+          onCancel={() => setShowProfileForm(false)}
+        />
+      )}
+      <Banner>
+        <span>Período de teste gratuito — <strong>{label}</strong></span>
+        <Btn $loading={loading} onClick={startCheckout} disabled={loading}>
+          {loading ? 'Aguarde...' : 'Assinar agora — R$ 197/mês'}
+        </Btn>
+      </Banner>
+    </>
   )
 }

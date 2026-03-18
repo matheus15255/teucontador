@@ -1,9 +1,7 @@
-import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { Check, Lock } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
-import { useAuthStore } from '../../stores/authStore'
-import { toast } from 'sonner'
+import { useCheckout } from './useCheckout'
+import { ProfileFormModal } from './ProfileFormModal'
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -210,24 +208,17 @@ interface Props {
 }
 
 export function PaywallModal({ onSignOut }: Props) {
-  const [loading, setLoading] = useState(false)
-  const { escritorio } = useAuthStore()
-
-  const handleAssinar = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { escritorioId: escritorio?.id },
-      })
-      if (error || !data?.url) throw new Error(error?.message || 'Erro ao criar checkout')
-      window.location.href = data.url
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao iniciar pagamento')
-      setLoading(false)
-    }
-  }
+  const { loading, showProfileForm, setShowProfileForm, startCheckout, saveProfileAndCheckout } = useCheckout()
 
   return (
+    <>
+    {showProfileForm && (
+      <ProfileFormModal
+        loading={loading}
+        onConfirm={saveProfileAndCheckout}
+        onCancel={() => setShowProfileForm(false)}
+      />
+    )}
     <Overlay>
       <Card>
         <Logo>
@@ -244,7 +235,7 @@ export function PaywallModal({ onSignOut }: Props) {
         </Sub>
 
         <PlanBox>
-          <PlanName>Plano Pro</PlanName>
+          <PlanName>Plano Completo</PlanName>
           <Price>R$ 197<span>/mês</span></Price>
           <FeatureList>
             {FEATURES.map(f => (
@@ -256,12 +247,13 @@ export function PaywallModal({ onSignOut }: Props) {
           </FeatureList>
         </PlanBox>
 
-        <CTA $loading={loading} onClick={handleAssinar} disabled={loading}>
+        <CTA $loading={loading} onClick={startCheckout} disabled={loading}>
           {loading ? 'Aguarde...' : 'Assinar agora — R$ 197/mês'}
         </CTA>
 
         <SignOutLink onClick={onSignOut}>Sair da conta</SignOutLink>
       </Card>
     </Overlay>
+    </>
   )
 }
