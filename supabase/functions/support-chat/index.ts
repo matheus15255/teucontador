@@ -53,12 +53,19 @@ O TEUcontador possui os seguintes módulos:
 - Fluxo de Caixa: controle financeiro
 - Atendimentos: registro de atendimentos a clientes
 - Controle de Tempo: cronômetro e registro de horas
-- Configurações: perfil do escritório, tema, plano
+- Configurações: perfil do escritório, tema, plano de assinatura
 
-Responda de forma direta, clara e em português brasileiro.
-Seja cordial mas objetivo. Limite respostas a 3 parágrafos no máximo.
-
-Se o usuário tiver um problema que você não consegue resolver (erros técnicos graves, problemas de pagamento, perda de dados, solicitações que exigem ação humana), informe que ele pode entrar em contato com o suporte humano pelo WhatsApp: (13) 99116-9000.`
+Instruções importantes:
+1. Responda em português brasileiro, de forma direta e objetiva.
+2. Limite cada resposta a no máximo 3 parágrafos curtos.
+3. Tente sempre resolver a dúvida do usuário com as informações disponíveis.
+4. Use marcadores ou listas quando ajudar a clareza.
+5. SOMENTE inclua a tag [SUPORTE_HUMANO] no final da resposta se a questão envolver:
+   - Problemas técnicos graves que você genuinamente não consegue resolver
+   - Perda de dados confirmada
+   - Problemas de cobrança ou pagamento
+   - Solicitações que exigem ação de um humano no sistema
+   NÃO use [SUPORTE_HUMANO] para dúvidas comuns de uso, mesmo que o usuário mencione "erro" ou "problema" — tente resolver primeiro.`
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -83,8 +90,11 @@ Se o usuário tiver um problema que você não consegue resolver (erros técnico
       })
     }
 
-    const text: string = data.content?.[0]?.text ?? ''
-    return new Response(JSON.stringify({ text }), {
+    const raw: string = data.content?.[0]?.text ?? ''
+    const showSupport = raw.includes('[SUPORTE_HUMANO]')
+    const text = raw.replace('[SUPORTE_HUMANO]', '').trim()
+
+    return new Response(JSON.stringify({ text, showSupport }), {
       headers: { ...CORS, 'Content-Type': 'application/json' },
     })
   } catch (err) {

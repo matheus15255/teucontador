@@ -9,13 +9,13 @@ const fadeIn = keyframes`from { opacity: 0; transform: translateY(6px); } to { o
 const pulse = keyframes`0%,100% { box-shadow: 0 0 0 0 rgba(26,122,74,0.4); } 50% { box-shadow: 0 0 0 8px rgba(26,122,74,0); }`
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
-const Bubble = styled.button<{ $open: boolean }>`
+const FloatBtn = styled.button`
   position: fixed; bottom: 28px; right: 28px; z-index: 9000;
   width: 54px; height: 54px; border-radius: 50%;
   background: ${({ theme }) => theme.green}; color: #fff;
   border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 20px rgba(26,122,74,0.4);
-  transition: transform 0.2s, opacity 0.2s;
+  transition: transform 0.2s;
   animation: ${pulse} 2.5s ease-in-out infinite;
   &:hover { transform: scale(1.08); }
   @media (max-width: 600px) { bottom: 18px; right: 18px; }
@@ -23,11 +23,11 @@ const Bubble = styled.button<{ $open: boolean }>`
 
 const Panel = styled.div`
   position: fixed; bottom: 96px; right: 28px; z-index: 9000;
-  width: 360px; max-height: 540px; display: flex; flex-direction: column;
+  width: 360px; max-height: 560px; display: flex; flex-direction: column;
   background: ${({ theme }) => theme.surface}; border: 1px solid ${({ theme }) => theme.border};
   border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.18);
   animation: ${fadeUp} 0.22s ease;
-  @media (max-width: 440px) { width: calc(100vw - 24px); right: 12px; bottom: 82px; max-height: 65vh; }
+  @media (max-width: 440px) { width: calc(100vw - 24px); right: 12px; bottom: 82px; max-height: 68vh; }
 `
 
 const PanelHead = styled.div`
@@ -35,16 +35,13 @@ const PanelHead = styled.div`
   padding: 14px 16px; border-bottom: 1px solid ${({ theme }) => theme.border};
   background: ${({ theme }) => theme.green}; border-radius: 18px 18px 0 0;
 `
-
 const HeadAvatar = styled.div`
   width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 `
-
 const HeadInfo = styled.div`flex: 1;`
 const HeadName = styled.div`font-size: 14px; font-weight: 700; color: #fff;`
 const HeadStatus = styled.div`font-size: 11px; color: rgba(255,255,255,0.8);`
-
 const CloseBtn = styled.button`
   width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
   background: rgba(255,255,255,0.15); color: #fff;
@@ -63,19 +60,18 @@ const MsgRow = styled.div<{ $user?: boolean }>`
   flex-direction: ${({ $user }) => $user ? 'row-reverse' : 'row'};
   animation: ${fadeIn} 0.2s ease;
 `
-
 const MsgAvatar = styled.div<{ $user?: boolean }>`
   width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
   background: ${({ theme, $user }) => $user ? theme.greenLight : theme.surface2};
   border: 1px solid ${({ theme }) => theme.border};
   display: flex; align-items: center; justify-content: center;
 `
-
-const Bubble2 = styled.div<{ $user?: boolean }>`
-  max-width: 78%; padding: 9px 13px; border-radius: ${({ $user }) => $user ? '14px 14px 4px 14px' : '14px 14px 14px 4px'};
+const MsgBubble = styled.div<{ $user?: boolean }>`
+  max-width: 78%; padding: 9px 13px;
+  border-radius: ${({ $user }) => $user ? '14px 14px 4px 14px' : '14px 14px 14px 4px'};
   background: ${({ theme, $user }) => $user ? theme.green : theme.surface2};
   color: ${({ theme, $user }) => $user ? '#fff' : theme.text};
-  font-size: 13px; line-height: 1.5;
+  font-size: 13px; line-height: 1.55;
   border: 1px solid ${({ theme, $user }) => $user ? 'transparent' : theme.border};
   white-space: pre-wrap; word-break: break-word;
 `
@@ -83,16 +79,14 @@ const Bubble2 = styled.div<{ $user?: boolean }>`
 const SupportCard = styled.a`
   display: flex; align-items: center; gap: 10px;
   background: ${({ theme }) => theme.surface2}; border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 10px; padding: 10px 14px; text-decoration: none; margin-top: 4px;
-  transition: background 0.15s; cursor: pointer;
+  border-radius: 10px; padding: 10px 14px; text-decoration: none; margin-top: 6px;
+  transition: background 0.15s;
   &:hover { background: ${({ theme }) => theme.greenLight}; border-color: ${({ theme }) => theme.green}; }
 `
-
 const SupportIcon = styled.div`
   width: 32px; height: 32px; border-radius: 50%; background: ${({ theme }) => theme.greenLight};
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 `
-
 const SupportText = styled.div`
   font-size: 12px; color: ${({ theme }) => theme.textMid};
   strong { display: block; font-size: 13px; color: ${({ theme }) => theme.green}; }
@@ -112,11 +106,21 @@ const Typing = styled.div`
   @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 `
 
+const SuggestionsArea = styled.div`
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px;
+`
+const SuggestionBtn = styled.button`
+  padding: 5px 11px; border-radius: 20px; font-size: 12px; cursor: pointer;
+  background: ${({ theme }) => theme.surface2}; color: ${({ theme }) => theme.textMid};
+  border: 1px solid ${({ theme }) => theme.border}; font-family: 'Inter', sans-serif;
+  transition: all 0.15s; white-space: nowrap;
+  &:hover { background: ${({ theme }) => theme.greenLight}; color: ${({ theme }) => theme.green}; border-color: ${({ theme }) => theme.green}; }
+`
+
 const Footer = styled.div`
   display: flex; gap: 8px; align-items: center;
   padding: 10px 12px; border-top: 1px solid ${({ theme }) => theme.border};
 `
-
 const Input = styled.input`
   flex: 1; padding: 9px 12px; border-radius: 10px;
   border: 1.5px solid ${({ theme }) => theme.border};
@@ -125,7 +129,6 @@ const Input = styled.input`
   &:focus { border-color: ${({ theme }) => theme.greenMid}; }
   &::placeholder { color: ${({ theme }) => theme.textDim}; }
 `
-
 const SendBtn = styled.button`
   width: 36px; height: 36px; border-radius: 10px; border: none;
   background: ${({ theme }) => theme.green}; color: #fff;
@@ -146,15 +149,14 @@ const INITIAL_MSG: Message = {
   content: 'Olá! 👋 Sou o assistente do TEUcontador. Como posso ajudar você hoje?',
 }
 
-const SUPPORT_KEYWORDS = [
-  'não consigo', 'erro', 'problema', 'bug', 'falhou', 'não funciona',
-  'não sei', 'não entendi', 'como faz', 'suporte humano', 'falar com alguém',
+const QUICK_SUGGESTIONS = [
+  'Como cadastrar um cliente?',
+  'Como criar um lançamento contábil?',
+  'Como importar extrato OFX?',
+  'Como gerar relatório em PDF?',
+  'Como lançar honorários?',
+  'Como usar a conciliação bancária?',
 ]
-
-function needsSupport(text: string): boolean {
-  const lower = text.toLowerCase()
-  return SUPPORT_KEYWORDS.some(k => lower.includes(k))
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function ChatbotWidget() {
@@ -165,6 +167,9 @@ export function ChatbotWidget() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Only show suggestions when conversation only has the welcome message
+  const showSuggestions = messages.length === 1 && !loading
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
@@ -173,12 +178,12 @@ export function ChatbotWidget() {
     if (open) setTimeout(() => inputRef.current?.focus(), 120)
   }, [open])
 
-  const send = async () => {
-    const text = input.trim()
-    if (!text || loading) return
+  const send = async (text: string) => {
+    const trimmed = text.trim()
+    if (!trimmed || loading) return
     setInput('')
 
-    const userMsg: Message = { role: 'user', content: text }
+    const userMsg: Message = { role: 'user', content: trimmed }
     const history = [...messages, userMsg]
     setMessages(history)
     setLoading(true)
@@ -188,9 +193,7 @@ export function ChatbotWidget() {
       const token = session?.access_token
       if (!token) throw new Error('Não autenticado')
 
-      const apiMessages = history
-        .filter(m => m.role === 'user' || m.role === 'assistant')
-        .map(m => ({ role: m.role, content: m.content }))
+      const apiMessages = history.map(m => ({ role: m.role, content: m.content }))
 
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chat`,
@@ -204,14 +207,15 @@ export function ChatbotWidget() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erro no servidor')
 
-      const reply = data.text as string
-      const showSupport = needsSupport(text) || needsSupport(reply)
-
-      setMessages(prev => [...prev, { role: 'assistant', content: reply, showSupport }])
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.text,
+        showSupport: data.showSupport === true,
+      }])
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Desculpe, tive um problema técnico. Para ajuda imediata, entre em contato com nosso suporte.',
+        content: 'Desculpe, tive um problema técnico no momento. Tente novamente ou entre em contato com o suporte.',
         showSupport: true,
       }])
     } finally {
@@ -237,13 +241,19 @@ export function ChatbotWidget() {
               <div key={i}>
                 <MsgRow $user={m.role === 'user'}>
                   <MsgAvatar $user={m.role === 'user'}>
-                    {m.role === 'user' ? <User size={12} color="#1a7a4a" /> : <Bot size={12} color="#6b7280" />}
+                    {m.role === 'user'
+                      ? <User size={12} color="#1a7a4a" />
+                      : <Bot size={12} color="#6b7280" />}
                   </MsgAvatar>
-                  <Bubble2 $user={m.role === 'user'}>{m.content}</Bubble2>
+                  <MsgBubble $user={m.role === 'user'}>{m.content}</MsgBubble>
                 </MsgRow>
                 {m.showSupport && (
                   <div style={{ paddingLeft: 34 }}>
-                    <SupportCard href="https://wa.me/5513991169000" target="_blank" rel="noopener noreferrer">
+                    <SupportCard
+                      href="https://wa.me/5513991169000"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <SupportIcon><Phone size={15} color="#1a7a4a" /></SupportIcon>
                       <SupportText>
                         <strong>(13) 99116-9000</strong>
@@ -254,6 +264,7 @@ export function ChatbotWidget() {
                 )}
               </div>
             ))}
+
             {loading && (
               <MsgRow>
                 <MsgAvatar><Bot size={12} color="#6b7280" /></MsgAvatar>
@@ -263,24 +274,32 @@ export function ChatbotWidget() {
             <div ref={bottomRef} />
           </Messages>
 
+          {showSuggestions && (
+            <SuggestionsArea>
+              {QUICK_SUGGESTIONS.map(s => (
+                <SuggestionBtn key={s} onClick={() => send(s)}>{s}</SuggestionBtn>
+              ))}
+            </SuggestionsArea>
+          )}
+
           <Footer>
             <Input
               ref={inputRef}
               placeholder="Digite sua dúvida..."
               value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(input)}
             />
-            <SendBtn onClick={send} disabled={!input.trim() || loading}>
+            <SendBtn onClick={() => send(input)} disabled={!input.trim() || loading}>
               <Send size={14} />
             </SendBtn>
           </Footer>
         </Panel>
       )}
 
-      <Bubble $open={open} onClick={() => setOpen(o => !o)} title="Assistente TEUcontador">
+      <FloatBtn onClick={() => setOpen(o => !o)} title="Assistente TEUcontador">
         {open ? <X size={22} /> : <MessageCircle size={22} />}
-      </Bubble>
+      </FloatBtn>
     </>
   )
 }
