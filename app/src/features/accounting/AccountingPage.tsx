@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import {
   Plus, Search, X, BookOpen,
   Edit2, Trash2, Download, ChevronLeft, ChevronRight,
-  Star, Copy, Filter, FileSpreadsheet, FileText, Sparkles,
+  Star, Copy, Filter, FileSpreadsheet, FileText,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -16,7 +16,6 @@ import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import type { Lancamento, Cliente, ContaPlano, LancamentoModelo } from '../../types'
-import { sugerirContasLancamento, type AISugestaoLancamento } from '../../lib/aiHelper'
 
 // ─── Styled ─────────────────────────────────────────────────────────────────
 
@@ -203,28 +202,6 @@ const CloseBtn = styled.button`
   cursor: pointer; color: ${({ theme }) => theme.textDim}; transition: all 0.2s;
   &:hover { background: ${({ theme }) => theme.negBg}; color: ${({ theme }) => theme.neg}; }`
 
-const AISugestaoCard = styled(motion.div)`
-  grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 12px;
-  background: linear-gradient(135deg, rgba(26,122,74,0.07), rgba(26,122,74,0.03));
-  border: 1px solid rgba(26,122,74,0.2); border-radius: 10px; padding: 12px 14px;
-`
-const AISugestaoIcon = styled.div`
-  width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
-  background: rgba(26,122,74,0.12); display: flex; align-items: center; justify-content: center;
-`
-const AISugestaoBody = styled.div`flex: 1;`
-const AISugestaoLabel = styled.div`
-  font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
-  color: ${({ theme }) => theme.green}; margin-bottom: 4px;
-`
-const AISugestaoContas = styled.div`font-size: 12.5px; color: ${({ theme }) => theme.textMid}; margin-bottom: 4px;`
-const AISugestaoExp = styled.div`font-size: 11.5px; color: ${({ theme }) => theme.textDim}; font-style: italic;`
-const AISugestaoBtn = styled.button`
-  padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600;
-  background: ${({ theme }) => theme.green}; color: #fff; border: none; cursor: pointer;
-  white-space: nowrap; flex-shrink: 0; margin-top: 2px;
-  &:hover { opacity: 0.85; }
-`
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -278,11 +255,6 @@ export function AccountingPage() {
   const [sortCol, setSortCol] = useState<'data_lanc' | 'valor' | 'historico'>('data_lanc')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(1)
-
-  // IA
-  const [aiSugestao, setAiSugestao] = useState<AISugestaoLancamento | null>(null)
-  const [aiLoading, setAiLoading] = useState(false)
-  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // modals
   const [showModal, setShowModal] = useState(false)
@@ -563,24 +535,6 @@ export function AccountingPage() {
 
   const upd = (k: string, v: any) => {
     setForm(p => ({ ...p, [k]: v }))
-    if (k === 'historico') {
-      setAiSugestao(null)
-      if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current)
-      const val = String(v).trim()
-      if (val.length >= 10) {
-        aiDebounceRef.current = setTimeout(async () => {
-          setAiLoading(true)
-          try {
-            const sugestao = await sugerirContasLancamento(val, contas)
-            setAiSugestao(sugestao)
-          } catch (err: any) {
-            toast.error('IA indisponível: ' + (err?.message || 'erro desconhecido'))
-          } finally {
-            setAiLoading(false)
-          }
-        }, 700)
-      }
-    }
   }
   const updM = (k: string, v: any) => setModeloForm(p => ({ ...p, [k]: v }))
 
@@ -832,36 +786,6 @@ export function AccountingPage() {
                     <Input placeholder="Ex: 4.1.1.01" value={form.conta_credito} onChange={e => upd('conta_credito', e.target.value)} list="contas-db" />
                   </Field>
 
-                  {/* Sugestão IA */}
-                  {aiLoading && (
-                    <AISugestaoCard initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <AISugestaoIcon><Sparkles size={14} color="#1a7a4a" /></AISugestaoIcon>
-                      <AISugestaoBody>
-                        <AISugestaoLabel>✨ IA analisando histórico...</AISugestaoLabel>
-                        <AISugestaoExp>Buscando contas mais adequadas no plano de contas</AISugestaoExp>
-                      </AISugestaoBody>
-                    </AISugestaoCard>
-                  )}
-                  {!aiLoading && aiSugestao && (aiSugestao.conta_debito || aiSugestao.conta_credito) && (
-                    <AISugestaoCard initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                      <AISugestaoIcon><Sparkles size={14} color="#1a7a4a" /></AISugestaoIcon>
-                      <AISugestaoBody>
-                        <AISugestaoLabel>✨ Sugestão da IA</AISugestaoLabel>
-                        <AISugestaoContas>
-                          Débito: <strong>{aiSugestao.conta_debito || '—'}</strong> · Crédito: <strong>{aiSugestao.conta_credito || '—'}</strong>
-                        </AISugestaoContas>
-                        <AISugestaoExp>{aiSugestao.explicacao}</AISugestaoExp>
-                      </AISugestaoBody>
-                      <AISugestaoBtn onClick={() => {
-                        if (aiSugestao.conta_debito) upd('conta_debito', aiSugestao.conta_debito)
-                        if (aiSugestao.conta_credito) upd('conta_credito', aiSugestao.conta_credito)
-                        setAiSugestao(null)
-                        toast.success('Contas aplicadas pela IA!')
-                      }}>
-                        Usar
-                      </AISugestaoBtn>
-                    </AISugestaoCard>
-                  )}
                 </FormGrid>
 
                 <SectionDivider>Valores e Classificação</SectionDivider>
