@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react'
+import { useMemo, useRef, useEffect, useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { Bell, AlertTriangle, Clock, Users, CheckSquare, X } from 'lucide-react'
 import { differenceInDays, parseISO } from 'date-fns'
@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); }`
 
-const Wrap = styled.div`position: relative;`
+const Wrap = styled.div`position: static;`
 
 const BellBtn = styled.button<{ $hasNew: boolean }>`
   width: 32px; height: 32px; border-radius: 8px;
@@ -28,14 +28,14 @@ const Badge = styled.span`
   border: 2px solid ${({ theme }) => theme.surface};
 `
 
-const Panel = styled.div`
-  position: absolute; top: calc(100% + 10px); right: 0;
+const Panel = styled.div<{ $top: number; $right: number }>`
+  position: fixed; top: ${({ $top }) => $top}px; right: ${({ $right }) => $right}px;
   width: 340px; background: ${({ theme }) => theme.surface};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 14px; box-shadow: 0 8px 40px rgba(0,0,0,0.13);
-  z-index: 999; animation: ${fadeIn} 0.18s ease;
+  border-radius: 14px; box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  z-index: 8000; animation: ${fadeIn} 0.18s ease;
   overflow: hidden;
-  @media (max-width: 480px) { width: 310px; right: -10px; }
+  @media (max-width: 480px) { width: calc(100vw - 24px); right: 12px; }
 `
 
 const PanelHead = styled.div`
@@ -99,10 +99,20 @@ export function NotificacoesDropdown({ open, onToggle, onClose }: Props) {
   const { obrigacoes, clientes, tarefas } = useDataStore()
   const navigate = useNavigate()
   const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [panelPos, setPanelPos] = useState({ top: 60, right: 20 })
   const today = new Date()
 
   useEffect(() => {
     if (!open) return
+    // Calculate panel position from button rect
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPanelPos({
+        top: rect.bottom + 10,
+        right: window.innerWidth - rect.right,
+      })
+    }
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose()
     }
@@ -195,13 +205,13 @@ export function NotificacoesDropdown({ open, onToggle, onClose }: Props) {
 
   return (
     <Wrap ref={ref}>
-      <BellBtn $hasNew={notifs.length > 0} onClick={onToggle}>
+      <BellBtn ref={btnRef} $hasNew={notifs.length > 0} onClick={onToggle}>
         <Bell size={14} />
         {notifs.length > 0 && <Badge>{notifs.length > 9 ? '9+' : notifs.length}</Badge>}
       </BellBtn>
 
       {open && (
-        <Panel>
+        <Panel $top={panelPos.top} $right={panelPos.right}>
           <PanelHead>
             <PanelTitle>Notificações</PanelTitle>
             <CloseBtn onClick={onClose}><X size={13} /></CloseBtn>
