@@ -86,14 +86,12 @@ serve(async (req) => {
       await supabase.from('escritorios').update({ abacatepay_customer_id: customerId }).eq('id', esc.id)
     }
 
-    customerData = { id: customerId, name, email, cellphone: telefone, taxId: cpf_cnpj }
-
-    // Criar billing
+    // Criar billing — passa só o id do customer (AbacatePay não aceita campos extras no billing)
     const billingRes = await fetch(`${API}/billing/create`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${ABACATEPAY_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        customer: customerData,
+        customer: { id: customerId },
         products: [{
           externalId: esc.id,
           name: 'TEUcontador — Plano Completo',
