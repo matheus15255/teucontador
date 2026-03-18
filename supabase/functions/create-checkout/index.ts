@@ -93,7 +93,7 @@ serve(async (req) => {
       body: JSON.stringify({
         customer: { id: customerId, name, email, cellphone: telefone, taxId: cpf_cnpj },
         products: [{
-          externalId: esc.id,
+          externalId: `${esc.id}-${Date.now()}`,
           name: 'TEUcontador — Plano Completo',
           quantity: 1,
           price: 19700,
