@@ -45,7 +45,23 @@ export function useCheckout() {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { escritorioId: escritorio?.id },
       })
-      if (error || !data?.url) throw new Error(error?.message || 'Erro ao criar checkout')
+
+      // Extrair mensagem real da edge function (Supabase esconde no context)
+      if (error) {
+        let msg = error.message
+        try {
+          const ctx = (error as any).context
+          const body = ctx instanceof Response
+            ? await ctx.json()
+            : typeof ctx?.body === 'string'
+              ? JSON.parse(ctx.body)
+              : ctx
+          if (body?.error) msg = body.error
+        } catch { /* usa error.message mesmo */ }
+        throw new Error(msg)
+      }
+
+      if (!data?.url) throw new Error('Erro ao gerar link de pagamento')
       window.location.href = data.url
     } catch (err: any) {
       toast.error(err.message || 'Erro ao iniciar pagamento')
