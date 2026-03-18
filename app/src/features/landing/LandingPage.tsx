@@ -1366,7 +1366,7 @@ export function LandingPage() {
             <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{ scale: 0.97 }}>
               Criar conta gratuita agora <ArrowRight size={16} />
             </HeroBtnPrimary>
-            <HeroBtnOutline as="a" href="https://wa.me/5500000000000?text=Olá, tenho interesse no TEUcontador" target="_blank" rel="noopener" whileTap={{ scale: 0.97 }} style={{ textDecoration: 'none' }}>
+            <HeroBtnOutline as="a" href="https://wa.me/5513991169000?text=Olá, tenho interesse no TEUcontador" target="_blank" rel="noopener" whileTap={{ scale: 0.97 }} style={{ textDecoration: 'none' }}>
               Falar com um especialista
             </HeroBtnOutline>
           </div>
