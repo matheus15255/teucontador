@@ -30,11 +30,11 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 **Arquivos alterados:**
 - `app/src/components/NotificacoesDropdown.tsx`
 
-**Problema:** O painel de notificações abria atrás do conteúdo do dashboard, impedindo a visualização.
+**Problema:** O painel de notificações abria atrás dos cards do dashboard (Receita Mensal, Clientes Ativos, etc.).
 
-**Causa:** `position: absolute` com `z-index: 999` dentro de um pai com stacking context criado pelo layout, fazendo o z-index não ter efeito fora do contêiner pai.
+**Causa raiz:** `backdrop-filter: blur` no Topbar e `transform` nos `motion.div` dos cards criam stacking contexts isolados — qualquer z-index dentro desses contextos não compete com elementos fora deles.
 
-**Solução:** Mudado para `position: fixed` com `z-index: 8000`. Posição calculada dinamicamente via `getBoundingClientRect()` do botão de sino, garantindo alinhamento correto em qualquer resolução.
+**Solução:** `createPortal(panel, document.body)` — o painel é renderizado diretamente no `<body>`, completamente fora da árvore do AppLayout. Posição calculada via `getBoundingClientRect()` do botão de sino para alinhar corretamente abaixo do ícone. Z-index: 8000.
 
 ---
 
