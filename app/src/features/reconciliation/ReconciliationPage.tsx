@@ -217,13 +217,10 @@ function formatOFXDate(d: string): string {
 
 function parseOFX(text: string): { date: string; amount: number; description: string }[] {
   const results: { date: string; amount: number; description: string }[] = []
-
-  // XML format: closing tags present
   const xmlBlocks = text.match(/<STMTTRN>[\s\S]*?<\/STMTTRN>/gi) || []
   const blocks = xmlBlocks.length > 0
     ? xmlBlocks
-    : text.split(/<STMTTRN>/i).slice(1)  // SGML: no closing tags
-
+    : text.split(/<STMTTRN>/i).slice(1)
   for (const block of blocks) {
     const date = extractOFXField(block, 'DTPOSTED')
     const amount = extractOFXField(block, 'TRNAMT')
@@ -236,6 +233,91 @@ function parseOFX(text: string): { date: string; amount: number; description: st
       })
     }
   }
+  return results
+}
+
+// ─── CSV Parser ───────────────────────────────────────────────────────────────
+function parseBRDate(s: string): string | null {
+  // dd/mm/yyyy or dd/mm/yy or yyyy-mm-dd
+  const br = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/)
+  if (br) {
+    const [, d, m, y] = br
+    const year = y.length === 2 ? (parseInt(y) > 50 ? '19' + y : '20' + y) : y
+    return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+  }
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (iso) return s
+  return null
+}
+
+function parseBRAmount(s: string): number | null {
+  if (!s || s.trim() === '' || s.trim() === '-') return null
+  // Remove R$, spaces, quotes
+  let v = s.replace(/[R$\s"']/g, '').trim()
+  // Handle negative with parentheses: (1.234,56)
+  const neg = v.startsWith('(') && v.endsWith(')')
+  if (neg) v = v.slice(1, -1)
+  // BR format: 1.234,56 → 1234.56
+  if (v.includes(',')) {
+    v = v.replace(/\./g, '').replace(',', '.')
+  }
+  const n = parseFloat(v)
+  if (isNaN(n)) return null
+  return neg ? -n : n
+}
+
+function parseCSV(text: string): { date: string; amount: number; description: string }[] {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  if (lines.length < 2) return []
+
+  // Detect separator
+  const sep = lines[0].split(';').length > lines[0].split(',').length ? ';' : ','
+
+  const splitLine = (l: string) =>
+    l.split(sep).map(c => c.trim().replace(/^["']|["']$/g, ''))
+
+  const headers = splitLine(lines[0]).map(h => h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+
+  // Identify columns by header keywords
+  const findCol = (...keys: string[]) => headers.findIndex(h => keys.some(k => h.includes(k)))
+
+  const dateCol   = findCol('data', 'date', 'dt')
+  const descCol   = findCol('historico', 'descri', 'memo', 'complemento', 'lancamento', 'detalhe', 'hist')
+  const amtCol    = findCol('valor', 'amount', 'vlr', 'montante')
+  const creditCol = findCol('credito', 'entrada', 'receita', 'credit')
+  const debitCol  = findCol('debito', 'saida', 'despesa', 'debit')
+
+  if (dateCol === -1) return []
+
+  const results: { date: string; amount: number; description: string }[] = []
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitLine(lines[i])
+    if (cols.length <= dateCol) continue
+
+    const dateStr = cols[dateCol]
+    const date = parseBRDate(dateStr)
+    if (!date) continue
+
+    const description = descCol !== -1 ? (cols[descCol] || 'Sem descrição') : 'Sem descrição'
+
+    let amount: number | null = null
+
+    if (amtCol !== -1) {
+      amount = parseBRAmount(cols[amtCol])
+    } else if (creditCol !== -1 && debitCol !== -1) {
+      // Separate credit/debit columns (e.g. Itaú)
+      const credit = parseBRAmount(cols[creditCol])
+      const debit  = parseBRAmount(cols[debitCol])
+      if (credit != null && credit !== 0) amount = credit
+      else if (debit != null && debit !== 0) amount = -Math.abs(debit)
+    }
+
+    if (amount == null) continue
+
+    results.push({ date, amount, description: description.trim() })
+  }
+
   return results
 }
 
@@ -381,7 +463,7 @@ export function ReconciliationPage() {
     }
   }
 
-  // ─── OFX Import ─────────────────────────────────────────────────────────────
+  // ─── File Import (OFX/CSV) ──────────────────────────────────────────────────
   const handleImportOFX = () => fileInputRef.current?.click()
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,13 +472,18 @@ export function ReconciliationPage() {
     e.target.value = ''
     try {
       const text = await file.text()
-      const parsed = parseOFX(text)
-      if (parsed.length === 0) { toast.error('Nenhuma transação encontrada no arquivo OFX'); return }
+      const isCSV = file.name.toLowerCase().endsWith('.csv')
+      const parsed = isCSV ? parseCSV(text) : parseOFX(text)
+      const fmtName = isCSV ? 'CSV' : 'OFX'
+      if (parsed.length === 0) {
+        toast.error(`Nenhuma transação encontrada no arquivo ${fmtName}. Verifique o formato.`)
+        return
+      }
       setOfxParsed(parsed)
       setOfxClienteId('')
       setShowOFXModal(true)
     } catch {
-      toast.error('Erro ao ler o arquivo OFX')
+      toast.error('Erro ao ler o arquivo. Verifique se é um OFX ou CSV válido.')
     }
   }
 
@@ -459,7 +546,7 @@ export function ReconciliationPage() {
     <motion.div variants={containerVariants} initial="hidden" animate="visible" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
       {/* hidden file input */}
-      <input ref={fileInputRef} type="file" accept=".ofx,.qfx,.ofc" style={{ display: 'none' }} onChange={handleFileChange} />
+      <input ref={fileInputRef} type="file" accept=".ofx,.qfx,.ofc,.csv" style={{ display: 'none' }} onChange={handleFileChange} />
 
       <motion.div variants={itemVariants}>
         <PageHeader>
@@ -469,7 +556,7 @@ export function ReconciliationPage() {
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <ActionBtn onClick={handleImportOFX} disabled={importing} whileTap={{ scale: 0.97 }}>
-              <Upload size={14} /> {importing ? 'Importando…' : 'Importar OFX'}
+              <Upload size={14} /> {importing ? 'Importando…' : 'Importar OFX / CSV'}
             </ActionBtn>
             <ActionBtn $primary onClick={() => setShowModal(true)} whileTap={{ scale: 0.97 }}>
               <Plus size={14} /> Nova Transação
@@ -538,11 +625,16 @@ export function ReconciliationPage() {
               <DropZone onClick={handleImportOFX}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>🏦</div>
                 <div style={{ fontFamily: 'Playfair Display', fontSize: 18, marginBottom: 6 }}>Nenhuma transação importada</div>
-                <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>Clique para importar um arquivo OFX ou use "Nova Transação" para lançar manualmente</div>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: 6, background: '#e8f5ee', color: '#1a7a4a', fontSize: 11, fontWeight: 600 }}>OFX</span>
-                  <span style={{ padding: '4px 10px', borderRadius: 6, background: '#eff6ff', color: '#1d4ed8', fontSize: 11, fontWeight: 600 }}>Open Banking</span>
+                <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>
+                  Clique para importar um arquivo OFX, QFX ou CSV exportado do seu banco
+                </div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+                  <span style={{ padding: '4px 10px', borderRadius: 6, background: '#e8f5ee', color: '#1a7a4a', fontSize: 11, fontWeight: 600 }}>OFX / QFX</span>
                   <span style={{ padding: '4px 10px', borderRadius: 6, background: '#fef9e7', color: '#9a7c2a', fontSize: 11, fontWeight: 600 }}>CSV</span>
+                </div>
+                <div style={{ fontSize: 11, opacity: 0.55, lineHeight: 1.6 }}>
+                  CSV: deve conter colunas de Data, Histórico/Descrição e Valor (ou Crédito/Débito separados).<br />
+                  Separador vírgula ou ponto-e-vírgula. Compatível com Itaú, Bradesco, Santander e BB.
                 </div>
               </DropZone>
             </div>
@@ -636,12 +728,12 @@ export function ReconciliationPage() {
         </Overlay>
       )}
 
-      {/* ─── Modal Importar OFX ─── */}
+      {/* ─── Modal Importar OFX/CSV ─── */}
       {showOFXModal && (
         <Overlay onClick={() => setShowOFXModal(false)}>
           <Modal onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
             <ModalTitle>
-              Importar OFX
+              Importar Extrato
               <X size={18} style={{ cursor: 'pointer', opacity: 0.5 }} onClick={() => setShowOFXModal(false)} />
             </ModalTitle>
 
