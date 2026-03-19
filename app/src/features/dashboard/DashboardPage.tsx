@@ -10,7 +10,7 @@ import {
   ArrowRight, ChevronLeft, ChevronRight, RefreshCw,
   FileText, UserPlus, Layers, ArrowLeftRight,
   Calendar, CheckSquare, Clock, Plus, X, AlertTriangle,
-  CheckCircle, Circle, Key, Package, Inbox, Send,
+  CheckCircle, Circle, Key, Package, Inbox, Send, Settings2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
@@ -1283,6 +1283,67 @@ const item = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, trans
 const fmt = (v: number) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
 const fmtK = (v: number) => v >= 1000 ? 'R$' + (v / 1000).toFixed(0) + 'k' : 'R$' + v
 
+// ─── KPI Pool ──────────────────────────────────────────────────────────────────
+
+const KPI_POOL = [
+  {
+    id: 'receita', label: 'Receita Mensal', desc: 'Soma dos honorários de todos os clientes',
+    fmt: 'money', negativeIsGood: false,
+    accent: 'linear-gradient(90deg,#059669,#34d399)', iconBg: '#d1fae5',
+    icon: <DollarSign size={15} color="#059669" />,
+    deltaFn: (v: number) => v > 0 ? 'honorários ativos' : 'sem clientes',
+  },
+  {
+    id: 'clientes', label: 'Clientes Ativos', desc: 'Total de clientes cadastrados',
+    fmt: 'number', negativeIsGood: false,
+    accent: 'linear-gradient(90deg,#2563eb,#60a5fa)', iconBg: '#dbeafe',
+    icon: <Users size={15} color="#2563eb" />,
+    deltaFn: (v: number) => `${v} cadastrado${v !== 1 ? 's' : ''}`,
+  },
+  {
+    id: 'pendencias', label: 'Pendências', desc: 'Clientes com honorários pendentes ou atrasados',
+    fmt: 'number', negativeIsGood: true,
+    accent: 'linear-gradient(90deg,#dc2626,#f87171)', iconBg: '#fee2e2',
+    icon: <AlertCircle size={15} color="#dc2626" />,
+    deltaFn: (v: number) => v === 0 ? 'Tudo em dia ✓' : `${v} pendente${v > 1 ? 's' : ''}`,
+  },
+  {
+    id: 'folha', label: 'Total Folha', desc: 'Soma dos salários brutos dos colaboradores',
+    fmt: 'money', negativeIsGood: false,
+    accent: 'linear-gradient(90deg,#7c3aed,#a78bfa)', iconBg: '#ede9fe',
+    icon: <TrendingUp size={15} color="#7c3aed" />,
+    deltaFn: (_v: number) => 'colaboradores',
+  },
+  {
+    id: 'obrigacoes', label: 'Obrigações Abertas', desc: 'Obrigações pendentes ou atrasadas',
+    fmt: 'number', negativeIsGood: true,
+    accent: 'linear-gradient(90deg,#d97706,#fbbf24)', iconBg: '#fef3c7',
+    icon: <Calendar size={15} color="#d97706" />,
+    deltaFn: (v: number) => v === 0 ? 'nenhuma pendente' : `${v} a transmitir`,
+  },
+  {
+    id: 'tarefas', label: 'Tarefas Abertas', desc: 'Tarefas em aberto ou em andamento',
+    fmt: 'number', negativeIsGood: true,
+    accent: 'linear-gradient(90deg,#0891b2,#22d3ee)', iconBg: '#cffafe',
+    icon: <CheckSquare size={15} color="#0891b2" />,
+    deltaFn: (v: number) => v === 0 ? 'tudo resolvido' : `${v} tarefa${v > 1 ? 's' : ''}`,
+  },
+  {
+    id: 'resultado', label: 'Resultado do Mês', desc: 'Receitas menos despesas do mês atual',
+    fmt: 'money', negativeIsGood: false,
+    accent: 'linear-gradient(90deg,#059669,#34d399)', iconBg: '#d1fae5',
+    icon: <Layers size={15} color="#059669" />,
+    deltaFn: (v: number) => v >= 0 ? 'resultado positivo' : 'resultado negativo',
+  },
+  {
+    id: 'lancamentos', label: 'Lançamentos do Mês', desc: 'Total de lançamentos contábeis no mês',
+    fmt: 'number', negativeIsGood: false,
+    accent: 'linear-gradient(90deg,#6366f1,#a5b4fc)', iconBg: '#e0e7ff',
+    icon: <FileText size={15} color="#6366f1" />,
+    deltaFn: (v: number) => `${v} lançamento${v !== 1 ? 's' : ''}`,
+  },
+]
+
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 const blankTarefa = { titulo: '', prioridade: 'media', data_vencimento: '', cliente_id: '', responsavel: '' }
@@ -1305,6 +1366,24 @@ export function DashboardPage() {
   } = useDataStore()
 
   const [year, setYear] = useState(new Date().getFullYear())
+
+  // KPIs customizáveis — persiste no localStorage por escritório
+  const KPI_STORAGE_KEY = `dashboard_kpis_${escId}`
+  const DEFAULT_KPIS = ['receita', 'clientes', 'pendencias', 'folha']
+  const [selectedKpis, setSelectedKpis] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(KPI_STORAGE_KEY) || 'null') || DEFAULT_KPIS }
+    catch { return DEFAULT_KPIS }
+  })
+  const [showKpiPicker, setShowKpiPicker] = useState(false)
+
+  const toggleKpi = (id: string) => {
+    setSelectedKpis(prev => {
+      const next = prev.includes(id) ? prev.filter(k => k !== id) : [...prev, id].slice(0, 4)
+      localStorage.setItem(KPI_STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+
   const [showAddTarefa, setShowAddTarefa] = useState(false)
   const [novaT, setNovaT] = useState({ ...blankTarefa })
   const [savingTarefa, setSavingTarefa] = useState(false)
@@ -1334,13 +1413,23 @@ export function DashboardPage() {
     useDataStore.getState().preload(escId)
   }, [escId])
 
-  // KPIs
-  const kpis = useMemo(() => ({
-    receita:   clientesAll.reduce((s, c) => s + (Number((c as any).honorarios) || 0), 0),
-    clientes:  clientesAll.length,
-    pendentes: clientesAll.filter((c: any) => c.situacao === 'pendente').length,
-    folha:     storeColaboradores.reduce((s: number, c: any) => s + (Number(c.salario_bruto) || 0), 0),
-  }), [clientesAll, storeColaboradores])
+  // KPIs — pool completo
+  const kpis = useMemo(() => {
+    const mes = new Date().getMonth()
+    const lancMes = storeLancamentos.filter((l: any) => l.data_lanc && new Date(l.data_lanc + 'T00:00:00').getMonth() === mes)
+    const recMes  = lancMes.filter((l: any) => l.tipo === 'credito').reduce((s: number, l: any) => s + (Number(l.valor) || 0), 0)
+    const despMes = lancMes.filter((l: any) => l.tipo === 'debito').reduce((s: number, l: any) => s + (Number(l.valor) || 0), 0)
+    return {
+      receita:      clientesAll.reduce((s, c) => s + (Number((c as any).honorarios) || 0), 0),
+      clientes:     clientesAll.length,
+      pendencias:   clientesAll.filter((c: any) => c.situacao === 'pendente' || c.situacao === 'atrasado').length,
+      folha:        storeColaboradores.reduce((s: number, c: any) => s + (Number(c.salario_bruto) || 0), 0),
+      obrigacoes:   storeObrigacoes.filter((o: any) => o.status === 'pendente' || o.status === 'atrasado').length,
+      tarefas:      storeTarefas.filter((t: any) => t.status === 'aberta' || t.status === 'em_andamento').length,
+      resultado:    recMes - despMes,
+      lancamentos:  lancMes.length,
+    }
+  }, [clientesAll, storeColaboradores, storeObrigacoes, storeTarefas, storeLancamentos])
 
   // Lançamentos do ano filtrados client-side
   const lancAno = useMemo(() =>
@@ -1744,6 +1833,24 @@ export function DashboardPage() {
 
       {/* KPIs */}
       <motion.div variants={item}>
+        {/* Header KPI */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.45 }}>
+            Indicadores — {selectedKpis.length}/4 selecionados
+          </span>
+          <button
+            onClick={() => setShowKpiPicker(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px',
+              borderRadius: 8, border: '1.5px solid', borderColor: 'rgba(26,122,74,0.3)',
+              background: 'transparent', color: '#1a7a4a', fontSize: 12, fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+            }}
+          >
+            <Settings2 size={12} /> Personalizar
+          </button>
+        </div>
+
         <KpiGrid>
           {loading ? Array(4).fill(0).map((_, i) => (
             <KpiCard key={i} $accent="linear-gradient(90deg,#e5e7eb,#f3f4f6)" variants={item}>
@@ -1752,23 +1859,82 @@ export function DashboardPage() {
               <SkeletonLine $w="40%" $h="28px" />
               <SkeletonLine $w="50%" $h="11px" style={{ marginBottom: 0 }} />
             </KpiCard>
-          )) : [
-            { label: 'Receita Mensal', value: fmt(kpis.receita), delta: '+0%', up: true, accent: 'linear-gradient(90deg,#059669,#34d399)', iconBg: '#d1fae5', icon: <DollarSign size={17} color="#059669" /> },
-            { label: 'Clientes Ativos', value: String(kpis.clientes), delta: `${kpis.clientes} total`, up: true, accent: 'linear-gradient(90deg,#2563eb,#60a5fa)', iconBg: '#dbeafe', icon: <Users size={17} color="#2563eb" /> },
-            { label: 'Pendências', value: String(kpis.pendentes), delta: kpis.pendentes === 0 ? 'Tudo ok' : `${kpis.pendentes} pendente${kpis.pendentes > 1 ? 's' : ''}`, up: kpis.pendentes === 0, accent: kpis.pendentes > 0 ? 'linear-gradient(90deg,#dc2626,#f87171)' : 'linear-gradient(90deg,#059669,#34d399)', iconBg: kpis.pendentes > 0 ? '#fee2e2' : '#d1fae5', icon: <AlertCircle size={17} color={kpis.pendentes > 0 ? '#dc2626' : '#059669'} /> },
-            { label: 'Total Folha', value: fmt(kpis.folha), delta: 'colaboradores', up: true, accent: 'linear-gradient(90deg,#7c3aed,#a78bfa)', iconBg: '#ede9fe', icon: <TrendingUp size={17} color="#7c3aed" /> },
-          ].map((kpi, i) => (
-            <KpiCard key={i} $accent={kpi.accent} variants={item} whileHover={{ y: -2 }}>
-              <KpiIcon $bg={kpi.iconBg}>{kpi.icon}</KpiIcon>
-              <KpiLabel>{kpi.label}</KpiLabel>
-              <KpiValue>{kpi.value}</KpiValue>
-              <KpiDelta $up={kpi.up}>
-                {kpi.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                {kpi.delta}
-              </KpiDelta>
-            </KpiCard>
-          ))}
+          )) : KPI_POOL.filter(k => selectedKpis.includes(k.id)).map((kpi) => {
+            const val = kpis[kpi.id as keyof typeof kpis]
+            const display = kpi.fmt === 'money' ? fmt(val) : String(val)
+            const isNegative = kpi.negativeIsGood ? val > 0 : val < 0
+            const deltaLabel = kpi.deltaFn ? kpi.deltaFn(val) : display
+            const up = kpi.negativeIsGood ? val === 0 : val >= 0
+            return (
+              <KpiCard key={kpi.id} $accent={kpi.accent} variants={item} whileHover={{ y: -2 }}>
+                <KpiIcon $bg={kpi.iconBg}>{kpi.icon}</KpiIcon>
+                <KpiLabel>{kpi.label}</KpiLabel>
+                <KpiValue>{display}</KpiValue>
+                <KpiDelta $up={up}>
+                  {up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                  {deltaLabel}
+                </KpiDelta>
+              </KpiCard>
+            )
+          })}
         </KpiGrid>
+
+        {/* KPI Picker Modal */}
+        {showKpiPicker && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 3000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }} onClick={() => setShowKpiPicker(false)}>
+            <div onClick={e => e.stopPropagation()} style={{
+              background: 'var(--surface, #fff)', borderRadius: 16, padding: 24,
+              width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 20 }}>Personalizar KPIs</div>
+                <button onClick={() => setShowKpiPicker(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }}><X size={18} /></button>
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 16 }}>Selecione até 4 indicadores para exibir no dashboard.</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {KPI_POOL.map(k => {
+                  const active = selectedKpis.includes(k.id)
+                  const disabled = !active && selectedKpis.length >= 4
+                  return (
+                    <button key={k.id} onClick={() => !disabled && toggleKpi(k.id)} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
+                      borderRadius: 10, border: '1.5px solid',
+                      borderColor: active ? '#1a7a4a' : '#e5e7eb',
+                      background: active ? '#f0fdf4' : disabled ? '#f9fafb' : 'transparent',
+                      cursor: disabled ? 'not-allowed' : 'pointer',
+                      opacity: disabled ? 0.4 : 1, textAlign: 'left',
+                    }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 8, background: k.iconBg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>{k.icon}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: active ? '#1a7a4a' : '#374151', fontFamily: 'Inter, sans-serif' }}>{k.label}</div>
+                        <div style={{ fontSize: 11, opacity: 0.6, fontFamily: 'Inter, sans-serif' }}>{k.desc}</div>
+                      </div>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: '50%', border: '2px solid',
+                        borderColor: active ? '#1a7a4a' : '#d1d5db',
+                        background: active ? '#1a7a4a' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        {active && <CheckCircle size={10} color="#fff" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+              <button onClick={() => setShowKpiPicker(false)} style={{
+                marginTop: 18, width: '100%', padding: '11px', borderRadius: 9,
+                background: '#1a7a4a', color: '#fff', border: 'none', fontSize: 14,
+                fontWeight: 600, fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+              }}>Feito</button>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Honorários */}
