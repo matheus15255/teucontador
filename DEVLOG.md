@@ -5,6 +5,30 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-19
+
+### Feat: importação CSV de extrato bancário na conciliação + TrialBanner urgency
+
+**Arquivos alterados:**
+- `app/src/features/reconciliation/ReconciliationPage.tsx`
+- `app/src/features/subscription/TrialBanner.tsx`
+
+**CSV Import:**
+- `parseCSV()`: detecta separador (`,` ou `;`), mapeia colunas por keywords no header (data, histórico, valor, crédito, débito)
+- Datas BR `dd/mm/yyyy`, valores BR `1.234,56`, negativos com parênteses e colunas crédito/débito separadas (Itaú, Bradesco, Santander, BB)
+- File input agora aceita `.csv` além de `.ofx/.qfx/.ofc`
+- Botão → "Importar OFX / CSV"; modal → "Importar Extrato"
+- DropZone com instrução sobre formato CSV esperado
+
+**TrialBanner:**
+- 4 níveis de urgência: `low` (verde), `mid` e `high` (laranja), `critical` (vermelho + pulsação)
+- Mensagem e cor do botão adaptados ao nível de urgência
+- Social proof "· +100 escritórios já assinaram"
+
+**Fase 1 concluída** — todos os itens críticos entregues.
+
+---
+
 ## Roadmap — O que falta implementar
 
 ### Fase 2 — Em andamento
