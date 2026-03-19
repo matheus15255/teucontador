@@ -5,6 +5,30 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-19 (KPIs customizáveis)
+
+### Feat: dashboard com KPIs customizáveis
+
+**Arquivo alterado:** `app/src/features/dashboard/DashboardPage.tsx`
+
+**Pool de 8 KPIs disponíveis:**
+- Receita Mensal (honorários somados)
+- Clientes Ativos (total cadastrados)
+- Pendências (clientes com honorários pendentes/atrasados)
+- Total Folha (soma salários brutos)
+- Obrigações Abertas (pendentes/atrasadas)
+- Tarefas Abertas (em aberto/em andamento)
+- Resultado do Mês (receitas - despesas do mês)
+- Lançamentos do Mês (count de lançamentos no mês)
+
+**Como funciona:**
+- Botão "Personalizar" acima da grade abre modal de seleção
+- Máximo de 4 KPIs simultâneos
+- Seleção persiste em `localStorage` por escritório (`dashboard_kpis_<escId>`)
+- Defaults: Receita Mensal, Clientes Ativos, Pendências, Total Folha
+
+---
+
 ## Sessão — 2026-03-19 (MFA/2FA)
 
 ### Feat: autenticação em dois fatores TOTP
