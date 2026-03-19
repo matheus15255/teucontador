@@ -5,6 +5,31 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-19 (notificações)
+
+### Feat: notificações de obrigações vencendo por email
+
+**Arquivos criados/alterados:**
+- `supabase/functions/notify-obligations/index.ts` — Edge Function com Resend
+- `supabase/add_notification_settings.sql` — migration + pg_cron script (comentado)
+- `app/src/features/settings/SettingsPage.tsx` — aba "Notificações"
+- `app/src/types/index.ts` — campos `notif_*` no tipo `Escritorio`
+
+**Como funciona:**
+- Edge Function busca obrigações `pendente`/`atrasado` vencendo nos próximos X dias
+- Agrupa por escritório, monta email HTML com tabela e envia via Resend API
+- pg_cron agenda chamada diária às 08h BRT (script comentado no SQL para ativar)
+- Cada escritório pode configurar: toggle on/off + antecedência (1/3/5/7/14 dias)
+- Botão "Enviar teste agora" na aba Notificações do Settings chama a function diretamente
+
+**Para ativar em produção:**
+1. Rodar `supabase/add_notification_settings.sql` no Supabase
+2. Adicionar `RESEND_API_KEY` nos secrets das Edge Functions (Supabase Dashboard → Settings → Edge Functions)
+3. Adicionar `NOTIFY_SECRET` (opcional, proteção do pg_cron)
+4. Habilitar extensão `pg_cron` e descomentar o script do cron no SQL
+
+---
+
 ## Sessão — 2026-03-19
 
 ### Feat: importação CSV de extrato bancário na conciliação + TrialBanner urgency
