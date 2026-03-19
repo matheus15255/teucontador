@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
-import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock } from 'lucide-react'
+import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock, Bell, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
@@ -168,6 +168,7 @@ const sections = [
   { id: 'perfil', label: 'Perfil', icon: User },
   { id: 'escritorio', label: 'Escritório', icon: Building2 },
   { id: 'equipe', label: 'Equipe', icon: Users },
+  { id: 'notificacoes', label: 'Notificações', icon: Bell },
   { id: 'aparencia', label: 'Aparência', icon: Moon },
   { id: 'seguranca', label: 'Segurança', icon: Shield },
 ]
@@ -180,6 +181,11 @@ export function SettingsPage() {
   const [escritorio, setEscritorioData] = useState<Partial<Escritorio>>({})
   const [nome, setNome] = useState(user?.user_metadata?.nome_completo || '')
   const [notifications, setNotifications] = useState({ email: true, push: false, weekly: true })
+  const [notifEmailAtivo, setNotifEmailAtivo] = useState(true)
+  const [notifDias, setNotifDias] = useState(7)
+  const [notifUltimoEnvio, setNotifUltimoEnvio] = useState<string | null>(null)
+  const [savingNotif, setSavingNotif] = useState(false)
+  const [testando, setTestando] = useState(false)
 
   // Equipe
   const [membros, setMembros] = useState<MembroEscritorio[]>([])
@@ -191,7 +197,12 @@ export function SettingsPage() {
   useEffect(() => {
     const loadEscritorio = async () => {
       const { data } = await supabase.from('escritorios').select('*').single()
-      if (data) setEscritorioData(data)
+      if (data) {
+        setEscritorioData(data)
+        setNotifEmailAtivo(data.notif_email_ativo ?? true)
+        setNotifDias(data.notif_dias_antecedencia ?? 7)
+        setNotifUltimoEnvio(data.notif_ultimo_envio ?? null)
+      }
     }
     loadEscritorio()
   }, [])
@@ -263,6 +274,49 @@ export function SettingsPage() {
   }
 
   const upd = (k: string, v: any) => setEscritorioData(p => ({ ...p, [k]: v }))
+
+  const handleSaveNotif = async () => {
+    if (!escritorio.id) return
+    setSavingNotif(true)
+    const { error } = await supabase
+      .from('escritorios')
+      .update({ notif_email_ativo: notifEmailAtivo, notif_dias_antecedencia: notifDias })
+      .eq('id', escritorio.id)
+    setSavingNotif(false)
+    if (error) { toast.error(error.message); return }
+    toast.success('Preferências de notificação salvas!')
+  }
+
+  const handleTestarNotif = async () => {
+    if (!escritorio.id) return
+    setTestando(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      const supabaseUrl = (supabase as any).supabaseUrl as string
+      const resp = await fetch(`${supabaseUrl}/functions/v1/notify-obligations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ escritorio_id: escritorio.id }),
+      })
+      const result = await resp.json()
+      if (result.enviados > 0) {
+        toast.success(`E-mail enviado para ${escritorio.email}!`)
+        setNotifUltimoEnvio(new Date().toISOString())
+      } else if (result.erros?.length > 0) {
+        toast.error('Erro ao enviar: ' + result.erros[0])
+      } else {
+        toast.info('Nenhuma obrigação vencendo no período configurado.')
+      }
+    } catch {
+      toast.error('Erro ao chamar a função de notificação.')
+    } finally {
+      setTestando(false)
+    }
+  }
 
   const meta = user?.user_metadata || {}
   const initials = nome
@@ -450,6 +504,93 @@ export function SettingsPage() {
                   {!isOwner && (
                     <div style={{ marginTop: 16, fontSize: 13, color: '#8a8a8a' }}>
                       Apenas o proprietário pode convidar ou remover membros.
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            )}
+
+            {section === 'notificacoes' && (
+              <Card>
+                <CardHead>
+                  <CardTitle>Notificações por E-mail</CardTitle>
+                  <CardSub>Alertas automáticos de obrigações fiscais vencendo</CardSub>
+                </CardHead>
+                <CardBody>
+                  {/* Toggle principal */}
+                  <ToggleRow>
+                    <div>
+                      <ToggleLabel>Alertas de obrigações vencendo</ToggleLabel>
+                      <ToggleSub>Receba um e-mail quando tiver obrigações próximas do vencimento</ToggleSub>
+                    </div>
+                    <Toggle $on={notifEmailAtivo} onClick={() => setNotifEmailAtivo(v => !v)} />
+                  </ToggleRow>
+
+                  {/* Dias de antecedência */}
+                  <div style={{ marginTop: 20, opacity: notifEmailAtivo ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: notifEmailAtivo ? 'auto' : 'none' }}>
+                    <FieldLabel>Antecedência do alerta</FieldLabel>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                      {[1, 3, 5, 7, 14].map(d => (
+                        <button
+                          key={d}
+                          onClick={() => setNotifDias(d)}
+                          style={{
+                            padding: '7px 16px', borderRadius: 8, border: '1.5px solid',
+                            fontSize: 13, fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+                            fontWeight: notifDias === d ? 700 : 400,
+                            borderColor: notifDias === d ? '#1a7a4a' : '#e5e7eb',
+                            background: notifDias === d ? '#f0fdf4' : 'transparent',
+                            color: notifDias === d ? '#1a7a4a' : '#374151',
+                          }}
+                        >
+                          {d} dia{d !== 1 ? 's' : ''}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 8, fontSize: 11, opacity: 0.6 }}>
+                      Você receberá um e-mail quando houver obrigações vencendo nos próximos <strong>{notifDias} dias</strong>.
+                      O envio ocorre automaticamente às 8h todos os dias.
+                    </div>
+                  </div>
+
+                  {/* E-mail destino */}
+                  <div style={{ marginTop: 20 }}>
+                    <FieldLabel>E-mail de destino</FieldLabel>
+                    <div style={{ fontSize: 13, padding: '10px 14px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151' }}>
+                      {escritorio.email || <span style={{ opacity: 0.5 }}>Configure o e-mail comercial na aba Escritório</span>}
+                    </div>
+                  </div>
+
+                  {/* Último envio */}
+                  {notifUltimoEnvio && (
+                    <div style={{ marginTop: 16, fontSize: 12, color: '#6b7280' }}>
+                      Último envio: {new Date(notifUltimoEnvio).toLocaleString('pt-BR')}
+                    </div>
+                  )}
+
+                  {/* Botões */}
+                  <div style={{ display: 'flex', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
+                    <SaveBtn onClick={handleSaveNotif} whileTap={{ scale: 0.97 }} disabled={savingNotif}>
+                      <Save size={14} /> {savingNotif ? 'Salvando...' : 'Salvar Preferências'}
+                    </SaveBtn>
+                    <button
+                      onClick={handleTestarNotif}
+                      disabled={testando || !escritorio.email}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+                        borderRadius: 9, border: '1.5px solid #1a7a4a', background: 'transparent',
+                        color: '#1a7a4a', fontSize: 13, fontWeight: 600, fontFamily: 'Inter, sans-serif',
+                        cursor: testando || !escritorio.email ? 'not-allowed' : 'pointer',
+                        opacity: testando || !escritorio.email ? 0.5 : 1,
+                        marginTop: 20,
+                      }}
+                    >
+                      <Send size={14} /> {testando ? 'Enviando...' : 'Enviar teste agora'}
+                    </button>
+                  </div>
+                  {!escritorio.email && (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#dc2626' }}>
+                      Configure o e-mail comercial em Escritório para usar notificações.
                     </div>
                   )}
                 </CardBody>

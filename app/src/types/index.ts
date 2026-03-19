@@ -10,6 +10,9 @@ export interface Escritorio {
   subscription_status?: 'trial' | 'active' | 'cancelled'
   subscription_id?: string
   abacatepay_customer_id?: string
+  notif_email_ativo?: boolean
+  notif_dias_antecedencia?: number
+  notif_ultimo_envio?: string
 }
 
 export interface MembroEscritorio {
