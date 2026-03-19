@@ -22,7 +22,7 @@ function formatCpfCnpj(value: string) {
     .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
 }
 
-type View = 'login' | 'register' | 'forgot' | 'forgot-ok' | 'success'
+type View = 'login' | 'register' | 'forgot' | 'forgot-ok' | 'success' | 'mfa'
 
 const glow = keyframes`
   0%, 100% { box-shadow: 0 0 6px rgba(255,255,255,0.5); }
@@ -564,6 +564,9 @@ export function LoginPage() {
   const [terms, setTerms] = useState(false)
 
   const [forgotEmail, setForgotEmail] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaFactorId, setMfaFactorId] = useState('')
+  const [mfaErr, setMfaErr] = useState('')
 
   const pwdStrength = getStrength(regPwd)
 
@@ -580,8 +583,41 @@ export function LoginPage() {
     if (error) {
       console.error('Supabase auth error:', error)
       setLoginErr(error.message)
-    } else {
+      return
+    }
+    // Verificar se o usuário tem MFA ativo
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+      // MFA necessário — buscar factor e mostrar tela de código
+      const { data: factors } = await supabase.auth.mfa.listFactors()
+      const totp = factors?.totp?.[0]
+      if (totp) {
+        setMfaFactorId(totp.id)
+        setMfaCode('')
+        setMfaErr('')
+        setView('mfa')
+        return
+      }
+    }
+    navigate('/app/dashboard')
+  }
+
+  const doMfaVerify = async () => {
+    if (mfaCode.length !== 6) { setMfaErr('Digite o código de 6 dígitos'); return }
+    setLoading(true)
+    setMfaErr('')
+    try {
+      const { data: challenge, error: cErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+      if (cErr) { setMfaErr(cErr.message); return }
+      const { error: vErr } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: challenge.id,
+        code: mfaCode,
+      })
+      if (vErr) { setMfaErr('Código inválido. Verifique o app autenticador.'); return }
       navigate('/app/dashboard')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -975,6 +1011,40 @@ export function LoginPage() {
                 <SubmitBtn type="button" onClick={() => setView('login')} whileTap={{ scale: 0.98 }} style={{ marginTop: 28 }}>
                   Voltar ao login
                 </SubmitBtn>
+              </motion.div>
+            )}
+
+            {view === 'mfa' && (
+              <motion.div key="mfa" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+                <FormTitle style={{ textAlign: 'center', fontSize: 26 }}>Verificação <em>2FA</em></FormTitle>
+                <FormSub style={{ textAlign: 'center', marginTop: 8, marginBottom: 24 }}>
+                  Abra seu app autenticador e insira o código de 6 dígitos.
+                </FormSub>
+                <Field>
+                  <InputWrap style={{ justifyContent: 'center' }}>
+                    <input
+                      type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6}
+                      placeholder="000 000"
+                      value={mfaCode}
+                      autoFocus
+                      onChange={e => { setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setMfaErr('') }}
+                      onKeyDown={e => e.key === 'Enter' && doMfaVerify()}
+                      style={{
+                        border: 'none', background: 'none', outline: 'none', width: '100%',
+                        textAlign: 'center', fontSize: 28, fontFamily: 'monospace', letterSpacing: 10,
+                        color: 'inherit',
+                      }}
+                    />
+                  </InputWrap>
+                  {mfaErr && <div style={{ color: '#dc2626', fontSize: 12, marginTop: 6, textAlign: 'center' }}>{mfaErr}</div>}
+                </Field>
+                <SubmitBtn type="button" onClick={doMfaVerify} $loading={loading} disabled={mfaCode.length !== 6} whileTap={{ scale: 0.98 }}>
+                  {loading ? <Spinner /> : <>Verificar <ChevronRight size={16} /></>}
+                </SubmitBtn>
+                <SwitchLink style={{ marginTop: 12 }}>
+                  <button onClick={() => { setView('login'); supabase.auth.signOut() }}>← Voltar ao login</button>
+                </SwitchLink>
               </motion.div>
             )}
 

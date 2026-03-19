@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
-import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock, Bell, Send } from 'lucide-react'
+import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock, Bell, Send, ShieldCheck, ShieldOff, Smartphone } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
@@ -181,6 +181,17 @@ export function SettingsPage() {
   const [escritorio, setEscritorioData] = useState<Partial<Escritorio>>({})
   const [nome, setNome] = useState(user?.user_metadata?.nome_completo || '')
   const [notifications, setNotifications] = useState({ email: true, push: false, weekly: true })
+  // MFA
+  const [mfaStatus, setMfaStatus] = useState<'loading' | 'off' | 'enrolling' | 'on'>('loading')
+  const [mfaQR, setMfaQR] = useState('')
+  const [mfaSecret, setMfaSecret] = useState('')
+  const [mfaFactorId, setMfaFactorId] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaVerifying, setMfaVerifying] = useState(false)
+  const [mfaDisabling, setMfaDisabling] = useState(false)
+  const [mfaDisableCode, setMfaDisableCode] = useState('')
+  const [showMfaDisable, setShowMfaDisable] = useState(false)
+
   const [notifEmailAtivo, setNotifEmailAtivo] = useState(true)
   const [notifDias, setNotifDias] = useState(7)
   const [notifUltimoEnvio, setNotifUltimoEnvio] = useState<string | null>(null)
@@ -204,7 +215,14 @@ export function SettingsPage() {
         setNotifUltimoEnvio(data.notif_ultimo_envio ?? null)
       }
     }
+    const loadMFA = async () => {
+      const { data } = await supabase.auth.mfa.listFactors()
+      const verified = data?.totp?.find(f => f.status === 'verified')
+      setMfaStatus(verified ? 'on' : 'off')
+      if (verified) setMfaFactorId(verified.id)
+    }
     loadEscritorio()
+    loadMFA()
   }, [])
 
   useEffect(() => {
@@ -315,6 +333,62 @@ export function SettingsPage() {
       toast.error('Erro ao chamar a função de notificação.')
     } finally {
       setTestando(false)
+    }
+  }
+
+  const handleEnrollMFA = async () => {
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' })
+    if (error) { toast.error(error.message); return }
+    setMfaQR(data.totp.qr_code)
+    setMfaSecret(data.totp.secret)
+    setMfaFactorId(data.id)
+    setMfaCode('')
+    setMfaStatus('enrolling')
+  }
+
+  const handleVerifyMFA = async () => {
+    if (mfaCode.length !== 6) { toast.error('Digite o código de 6 dígitos'); return }
+    setMfaVerifying(true)
+    try {
+      const { data: challenge, error: cErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+      if (cErr) { toast.error(cErr.message); return }
+      const { error: vErr } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: challenge.id,
+        code: mfaCode,
+      })
+      if (vErr) { toast.error('Código inválido. Tente novamente.'); return }
+      toast.success('2FA ativado com sucesso!')
+      setMfaStatus('on')
+      setMfaQR('')
+      setMfaCode('')
+    } finally {
+      setMfaVerifying(false)
+    }
+  }
+
+  const handleDisableMFA = async () => {
+    if (mfaDisableCode.length !== 6) { toast.error('Digite o código de 6 dígitos para confirmar'); return }
+    setMfaDisabling(true)
+    try {
+      // Verify first then unenroll
+      const { data: challenge, error: cErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+      if (cErr) { toast.error(cErr.message); return }
+      const { error: vErr } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: challenge.id,
+        code: mfaDisableCode,
+      })
+      if (vErr) { toast.error('Código inválido.'); return }
+      const { error: uErr } = await supabase.auth.mfa.unenroll({ factorId: mfaFactorId })
+      if (uErr) { toast.error(uErr.message); return }
+      toast.success('2FA desativado.')
+      setMfaStatus('off')
+      setMfaFactorId('')
+      setMfaDisableCode('')
+      setShowMfaDisable(false)
+    } finally {
+      setMfaDisabling(false)
     }
   }
 
@@ -651,20 +725,114 @@ export function SettingsPage() {
                     <Key size={14} /> Alterar Senha
                   </SaveBtn>
                   <div style={{ marginTop: 28 }}>
-                    <ToggleRow>
-                      <div>
-                        <ToggleLabel>Autenticação em dois fatores (2FA)</ToggleLabel>
-                        <ToggleSub>Aumenta a segurança da sua conta</ToggleSub>
+                    {/* 2FA Section */}
+                    <FieldLabel style={{ marginBottom: 12 }}>Autenticação em dois fatores (2FA)</FieldLabel>
+
+                    {mfaStatus === 'loading' && (
+                      <div style={{ fontSize: 13, opacity: 0.5 }}>Verificando status...</div>
+                    )}
+
+                    {mfaStatus === 'off' && (
+                      <div style={{ padding: '16px', borderRadius: 10, border: '1.5px solid', borderColor: '#e5e7eb', background: '#f9fafb' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                          <ShieldOff size={18} color="#9ca3af" />
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 500 }}>2FA desativado</div>
+                            <div style={{ fontSize: 11, opacity: 0.6 }}>Ative para proteger sua conta com um app autenticador</div>
+                          </div>
+                        </div>
+                        <SaveBtn onClick={handleEnrollMFA} whileTap={{ scale: 0.97 }} style={{ marginTop: 0 }}>
+                          <Smartphone size={14} /> Ativar 2FA
+                        </SaveBtn>
                       </div>
-                      <Toggle $on={false} onClick={() => toast.info('Em breve!')} />
-                    </ToggleRow>
-                    <ToggleRow>
-                      <div>
-                        <ToggleLabel>Alertas de login</ToggleLabel>
-                        <ToggleSub>Receba notificações de novos acessos</ToggleSub>
+                    )}
+
+                    {mfaStatus === 'enrolling' && (
+                      <div style={{ padding: '16px', borderRadius: 10, border: '1.5px solid #bfdbfe', background: '#eff6ff' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#1e40af', marginBottom: 12 }}>
+                          📱 Configure seu aplicativo autenticador
+                        </div>
+                        <div style={{ fontSize: 12, color: '#374151', marginBottom: 12, lineHeight: 1.6 }}>
+                          Use <strong>Google Authenticator</strong>, <strong>Authy</strong> ou qualquer app TOTP.
+                          Escaneie o QR Code ou insira o código manualmente:
+                        </div>
+                        {/* QR Code SVG */}
+                        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 16 }}>
+                          <div style={{ background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', flexShrink: 0 }}
+                            dangerouslySetInnerHTML={{ __html: mfaQR }} />
+                          <div style={{ flex: 1, minWidth: 160 }}>
+                            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: '#6b7280', marginBottom: 4 }}>Código manual</div>
+                            <div style={{ fontSize: 12, fontFamily: 'monospace', background: '#fff', padding: '8px 10px', borderRadius: 7, border: '1px solid #e5e7eb', wordBreak: 'break-all', color: '#1e40af' }}>
+                              {mfaSecret}
+                            </div>
+                          </div>
+                        </div>
+                        <FieldLabel>Código do app (6 dígitos)</FieldLabel>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <Input
+                            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6}
+                            placeholder="000000"
+                            value={mfaCode}
+                            onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            style={{ maxWidth: 140, fontFamily: 'monospace', fontSize: 20, letterSpacing: 4 }}
+                            onKeyDown={e => e.key === 'Enter' && handleVerifyMFA()}
+                          />
+                          <SaveBtn onClick={handleVerifyMFA} disabled={mfaVerifying || mfaCode.length !== 6} whileTap={{ scale: 0.97 }} style={{ marginTop: 0 }}>
+                            <ShieldCheck size={14} /> {mfaVerifying ? 'Verificando...' : 'Confirmar'}
+                          </SaveBtn>
+                        </div>
+                        <button onClick={() => setMfaStatus('off')} style={{ marginTop: 10, fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>
+                          Cancelar
+                        </button>
                       </div>
-                      <Toggle $on={notifications.email} onClick={() => setNotifications(p => ({ ...p, email: !p.email }))} />
-                    </ToggleRow>
+                    )}
+
+                    {mfaStatus === 'on' && (
+                      <div style={{ padding: '16px', borderRadius: 10, border: '1.5px solid #bbf7d0', background: '#f0fdf4' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: showMfaDisable ? 14 : 0 }}>
+                          <ShieldCheck size={18} color="#1a7a4a" />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1a7a4a' }}>2FA ativo</div>
+                            <div style={{ fontSize: 11, color: '#166534' }}>Sua conta está protegida com autenticação de dois fatores</div>
+                          </div>
+                          <button
+                            onClick={() => setShowMfaDisable(v => !v)}
+                            style={{ fontSize: 11, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                          >
+                            Desativar
+                          </button>
+                        </div>
+                        {showMfaDisable && (
+                          <div style={{ borderTop: '1px solid #bbf7d0', paddingTop: 14 }}>
+                            <div style={{ fontSize: 12, marginBottom: 8, color: '#374151' }}>
+                              Digite o código do app para confirmar a desativação:
+                            </div>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                              <Input
+                                type="text" inputMode="numeric" maxLength={6}
+                                placeholder="000000"
+                                value={mfaDisableCode}
+                                onChange={e => setMfaDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                style={{ maxWidth: 140, fontFamily: 'monospace', fontSize: 18, letterSpacing: 4 }}
+                                onKeyDown={e => e.key === 'Enter' && handleDisableMFA()}
+                              />
+                              <button
+                                onClick={handleDisableMFA}
+                                disabled={mfaDisabling || mfaDisableCode.length !== 6}
+                                style={{
+                                  padding: '9px 16px', borderRadius: 9, background: '#dc2626', color: '#fff',
+                                  border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                                  opacity: mfaDisabling || mfaDisableCode.length !== 6 ? 0.5 : 1,
+                                  fontFamily: 'Inter, sans-serif',
+                                }}
+                              >
+                                {mfaDisabling ? 'Aguarde...' : 'Desativar 2FA'}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardBody>
               </Card>
