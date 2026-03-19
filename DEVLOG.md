@@ -5,6 +5,28 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-19 (importação de dados)
+
+### Feat: página de importação de dados
+
+**Arquivos criados/alterados:**
+- `app/src/features/import/ImportPage.tsx` — nova página com 3 abas
+- `app/src/App.tsx` — rota `/app/importar`
+- `app/src/components/layout/AppLayout.tsx` — item "Importar Dados" na sidebar (grupo Gestão)
+
+**Funcionalidades:**
+- 3 abas: Clientes, Lançamentos, Obrigações
+- Fluxo: upload → preview (8 primeiras linhas) → import em batches de 50 → relatório de erros por linha
+- Parser CSV genérico: detecta `,` ou `;`, mapeia colunas por keywords em PT/EN
+- Compatível com ContaAzul, Omie, Excel exportado e qualquer CSV genérico
+- Template CSV para download em cada aba
+- Drag & drop + clique para selecionar arquivo
+- Datas BR (dd/mm/yyyy) e valores BR (1.234,56)
+
+**Fase 2 completa** — todas as features entregues.
+
+---
+
 ## Sessão — 2026-03-19 (notificações)
 
 ### Feat: notificações de obrigações vencendo por email
