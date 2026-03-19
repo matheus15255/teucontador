@@ -9,6 +9,7 @@ export interface Escritorio {
   created_at?: string
   subscription_status?: 'trial' | 'active' | 'cancelled'
   subscription_id?: string
+  subscription_expires_at?: string
   abacatepay_customer_id?: string
   notif_email_ativo?: boolean
   notif_dias_antecedencia?: number

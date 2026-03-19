@@ -1,7 +1,7 @@
 import styled, { keyframes, css } from 'styled-components'
 import { useCheckout } from './useCheckout'
 import { ProfileFormModal } from './ProfileFormModal'
-import { Clock } from 'lucide-react'
+import { Clock, RefreshCw } from 'lucide-react'
 
 const pulse = keyframes`
   0%, 100% { opacity: 1; }
@@ -65,25 +65,37 @@ const SocialProof = styled.span`
 `
 
 interface Props {
-  daysRemaining: number
+  daysRemaining: number | null
+  isRenewal?: boolean
 }
 
-export function TrialBanner({ daysRemaining: d }: Props) {
+export function TrialBanner({ daysRemaining: d, isRenewal = false }: Props) {
   const { loading, showProfileForm, setShowProfileForm, startCheckout, saveProfileAndCheckout } = useCheckout()
 
-  const urgency: 'low' | 'mid' | 'high' | 'critical' =
-    d <= 1  ? 'critical' :
-    d <= 3  ? 'high'     :
-    d <= 7  ? 'mid'      : 'low'
+  const days = d ?? 0
 
-  const label =
-    d === 0 ? 'Seu período termina hoje!' :
-    d === 1 ? 'Último dia de teste — assine agora para não perder seus dados' :
-    d <= 3  ? `Apenas ${d} dias restantes — não perca seus dados` :
-              `${d} dias de teste gratuito restantes`
+  const urgency: 'low' | 'mid' | 'high' | 'critical' =
+    days <= 1 ? 'critical' :
+    days <= 3 ? 'high'     :
+    days <= 7 ? 'mid'      : 'low'
+
+  // Mensagens diferenciadas para trial vs renovação
+  const label = isRenewal
+    ? days === 0 ? 'Sua assinatura vence hoje — renove agora para não perder o acesso'
+    : days === 1 ? 'Último dia de assinatura — renove agora'
+    : days <= 3  ? `Sua assinatura vence em ${days} dias — renove para continuar`
+    :              `Sua assinatura vence em ${days} dias`
+    : days === 0 ? 'Seu período de teste termina hoje!'
+    : days === 1 ? 'Último dia de teste — assine agora para não perder seus dados'
+    : days <= 3  ? `Apenas ${days} dias restantes — não perca seus dados`
+    :              `${days} dias de teste gratuito restantes`
 
   const btnLabel = loading ? 'Aguarde...' :
-    d <= 1 ? 'Assinar antes que expire →' : 'Assinar agora — R$ 197/mês'
+    isRenewal
+      ? (days <= 1 ? 'Renovar antes que expire →' : 'Renovar assinatura')
+      : (days <= 1 ? 'Assinar antes que expire →' : 'Assinar agora — R$ 197/mês')
+
+  const Icon = isRenewal ? RefreshCw : Clock
 
   return (
     <>
@@ -95,9 +107,9 @@ export function TrialBanner({ daysRemaining: d }: Props) {
         />
       )}
       <Banner $urgency={urgency}>
-        <Clock size={13} style={{ flexShrink: 0, opacity: 0.85 }} />
+        <Icon size={13} style={{ flexShrink: 0, opacity: 0.85 }} />
         <span>{label}</span>
-        <SocialProof>· +100 escritórios já assinaram</SocialProof>
+        {!isRenewal && <SocialProof>· +100 escritórios já assinaram</SocialProof>}
         <Btn $urgency={urgency} $loading={loading} onClick={startCheckout} disabled={loading}>
           {btnLabel}
         </Btn>

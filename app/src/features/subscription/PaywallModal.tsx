@@ -205,10 +205,13 @@ const FEATURES = [
 
 interface Props {
   onSignOut: () => void
+  expired?: 'trial' | 'subscription'
 }
 
-export function PaywallModal({ onSignOut }: Props) {
+export function PaywallModal({ onSignOut, expired = 'trial' }: Props) {
   const { loading, showProfileForm, setShowProfileForm, startCheckout, saveProfileAndCheckout } = useCheckout()
+
+  const isSubscription = expired === 'subscription'
 
   return (
     <>
@@ -226,12 +229,19 @@ export function PaywallModal({ onSignOut }: Props) {
           <LogoName>TEU<span>contador</span></LogoName>
         </Logo>
 
-        <Badge><Lock size={11} /> Período de teste encerrado</Badge>
+        <Badge>
+          <Lock size={11} />
+          {isSubscription ? 'Assinatura expirada' : 'Período de teste encerrado'}
+        </Badge>
 
-        <Title>Continue usando o TEUcontador</Title>
+        <Title>
+          {isSubscription ? 'Renove sua assinatura' : 'Continue usando o TEUcontador'}
+        </Title>
         <Sub>
-          Seu período gratuito de 14 dias terminou. Assine para continuar
-          com acesso completo à plataforma.
+          {isSubscription
+            ? 'Sua assinatura expirou. Renove agora para recuperar o acesso completo à plataforma e não perder seus dados.'
+            : 'Seu período gratuito de 14 dias terminou. Assine para continuar com acesso completo à plataforma.'
+          }
         </Sub>
 
         <PlanBox>
@@ -248,7 +258,7 @@ export function PaywallModal({ onSignOut }: Props) {
         </PlanBox>
 
         <CTA $loading={loading} onClick={startCheckout} disabled={loading}>
-          {loading ? 'Aguarde...' : 'Assinar agora — R$ 197/mês'}
+          {loading ? 'Aguarde...' : isSubscription ? 'Renovar assinatura — R$ 197/mês' : 'Assinar agora — R$ 197/mês'}
         </CTA>
 
         <SignOutLink onClick={onSignOut}>Sair da conta</SignOutLink>

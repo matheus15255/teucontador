@@ -400,7 +400,7 @@ export function AppLayout() {
   const [visitedRelatorios, setVisitedRelatorios] = useState(() =>
     !!localStorage.getItem(RELATORIOS_KEY)
   )
-  const { isTrial, isExpired, trialDaysRemaining } = useSubscription()
+  const { isTrial, isExpired, showBanner, daysRemaining, isRenewal, status } = useSubscription()
   const { clientes, lancamentos, obrigacoes } = useDataStore()
 
   useEffect(() => {
@@ -451,7 +451,12 @@ export function AppLayout() {
 
   return (
     <Wrap>
-      {isExpired && <PaywallModal onSignOut={handleSignOut} />}
+      {isExpired && (
+        <PaywallModal
+          onSignOut={handleSignOut}
+          expired={status === 'cancelled' ? 'subscription' : 'trial'}
+        />
+      )}
       <WelcomeModal nome={nomePerfil} onClose={() => {}} />
       <Overlay $visible={sidebarOpen} onClick={() => setSidebarOpen(false)} />
 
@@ -521,7 +526,7 @@ export function AppLayout() {
           </TopRight>
         </Topbar>
 
-        {isTrial && <TrialBanner daysRemaining={trialDaysRemaining} />}
+        {showBanner && <TrialBanner daysRemaining={daysRemaining} isRenewal={isRenewal} />}
 
         <Content>
           {isDashboard && checklistVisible && (
