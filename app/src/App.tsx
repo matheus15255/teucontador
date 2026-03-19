@@ -25,6 +25,7 @@ const AtendimentosPage   = lazy(() => import('./features/atendimentos/Atendiment
 const FluxoCaixaPage     = lazy(() => import('./features/fluxo/FluxoCaixaPage').then(m => ({ default: m.FluxoCaixaPage })))
 const ControleTempo      = lazy(() => import('./features/tempo/ControleTempo').then(m => ({ default: m.ControleTempo })))
 const NfsePage           = lazy(() => import('./features/nfse/NfsePage').then(m => ({ default: m.NfsePage })))
+const ImportPage         = lazy(() => import('./features/import/ImportPage').then(m => ({ default: m.ImportPage })))
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
@@ -74,6 +75,7 @@ function App() {
         <Route path="fluxo"        element={<Suspense fallback={<PageLoader />}><FluxoCaixaPage /></Suspense>} />
         <Route path="tempo"        element={<Suspense fallback={<PageLoader />}><ControleTempo /></Suspense>} />
         <Route path="nfse"         element={<Suspense fallback={<PageLoader />}><NfsePage /></Suspense>} />
+        <Route path="importar"     element={<Suspense fallback={<PageLoader />}><ImportPage /></Suspense>} />
       </Route>
       <Route path="/portal" element={<ClienteLoginPage />} />
       <Route path="/portal/dashboard" element={<Suspense fallback={<PageLoader />}><ClientePortalPage /></Suspense>} />

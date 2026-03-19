@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, BookOpen, List, FileText,
   DollarSign, Calendar, ArrowLeftRight, Settings, LogOut,
   Sun, Moon, Bell, Search, Menu, CalendarDays, CreditCard,
-  Phone, TrendingUp, Timer, Receipt,
+  Phone, TrendingUp, Timer, Receipt, FolderInput,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
@@ -47,6 +47,7 @@ const navGroups = [
       { id: 'fluxo',        label: 'Fluxo de Caixa',   icon: TrendingUp,      path: '/app/fluxo' },
       { id: 'atendimentos', label: 'Atendimentos',      icon: Phone,           path: '/app/atendimentos' },
       { id: 'tempo',        label: 'Controle de Tempo', icon: Timer,           path: '/app/tempo' },
+      { id: 'importar',     label: 'Importar Dados',    icon: FolderInput,     path: '/app/importar' },
       { id: 'config',       label: 'Configurações',     icon: Settings,        path: '/app/config' },
     ],
   },
