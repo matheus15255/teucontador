@@ -5,6 +5,30 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-19 (MFA/2FA)
+
+### Feat: autenticação em dois fatores TOTP
+
+**Arquivos alterados:**
+- `app/src/features/settings/SettingsPage.tsx` — aba Segurança com enrollment completo
+- `app/src/features/auth/LoginPage.tsx` — nova view `'mfa'` com challenge TOTP
+
+**Settings → Segurança:**
+- Enrollment: QR Code SVG + código manual para apps sem câmera, confirmação com primeiro TOTP
+- Desativação protegida: requer código atual do app autenticador
+- Estado visual: off / configurando / ativo (badge verde)
+- Usa `supabase.auth.mfa.enroll`, `.challenge`, `.verify`, `.unenroll`, `.listFactors`
+
+**LoginPage:**
+- Após login, verifica AAL level com `getAuthenticatorAssuranceLevel()`
+- Se `nextLevel === 'aal2'` e não satisfeito → redireciona para tela de challenge TOTP
+- Verificação com challenge + verify; botão "Voltar" faz signOut e retorna ao login
+- Compatível com Google Authenticator, Authy e qualquer app TOTP
+
+**Nenhum SQL necessário** — usa suporte nativo de MFA do Supabase.
+
+---
+
 ## Sessão — 2026-03-19 (importação de dados)
 
 ### Feat: página de importação de dados
