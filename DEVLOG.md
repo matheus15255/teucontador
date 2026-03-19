@@ -5,6 +5,60 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-19 (workflow de aprovação de lançamentos)
+
+### Feat: workflow de aprovação de lançamentos contábeis
+
+**Arquivos alterados:**
+- `app/src/hooks/usePermission.ts` — adicionado `canApprove: role === 'admin'`
+- `app/src/features/accounting/AccountingPage.tsx` — status visível, filtro, botões aprovar/rejeitar
+
+**Como funciona:**
+- Novos lançamentos são criados com `status: 'pendente'` (contador/assistente não pode alterar)
+- Admin vê botões ✓ (verde) e ✗ (vermelho) em cada linha pendente
+- Aprovação → `status = 'aprovado'`, rejeição → `status = 'cancelado'`
+- Coluna "Status" exibe badge colorido: amarelo (pendente), verde (aprovado), vermelho (cancelado)
+- Filtro por status na barra de filtros (Todos / Pendente / Aprovado / Cancelado)
+- Atualização otimista no frontend sem reload completo
+
+**Regras de permissão:**
+- `admin` (dono do escritório): pode aprovar e rejeitar
+- `contador`: cria e edita, mas não aprova
+- `assistente`: somente leitura
+
+---
+
+## Sessão — 2026-03-19 (Fase 4 — enterprise features)
+
+### Feat: centro de custo, audit trail, webhooks, BI export
+
+**Arquivos criados:**
+- `supabase/add_remaining_features.sql` — tabelas `centros_custo`, `audit_log`, `webhooks` com RLS
+- `app/src/lib/audit.ts` — `logAudit()` helper (silent on failure)
+- `app/src/lib/webhooks.ts` — `fireWebhooks()` helper com `X-Webhook-Secret` header
+- `app/src/features/audit/AuditPage.tsx` — tabela de audit trail com busca e filtro por ação
+- `app/src/features/centro-custo/CentroCustoPage.tsx` — CRUD código/nome, toggle ativo/inativo
+
+**Arquivos alterados:**
+- `app/src/App.tsx` — rotas `/app/importar`, `/app/audit`, `/app/centro-custo`
+- `app/src/components/layout/AppLayout.tsx` — nav items "Importar Dados", "Centro de Custo", "Audit Trail"
+- `app/src/features/settings/SettingsPage.tsx` — aba "Webhooks" com CRUD por tipo de evento
+- `app/src/features/reports/ReportsPage.tsx` — seção "Exportação para BI" com 3 CSVs
+
+**Webhooks — eventos suportados:**
+- `cliente.criado`, `lancamento.criado`, `lancamento.aprovado`, `obrigacao.transmitida`, `honorario.pago`
+
+**BI Export — tabelas exportadas:**
+- Clientes (razao_social, cnpj, email, telefone, regime, municipio, estado, honorarios, situacao)
+- Lançamentos (data, histórico, valor, tipo, conta_débito, conta_crédito, centro_custo)
+- Obrigações (tipo, vencimento, status, cliente)
+
+**Para ativar em produção:**
+- Rodar `supabase/add_remaining_features.sql` no Supabase SQL Editor
+- Audit trail requer que as funções de CRUD chamem `logAudit()` nos pontos desejados
+
+---
+
 ## Sessão — 2026-03-19 (KPIs customizáveis)
 
 ### Feat: dashboard com KPIs customizáveis

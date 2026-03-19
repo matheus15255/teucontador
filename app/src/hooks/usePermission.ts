@@ -12,6 +12,8 @@ export function usePermission() {
     canEdit:   role === 'admin' || role === 'contador',
     // só admin (dono) pode deletar
     canDelete: role === 'admin',
+    // só admin aprova/rejeita lançamentos
+    canApprove: role === 'admin',
     // só dono pode convidar/remover membros
     canInvite: isOwner,
   }

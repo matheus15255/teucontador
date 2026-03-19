@@ -5,6 +5,7 @@ import {
   Plus, Search, X, BookOpen,
   Edit2, Trash2, Download, ChevronLeft, ChevronRight,
   Star, Copy, Filter, FileSpreadsheet, FileText,
+  CheckCircle, XCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -112,6 +113,8 @@ const ActBtn = styled.button`
   cursor: pointer; color: ${({ theme }) => theme.textDim}; transition: all 0.2s;
   &:hover { background: ${({ theme }) => theme.greenLight}; color: ${({ theme }) => theme.green}; border-color: rgba(26,122,74,0.2); }`
 const ActBtnDanger = styled(ActBtn)`&:hover { background: ${({ theme }) => theme.negBg}; color: ${({ theme }) => theme.neg}; border-color: rgba(220,38,38,0.2); }`
+const ActBtnApprove = styled(ActBtn)`&:hover { background: rgba(5,150,105,0.12); color: #059669; border-color: rgba(5,150,105,0.3); }`
+const ActBtnReject = styled(ActBtn)`&:hover { background: ${({ theme }) => theme.negBg}; color: ${({ theme }) => theme.neg}; border-color: rgba(220,38,38,0.2); }`
 
 const Pagination = styled.div`
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
@@ -229,7 +232,7 @@ const modalAnim = { initial: { scale: 0.93, opacity: 0, y: 20 }, animate: { scal
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function AccountingPage() {
-  const { canEdit, canDelete } = usePermission()
+  const { canEdit, canDelete, canApprove } = usePermission()
   const { escritorio } = useAuthStore()
   const escId = escritorio?.id
   const {
@@ -254,6 +257,7 @@ export function AccountingPage() {
   const [filterCliente, setFilterCliente] = useState('')
   const [filterMes, setFilterMes] = useState('')
   const [filterAno, setFilterAno] = useState(String(new Date().getFullYear()))
+  const [filterStatus, setFilterStatus] = useState('')
   const [sortCol, setSortCol] = useState<'data_lanc' | 'valor' | 'historico'>('data_lanc')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(1)
@@ -299,6 +303,7 @@ export function AccountingPage() {
       )
     }
     if (filterTipo) list = list.filter(l => l.tipo === filterTipo)
+    if (filterStatus) list = list.filter(l => (l.status || 'pendente') === filterStatus)
     if (filterCliente) list = list.filter(l => l.cliente_id === filterCliente)
     if (filterAno) list = list.filter(l => l.data_lanc?.startsWith(filterAno))
     if (filterMes) list = list.filter(l => l.data_lanc?.substring(5, 7) === filterMes)
@@ -311,7 +316,7 @@ export function AccountingPage() {
       return 0
     })
     return list
-  }, [lancamentos, search, filterTipo, filterCliente, filterAno, filterMes, sortCol, sortDir])
+  }, [lancamentos, search, filterTipo, filterStatus, filterCliente, filterAno, filterMes, sortCol, sortDir])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -363,6 +368,7 @@ export function AccountingPage() {
       tipo: form.tipo,
       cliente_id: form.cliente_id || null,
       numero_doc: form.numero_doc || null,
+      status: 'pendente' as const,
     }
     try {
       let error
@@ -390,6 +396,21 @@ export function AccountingPage() {
     if (error) { toast.error(error.message); return }
     toast.success('Lançamento excluído')
     load()
+  }
+
+  const handleApprove = async (l: Lancamento) => {
+    const { error } = await supabase.from('lancamentos').update({ status: 'aprovado' }).eq('id', l.id)
+    if (error) { toast.error(error.message); return }
+    toast.success('Lançamento aprovado!')
+    setLancamentos(prev => prev.map(x => x.id === l.id ? { ...x, status: 'aprovado' } : x))
+  }
+
+  const handleReject = async (l: Lancamento) => {
+    if (!confirm(`Rejeitar lançamento "${l.historico}"?`)) return
+    const { error } = await supabase.from('lancamentos').update({ status: 'cancelado' }).eq('id', l.id)
+    if (error) { toast.error(error.message); return }
+    toast.success('Lançamento rejeitado')
+    setLancamentos(prev => prev.map(x => x.id === l.id ? { ...x, status: 'cancelado' } : x))
   }
 
   const handleDuplicate = (l: Lancamento) => {
@@ -628,6 +649,12 @@ export function AccountingPage() {
                 <option value="credito">Crédito</option>
                 <option value="debito">Débito</option>
               </FilterSelect>
+              <FilterSelect value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1) }}>
+                <option value="">Todos os status</option>
+                <option value="pendente">Pendente</option>
+                <option value="aprovado">Aprovado</option>
+                <option value="cancelado">Cancelado</option>
+              </FilterSelect>
               <FilterSelect value={filterCliente} onChange={e => { setFilterCliente(e.target.value); setPage(1) }}>
                 <option value="">Todos os clientes</option>
                 {clientes.map(c => <option key={c.id} value={c.id}>{c.razao_social}</option>)}
@@ -638,8 +665,8 @@ export function AccountingPage() {
               <FilterSelect value={filterAno} onChange={e => { setFilterAno(e.target.value); setPage(1) }}>
                 {anos.map(a => <option key={a} value={a}>{a}</option>)}
               </FilterSelect>
-              {(search || filterTipo || filterCliente || filterMes) && (
-                <Btn $variant="ghost" onClick={() => { setSearch(''); setFilterTipo(''); setFilterCliente(''); setFilterMes(''); setPage(1) }}>
+              {(search || filterTipo || filterStatus || filterCliente || filterMes) && (
+                <Btn $variant="ghost" onClick={() => { setSearch(''); setFilterTipo(''); setFilterStatus(''); setFilterCliente(''); setFilterMes(''); setPage(1) }}>
                   <Filter size={13} /> Limpar
                 </Btn>
               )}
@@ -670,6 +697,7 @@ export function AccountingPage() {
                         <th>Ct. Débito</th>
                         <th>Ct. Crédito</th>
                         <th>Tipo</th>
+                        <th>Status</th>
                         <th onClick={() => toggleSort('valor')}>Valor{sortIcon('valor')}</th>
                         <th>Cliente</th>
                         <th>Ações</th>
@@ -686,10 +714,17 @@ export function AccountingPage() {
                           <td style={{ fontFamily: 'monospace', fontSize: 11 }}>{l.conta_debito || '—'}</td>
                           <td style={{ fontFamily: 'monospace', fontSize: 11 }}>{l.conta_credito || '—'}</td>
                           <td><TypeBadge $credit={l.tipo === 'credito'}>{l.tipo === 'credito' ? '↑ Créd' : '↓ Déb'}</TypeBadge></td>
+                          <td><StatusBadge $s={l.status || 'pendente'}>{l.status === 'aprovado' ? 'Aprovado' : l.status === 'cancelado' ? 'Cancelado' : 'Pendente'}</StatusBadge></td>
                           <td style={{ fontWeight: 600, color: l.tipo === 'credito' ? '#059669' : '#dc2626', whiteSpace: 'nowrap' }}>{fmt(l.valor)}</td>
                           <td style={{ fontSize: 11.5 }}>{(l as any).clientes?.razao_social || '—'}</td>
                           <td>
                             <div style={{ display: 'flex', gap: 3 }}>
+                              {canApprove && (l.status || 'pendente') === 'pendente' && (
+                                <ActBtnApprove onClick={() => handleApprove(l)} title="Aprovar lançamento"><CheckCircle size={12} /></ActBtnApprove>
+                              )}
+                              {canApprove && (l.status || 'pendente') === 'pendente' && (
+                                <ActBtnReject onClick={() => handleReject(l)} title="Rejeitar lançamento"><XCircle size={12} /></ActBtnReject>
+                              )}
                               <ActBtn onClick={() => openEdit(l)} title="Editar" disabled={!canEdit}><Edit2 size={12} /></ActBtn>
                               <ActBtn onClick={() => handleDuplicate(l)} title="Duplicar"><Copy size={12} /></ActBtn>
                               <ActBtn onClick={() => saveAsModelo(l)} title="Salvar como modelo"><Star size={12} /></ActBtn>
