@@ -41,9 +41,19 @@ serve(async (req) => {
 
   // Eventos de pagamento confirmado
   if (['billing.paid', 'billing.completed', 'checkout.completed', 'subscription.completed', 'subscription.renewed'].includes(event)) {
+    // Calcula expiração: usa next_billing_date do payload se disponível, senão +30 dias
+    const nextBillingDate = (billing?.next_billing_date ?? (billing?.metadata as any)?.next_billing_date) as string | undefined
+    const expiresAt = nextBillingDate
+      ? new Date(nextBillingDate).toISOString()
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
     await supabase
       .from('escritorios')
-      .update({ subscription_status: 'active', subscription_id: billing?.id as string })
+      .update({
+        subscription_status: 'active',
+        subscription_id: billing?.id as string,
+        subscription_expires_at: expiresAt,
+      })
       .eq('id', escritorioId)
   }
 
