@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import {
   FileText, Download, BarChart2, BookOpen, Scale,
   TrendingUp, FileSpreadsheet, Loader2, Users, AlertTriangle,
-  DollarSign, BookMarked,
+  DollarSign, BookMarked, Database,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -609,6 +609,53 @@ async function gerarInadimplencia(_period: Period, escritorioNome: string, forma
   }
 }
 
+// ─── CSV Export Helpers ───────────────────────────────────────────────────────
+
+function downloadCSV(rows: string[][], filename: string) {
+  const bom = '\uFEFF'
+  const csv = bom + rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+async function exportClientesCSV(escId?: string) {
+  let q = supabase.from('clientes').select('razao_social, cnpj, email, telefone, regime, municipio, estado, honorarios, situacao').order('razao_social')
+  if (escId) q = q.eq('escritorio_id', escId)
+  const { data, error } = await q
+  if (error) throw new Error(error.message)
+  const rows: string[][] = [['razao_social', 'cnpj', 'email', 'telefone', 'regime', 'municipio', 'estado', 'honorarios', 'situacao']]
+  ;(data || []).forEach((c: any) => rows.push([c.razao_social, c.cnpj, c.email, c.telefone, c.regime, c.municipio, c.estado, String(c.honorarios ?? ''), c.situacao]))
+  downloadCSV(rows, `Clientes_BI_${format(new Date(), 'yyyy-MM-dd')}.csv`)
+}
+
+async function exportLancamentosCSV(period: Period, escId?: string) {
+  const { start, end, label } = getPeriodRange(period)
+  let q = supabase.from('lancamentos').select('data_lanc, historico, valor, tipo, conta_debito, conta_credito, centro_custo')
+    .gte('data_lanc', format(start, 'yyyy-MM-dd')).lte('data_lanc', format(end, 'yyyy-MM-dd')).order('data_lanc', { ascending: true })
+  if (escId) q = q.eq('escritorio_id', escId)
+  const { data, error } = await q
+  if (error) throw new Error(error.message)
+  const rows: string[][] = [['data_lanc', 'historico', 'valor', 'tipo', 'conta_debito', 'conta_credito', 'centro_custo']]
+  ;(data || []).forEach((l: any) => rows.push([l.data_lanc, l.historico, String(l.valor ?? ''), l.tipo, l.conta_debito, l.conta_credito, l.centro_custo ?? '']))
+  downloadCSV(rows, `Lancamentos_BI_${label.replace(/\s/g, '_')}.csv`)
+}
+
+async function exportObrigacoesCSV(period: Period, escId?: string) {
+  const { start, end, label } = getPeriodRange(period)
+  let q = supabase.from('obrigacoes').select('tipo, vencimento, status, clientes(razao_social)')
+    .gte('vencimento', format(start, 'yyyy-MM-dd')).lte('vencimento', format(end, 'yyyy-MM-dd')).order('vencimento', { ascending: true })
+  if (escId) q = q.eq('escritorio_id', escId)
+  const { data, error } = await q
+  if (error) throw new Error(error.message)
+  const rows: string[][] = [['tipo', 'vencimento', 'status', 'cliente']]
+  ;(data || []).forEach((o: any) => rows.push([o.tipo, o.vencimento, o.status, o.clientes?.razao_social ?? '']))
+  downloadCSV(rows, `Obrigacoes_BI_${label.replace(/\s/g, '_')}.csv`)
+}
+
 // ─── Report Definitions ───────────────────────────────────────────────────────
 
 const REPORTS_CONTABEIS = [
@@ -752,6 +799,89 @@ export function ReportsPage() {
         <SectionLabel>Gestão do Escritório</SectionLabel>
       </motion.div>
       <Grid>{REPORTS_ESCRITORIO.map(renderCard)}</Grid>
+
+      <motion.div variants={itemVariants}>
+        <SectionLabel>Exportação para BI</SectionLabel>
+      </motion.div>
+      <Grid>
+        <motion.div variants={itemVariants}>
+          <ReportCard>
+            <ReportIcon $color="#f0fdf4"><Database size={20} color="#15803d" /></ReportIcon>
+            <ReportName>Clientes completo</ReportName>
+            <ReportDesc>Exporta todos os clientes em CSV com razão social, CNPJ, e-mail, telefone, regime, município, estado, honorários e situação.</ReportDesc>
+            <ReportTags><Tag>CSV</Tag><Tag>BI</Tag><Tag>Completo</Tag></ReportTags>
+            <BtnRow>
+              <GenerateBtn
+                onClick={async () => {
+                  const k = 'clientes-bi-csv'
+                  setLoading(k)
+                  try { await exportClientesCSV(escId); toast.success('CSV gerado!') }
+                  catch (e: any) { toast.error(e.message) }
+                  finally { setLoading(null) }
+                }}
+                whileTap={{ scale: 0.97 }}
+                disabled={loading !== null}
+              >
+                {loading === 'clientes-bi-csv'
+                  ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Gerando...</>
+                  : <><Download size={12} /> CSV</>}
+              </GenerateBtn>
+            </BtnRow>
+          </ReportCard>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <ReportCard>
+            <ReportIcon $color="#eff6ff"><Database size={20} color="#1d4ed8" /></ReportIcon>
+            <ReportName>Lançamentos do período</ReportName>
+            <ReportDesc>Exporta lançamentos do período selecionado em CSV com data, histórico, valor, tipo, conta débito, conta crédito e centro de custo.</ReportDesc>
+            <ReportTags><Tag>CSV</Tag><Tag>BI</Tag><Tag>Período</Tag></ReportTags>
+            <BtnRow>
+              <GenerateBtn
+                onClick={async () => {
+                  const k = 'lancamentos-bi-csv'
+                  setLoading(k)
+                  try { await exportLancamentosCSV(period, escId); toast.success('CSV gerado!') }
+                  catch (e: any) { toast.error(e.message) }
+                  finally { setLoading(null) }
+                }}
+                whileTap={{ scale: 0.97 }}
+                disabled={loading !== null}
+              >
+                {loading === 'lancamentos-bi-csv'
+                  ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Gerando...</>
+                  : <><Download size={12} /> CSV</>}
+              </GenerateBtn>
+            </BtnRow>
+          </ReportCard>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <ReportCard>
+            <ReportIcon $color="#fff7ed"><Database size={20} color="#ea580c" /></ReportIcon>
+            <ReportName>Obrigações</ReportName>
+            <ReportDesc>Exporta obrigações acessórias do período em CSV com tipo, vencimento, status e cliente para análise em ferramentas de BI.</ReportDesc>
+            <ReportTags><Tag>CSV</Tag><Tag>BI</Tag><Tag>Fiscal</Tag></ReportTags>
+            <BtnRow>
+              <GenerateBtn
+                onClick={async () => {
+                  const k = 'obrigacoes-bi-csv'
+                  setLoading(k)
+                  try { await exportObrigacoesCSV(period, escId); toast.success('CSV gerado!') }
+                  catch (e: any) { toast.error(e.message) }
+                  finally { setLoading(null) }
+                }}
+                whileTap={{ scale: 0.97 }}
+                disabled={loading !== null}
+              >
+                {loading === 'obrigacoes-bi-csv'
+                  ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Gerando...</>
+                  : <><Download size={12} /> CSV</>}
+              </GenerateBtn>
+            </BtnRow>
+          </ReportCard>
+        </motion.div>
+      </Grid>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </motion.div>

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, BookOpen, List, FileText,
   DollarSign, Calendar, ArrowLeftRight, Settings, LogOut,
   Sun, Moon, Bell, Search, Menu, CalendarDays, CreditCard,
-  Phone, TrendingUp, Timer, Receipt, FolderInput,
+  Phone, TrendingUp, Timer, Receipt, FolderInput, Shield, Layers,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
@@ -48,6 +48,8 @@ const navGroups = [
       { id: 'atendimentos', label: 'Atendimentos',      icon: Phone,           path: '/app/atendimentos' },
       { id: 'tempo',        label: 'Controle de Tempo', icon: Timer,           path: '/app/tempo' },
       { id: 'importar',     label: 'Importar Dados',    icon: FolderInput,     path: '/app/importar' },
+      { id: 'centro-custo', label: 'Centro de Custo',   icon: Layers,          path: '/app/centro-custo' },
+      { id: 'audit',        label: 'Audit Trail',       icon: Shield,          path: '/app/audit' },
       { id: 'config',       label: 'Configurações',     icon: Settings,        path: '/app/config' },
     ],
   },
@@ -382,6 +384,8 @@ const pageTitles: Record<string, string> = {
   fluxo:        'Fluxo de Caixa',
   tempo:        'Controle de Tempo',
   nfse:         'Notas de Serviço (NFS-e)',
+  audit:        'Audit Trail',
+  'centro-custo': 'Centro de Custo',
 }
 
 export function AppLayout() {

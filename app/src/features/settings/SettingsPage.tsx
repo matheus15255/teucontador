@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { motion } from 'framer-motion'
-import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock, Bell, Send, ShieldCheck, ShieldOff, Smartphone } from 'lucide-react'
+import { Save, User, Building2, Shield, Moon, Key, Users, UserPlus, Trash2, Crown, CheckCircle, Clock, Bell, Send, ShieldCheck, ShieldOff, Smartphone, Globe, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
@@ -169,6 +169,7 @@ const sections = [
   { id: 'escritorio', label: 'Escritório', icon: Building2 },
   { id: 'equipe', label: 'Equipe', icon: Users },
   { id: 'notificacoes', label: 'Notificações', icon: Bell },
+  { id: 'webhooks', label: 'Webhooks', icon: Globe },
   { id: 'aparencia', label: 'Aparência', icon: Moon },
   { id: 'seguranca', label: 'Segurança', icon: Shield },
 ]
@@ -205,6 +206,12 @@ export function SettingsPage() {
   const [inviting, setInviting] = useState(false)
   const isOwner = escStore?.user_id === user?.id
 
+  // Webhooks
+  const [webhooks, setWebhooks] = useState<{id:string;url:string;evento:string;ativo:boolean}[]>([])
+  const [newWhUrl, setNewWhUrl] = useState('')
+  const [newWhEvento, setNewWhEvento] = useState('cliente.criado')
+  const [savingWh, setSavingWh] = useState(false)
+
   useEffect(() => {
     const loadEscritorio = async () => {
       const { data } = await supabase.from('escritorios').select('*').single()
@@ -229,6 +236,13 @@ export function SettingsPage() {
     if (section === 'equipe' && escStore?.id) loadMembros()
   }, [section, escStore?.id])
 
+  useEffect(() => {
+    if (section === 'webhooks' && escStore?.id) {
+      supabase.from('webhooks').select('*').eq('escritorio_id', escStore.id).order('created_at')
+        .then(({ data }) => setWebhooks((data || []) as any))
+    }
+  }, [section, escStore?.id])
+
   const loadMembros = async () => {
     const { data } = await supabase
       .from('membros_escritorio')
@@ -236,6 +250,30 @@ export function SettingsPage() {
       .eq('escritorio_id', escStore!.id)
       .order('created_at', { ascending: true })
     if (data) setMembros(data)
+  }
+
+  const addWebhook = async () => {
+    if (!newWhUrl || !escStore?.id) return
+    setSavingWh(true)
+    const { data, error } = await supabase.from('webhooks').insert({
+      escritorio_id: escStore.id, url: newWhUrl, evento: newWhEvento, ativo: true
+    }).select().single()
+    setSavingWh(false)
+    if (error) { toast.error(error.message); return }
+    setWebhooks(prev => [...prev, data as any])
+    setNewWhUrl('')
+    toast.success('Webhook adicionado!')
+  }
+
+  const toggleWebhook = async (id: string, ativo: boolean) => {
+    await supabase.from('webhooks').update({ ativo: !ativo }).eq('id', id)
+    setWebhooks(prev => prev.map(w => w.id === id ? { ...w, ativo: !ativo } : w))
+  }
+
+  const deleteWebhook = async (id: string) => {
+    await supabase.from('webhooks').delete().eq('id', id)
+    setWebhooks(prev => prev.filter(w => w.id !== id))
+    toast.success('Webhook removido.')
   }
 
   const handleInvite = async () => {
@@ -667,6 +705,59 @@ export function SettingsPage() {
                       Configure o e-mail comercial em Escritório para usar notificações.
                     </div>
                   )}
+                </CardBody>
+              </Card>
+            )}
+
+            {section === 'webhooks' && (
+              <Card>
+                <CardHead>
+                  <CardTitle>Webhooks</CardTitle>
+                  <CardSub>Notifique sistemas externos quando eventos ocorrem no TEUcontador</CardSub>
+                </CardHead>
+                <CardBody>
+                  <div style={{ marginBottom: 20, padding: '12px 16px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 13, color: '#1e40af' }}>
+                    <strong>Como funciona:</strong> quando o evento selecionado ocorrer, o sistema enviará um POST com JSON para a URL configurada.
+                  </div>
+
+                  {/* Lista de webhooks */}
+                  {webhooks.map(wh => (
+                    <div key={wh.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid', borderColor: 'rgba(0,0,0,0.06)' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{wh.url}</div>
+                        <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>{wh.evento}</div>
+                      </div>
+                      <Toggle $on={wh.ativo} onClick={() => toggleWebhook(wh.id, wh.ativo)} />
+                      <RemoveBtn onClick={() => deleteWebhook(wh.id)}><Trash2 size={13} /></RemoveBtn>
+                    </div>
+                  ))}
+
+                  {/* Adicionar webhook */}
+                  <FieldLabel style={{ marginTop: 20, marginBottom: 10 }}>Adicionar webhook</FieldLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <Input
+                      type="url"
+                      placeholder="https://seu-servidor.com/webhook"
+                      value={newWhUrl}
+                      onChange={e => setNewWhUrl(e.target.value)}
+                    />
+                    <Select value={newWhEvento} onChange={e => setNewWhEvento(e.target.value)}>
+                      <option value="cliente.criado">cliente.criado</option>
+                      <option value="cliente.editado">cliente.editado</option>
+                      <option value="lancamento.criado">lancamento.criado</option>
+                      <option value="lancamento.aprovado">lancamento.aprovado</option>
+                      <option value="obrigacao.transmitida">obrigacao.transmitida</option>
+                      <option value="honorario.pago">honorario.pago</option>
+                    </Select>
+                    <SaveBtn onClick={addWebhook} disabled={savingWh || !newWhUrl} style={{ marginTop: 0 }}>
+                      <Plus size={14} style={{ display: 'inline', marginRight: 6 }} />
+                      {savingWh ? 'Adicionando...' : 'Adicionar Webhook'}
+                    </SaveBtn>
+                  </div>
+                  <div style={{ marginTop: 12, fontSize: 11, opacity: 0.55, lineHeight: 1.6 }}>
+                    O payload enviado inclui: <code>evento</code>, <code>timestamp</code> e <code>data</code> com os dados do registro.
+                    Configure <code>secret</code> diretamente no banco para verificação de autenticidade.
+                  </div>
                 </CardBody>
               </Card>
             )}

@@ -26,6 +26,8 @@ const FluxoCaixaPage     = lazy(() => import('./features/fluxo/FluxoCaixaPage').
 const ControleTempo      = lazy(() => import('./features/tempo/ControleTempo').then(m => ({ default: m.ControleTempo })))
 const NfsePage           = lazy(() => import('./features/nfse/NfsePage').then(m => ({ default: m.NfsePage })))
 const ImportPage         = lazy(() => import('./features/import/ImportPage').then(m => ({ default: m.ImportPage })))
+const AuditPage          = lazy(() => import('./features/audit/AuditPage').then(m => ({ default: m.AuditPage })))
+const CentroCustoPage    = lazy(() => import('./features/centro-custo/CentroCustoPage').then(m => ({ default: m.CentroCustoPage })))
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
@@ -76,6 +78,8 @@ function App() {
         <Route path="tempo"        element={<Suspense fallback={<PageLoader />}><ControleTempo /></Suspense>} />
         <Route path="nfse"         element={<Suspense fallback={<PageLoader />}><NfsePage /></Suspense>} />
         <Route path="importar"     element={<Suspense fallback={<PageLoader />}><ImportPage /></Suspense>} />
+        <Route path="audit"        element={<Suspense fallback={<PageLoader />}><AuditPage /></Suspense>} />
+        <Route path="centro-custo" element={<Suspense fallback={<PageLoader />}><CentroCustoPage /></Suspense>} />
       </Route>
       <Route path="/portal" element={<ClienteLoginPage />} />
       <Route path="/portal/dashboard" element={<Suspense fallback={<PageLoader />}><ClientePortalPage /></Suspense>} />
