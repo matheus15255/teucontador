@@ -225,7 +225,7 @@ export function PaywallModal({ onSignOut, expired = 'trial' }: Props) {
     <Overlay>
       <Card>
         <Logo>
-          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 48, width: 'auto', display: 'block' }} />
+          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 100, width: 'auto', display: 'block' }} />
         </Logo>
 
         <Badge>
