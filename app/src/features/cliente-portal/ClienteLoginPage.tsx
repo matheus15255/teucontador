@@ -17,12 +17,12 @@ const Page = styled.div`
   display: flex;
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
-  background: #f8f6f1;
+  background: #f0f4ff;
 `
 
 const Left = styled(motion.div)`
   width: 52%;
-  background: linear-gradient(160deg, #1a7a4a 0%, #0d3d24 55%, #081a10 100%);
+  background: linear-gradient(160deg, #007bff 0%, #0056b3 55%, #003380 100%);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -37,7 +37,7 @@ const LeftGlow1 = styled.div`
   left: -10%;
   width: 70%;
   height: 70%;
-  background: radial-gradient(circle, rgba(26,122,74,0.35) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,123,255,0.35) 0%, transparent 70%);
   pointer-events: none;
 `
 
@@ -47,7 +47,7 @@ const LeftGlow2 = styled.div`
   right: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(26,122,74,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,123,255,0.2) 0%, transparent 70%);
   pointer-events: none;
 `
 
@@ -93,14 +93,14 @@ const BrandMark = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: #fff;
 `
 
 const BrandName = styled.div`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 26px;
   font-weight: 600;
   color: #fff;
@@ -133,14 +133,14 @@ const BadgeDot = styled.div`
 `
 
 const HeroTitle = styled.h1`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: clamp(40px, 4.5vw, 58px);
   line-height: 1.06;
   letter-spacing: -2px;
   font-weight: 400;
   margin-bottom: 22px;
   color: #fff;
-  em { font-style: italic; color: #4ade80; opacity: 0.9; }
+  em { font-style: italic; color: #60a5fa; }
 `
 
 const HeroDesc = styled.p`
@@ -218,7 +218,7 @@ const Right = styled.div`
   align-items: center;
   justify-content: center;
   padding: 40px;
-  background: #f8f6f1;
+  background: #f0f4ff;
   overflow-y: auto;
 `
 
@@ -234,14 +234,14 @@ const FormEyebrow = styled.div`
 `
 
 const FormTitle = styled.h2`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 36px;
   font-weight: 400;
   letter-spacing: -1px;
   margin-bottom: 8px;
   line-height: 1.1;
   color: #1a1a1a;
-  em { font-style: italic; color: #1a7a4a; }
+  em { font-style: italic; color: #007bff; }
 `
 
 const FormSub = styled.p`
@@ -317,7 +317,7 @@ const SubmitBtn = styled(motion.button)<{ $loading?: boolean }>`
   width: 100%;
   padding: 14px;
   border-radius: 11px;
-  background: linear-gradient(135deg, #1a7a4a 0%, #0f5233 100%);
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: #fff;
   border: none;
   font-size: 14px;
@@ -328,11 +328,11 @@ const SubmitBtn = styled(motion.button)<{ $loading?: boolean }>`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 24px rgba(26,122,74,0.35);
+  box-shadow: 0 4px 24px rgba(0,123,255,0.35);
   transition: all 0.25s;
   opacity: ${({ $loading }) => $loading ? 0.7 : 1};
   pointer-events: ${({ $loading }) => $loading ? 'none' : 'auto'};
-  &:hover { background: linear-gradient(135deg, #22a062 0%, #1a7a4a 100%); box-shadow: 0 6px 28px rgba(26,122,74,0.45); }
+  &:hover { background: linear-gradient(135deg, #3395ff 0%, #007bff 100%); box-shadow: 0 6px 28px rgba(0,123,255,0.45); }
 `
 
 const Spinner = styled.div`
@@ -455,13 +455,7 @@ export function ClienteLoginPage() {
         <LeftContent>
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}>
             <Brand>
-              <BrandMark>T</BrandMark>
-              <div>
-                <BrandName>TEU<span>contador</span></BrandName>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: 2 }}>
-                  Portal do Cliente
-                </div>
-              </div>
+              <img src="/img/logo.png" alt="TEUcontador" style={{ height: 64, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
             </Brand>
           </motion.div>
 

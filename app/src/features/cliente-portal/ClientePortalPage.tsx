@@ -100,7 +100,7 @@ const Wrapper = styled.div`
 `
 
 const TopBar = styled.div`
-  background: linear-gradient(135deg, #1a7a4a 0%, #0f5233 100%);
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   padding: 0 32px;
   height: 60px;
   display: flex;
@@ -114,7 +114,7 @@ const TopBar = styled.div`
 `
 
 const LogoText = styled.div`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   font-weight: 600;
   color: #fff;
@@ -164,7 +164,7 @@ const Greeting = styled.div`
 `
 
 const GreetingTitle = styled.h1`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 30px;
   font-weight: 400;
   letter-spacing: -0.5px;
@@ -254,7 +254,7 @@ const KpiIconBox = styled.div<{ $color: string }>`
 `
 
 const KpiValue = styled.div<{ $color?: string }>`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -278,7 +278,7 @@ const SectionHeader = styled.div`
 `
 
 const SectionTitle = styled.h2`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
   font-weight: 400;
   letter-spacing: -0.3px;
@@ -571,7 +571,7 @@ const HonorMes = styled.div`
 `
 
 const HonorValor = styled.div`
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: ${({ theme }) => theme.text};
@@ -607,7 +607,7 @@ const GuiaTipoTag = styled.div`
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #1a7a4a;
+  color: #007bff;
   background: #e8f5ee;
   padding: 4px 10px;
   border-radius: 8px;
@@ -898,7 +898,7 @@ export function ClientePortalPage() {
   return (
     <Wrapper>
       <TopBar>
-        <LogoText>TEU<span>contador</span></LogoText>
+        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 44, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
         <TopBarRight>
           <ClienteName>{session.razao_social}</ClienteName>
           <TopBarBtn onClick={toggleTheme} title={isDark ? 'Modo Claro' : 'Modo Escuro'}>
@@ -959,7 +959,7 @@ export function ClientePortalPage() {
                   label: 'Saldo',
                   value: fmtCurrency(saldo),
                   icon: <DollarSign size={16} />,
-                  color: saldo >= 0 ? '#1a7a4a' : '#dc2626',
+                  color: saldo >= 0 ? '#007bff' : '#dc2626',
                   sub: 'Receitas − Despesas',
                 },
                 {
@@ -1198,7 +1198,7 @@ export function ClientePortalPage() {
                         width: 38, height: 38, borderRadius: 9, background: '#e8f5ee',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
                       }}>
-                        <FileText size={17} color="#1a7a4a" />
+                        <FileText size={17} color="#007bff" />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1212,7 +1212,7 @@ export function ClientePortalPage() {
                         onClick={() => downloadArquivo(a.storage_path, a.nome_arquivo)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
-                          background: '#1a7a4a', color: '#fff', border: 'none', borderRadius: 8,
+                          background: '#007bff', color: '#fff', border: 'none', borderRadius: 8,
                           fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                           flexShrink: 0,
                         }}
