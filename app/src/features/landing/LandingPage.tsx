@@ -762,6 +762,73 @@ const trustBadges  = [
   { label:'eSocial Integrado',icon:RefreshCw,    bg:C.blueLight, ic:C.blue  },
 ]
 
+// ─── Mobile Section ───────────────────────────────────────────────────────────
+const MobileSection = styled.section`
+  background: ${C.white};
+  padding: 96px 48px;
+  overflow: hidden;
+  @media(max-width:768px){padding:64px 20px}
+`
+const MobileLayout = styled.div`
+  max-width: 1160px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  @media(max-width:900px){grid-template-columns:1fr; gap:48px}
+`
+const MobileTextSide = styled.div``
+const MobilePhones = styled.div`
+  display: flex; gap: 20px; align-items: flex-end; justify-content: center;
+  @media(max-width:480px){gap:12px}
+`
+const PhoneFrame = styled(motion.div)<{$large?:boolean}>`
+  position: relative;
+  width: ${({$large})=>$large?'200px':'170px'};
+  flex-shrink: 0;
+  filter: drop-shadow(0 24px 48px rgba(0,0,0,0.18));
+  @media(max-width:480px){
+    width: ${({$large})=>$large?'160px':'135px'};
+  }
+`
+const PhoneBezel = styled.div`
+  background: #1a1a2e;
+  border-radius: 36px;
+  padding: 12px 8px;
+  border: 3px solid #2a2a4a;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.06),
+    0 0 0 1px rgba(0,0,0,0.3);
+`
+const PhoneNotch = styled.div`
+  width: 60px; height: 6px; background: #1a1a2e;
+  border-radius: 0 0 8px 8px; margin: 0 auto 8px;
+  position: relative; z-index: 2;
+`
+const PhoneScreen = styled.div`
+  border-radius: 24px; overflow: hidden; background: #fff;
+`
+const PhoneImg = styled.img`
+  width: 100%; display: block;
+`
+const MobileBadge = styled.div`
+  display: inline-flex; align-items: center; gap: 8px;
+  background: ${C.blueLight}; border: 1px solid ${C.bluePale};
+  border-radius: 20px; padding: 6px 14px; margin-bottom: 20px;
+  font-size: 11px; font-weight: 700; color: ${C.blue}; letter-spacing: .5px;
+`
+const MobileFeatureList = styled.div`
+  display: flex; flex-direction: column; gap: 16px; margin-top: 32px;
+`
+const MobileFeatureItem = styled.div`
+  display: flex; gap: 14px; align-items: flex-start;
+`
+const MobileFeatureIcon = styled.div`
+  width: 36px; height: 36px; border-radius: 10px;
+  background: ${C.blueLight}; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+`
+const MobileFeatureText = styled.div``
+const MobileFeatureTitle = styled.div`font-size: 14px; font-weight: 700; color: ${C.textPrimary}; margin-bottom: 3px;`
+const MobileFeatureDesc = styled.div`font-size: 13px; color: ${C.textSecond}; line-height: 1.6;`
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export function LandingPage() {
   const navigate  = useNavigate()
@@ -990,6 +1057,65 @@ export function LandingPage() {
           <ShowcaseCaption>{screenshots[activeTab].caption}</ShowcaseCaption>
         </SectionInner>
       </ShowcaseSection>
+
+      {/* ── Mobile ── */}
+      <MobileSection>
+        <MobileLayout>
+          <motion.div initial={{opacity:0,x:-32}} whileInView={{opacity:1,x:0}} viewport={{once:true}} transition={{duration:.7}}>
+            <MobileTextSide>
+              <MobileBadge><Globe size={12} /> Acesse de qualquer lugar</MobileBadge>
+              <SectionTitle>Seu escritório no <em>bolso</em></SectionTitle>
+              <SectionDesc style={{marginBottom:0}}>
+                O TEUcontador funciona perfeitamente em qualquer dispositivo. Acompanhe KPIs, gerencie clientes e consulte obrigações direto pelo celular — sem instalar nada.
+              </SectionDesc>
+              <MobileFeatureList>
+                {[
+                  { icon:BarChart2, title:'Dashboard responsivo',    desc:'Visualize receitas, pendências e indicadores em tempo real no celular.' },
+                  { icon:Users,     title:'Clientes na palma da mão', desc:'Consulte e gerencie toda a carteira de clientes com poucos toques.' },
+                  { icon:Shield,    title:'Acesso seguro',            desc:'Login com autenticação dupla (MFA) direto do navegador mobile.' },
+                ].map((f,i) => (
+                  <motion.div key={i} initial={{opacity:0,x:-16}} whileInView={{opacity:1,x:0}} viewport={{once:true}} transition={{delay:i*.12}}>
+                    <MobileFeatureItem>
+                      <MobileFeatureIcon><f.icon size={17} color={C.blue} /></MobileFeatureIcon>
+                      <MobileFeatureText>
+                        <MobileFeatureTitle>{f.title}</MobileFeatureTitle>
+                        <MobileFeatureDesc>{f.desc}</MobileFeatureDesc>
+                      </MobileFeatureText>
+                    </MobileFeatureItem>
+                  </motion.div>
+                ))}
+              </MobileFeatureList>
+            </MobileTextSide>
+          </motion.div>
+
+          <motion.div initial={{opacity:0,x:32}} whileInView={{opacity:1,x:0}} viewport={{once:true}} transition={{duration:.7}}>
+            <MobilePhones>
+              <PhoneFrame
+                initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}}
+                viewport={{once:true}} transition={{delay:.15,duration:.6}}
+              >
+                <PhoneBezel>
+                  <PhoneNotch />
+                  <PhoneScreen>
+                    <PhoneImg src="/img/dashcelular.png" alt="Menu mobile TEUcontador" />
+                  </PhoneScreen>
+                </PhoneBezel>
+              </PhoneFrame>
+              <PhoneFrame $large
+                initial={{opacity:0,y:12}} whileInView={{opacity:1,y:0}}
+                viewport={{once:true}} transition={{delay:.05,duration:.6}}
+              >
+                <PhoneBezel>
+                  <PhoneNotch />
+                  <PhoneScreen>
+                    <PhoneImg src="/img/dashboardcelular.png" alt="Dashboard mobile TEUcontador" />
+                  </PhoneScreen>
+                </PhoneBezel>
+              </PhoneFrame>
+            </MobilePhones>
+          </motion.div>
+        </MobileLayout>
+      </MobileSection>
 
       {/* ── Features ── */}
       <Section id="features" $bg={C.grayBg}>
