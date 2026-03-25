@@ -102,7 +102,7 @@ const Wrapper = styled.div`
 const TopBar = styled.div`
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   padding: 0 32px;
-  height: 60px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -110,7 +110,7 @@ const TopBar = styled.div`
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 16px rgba(0,0,0,0.2);
-  @media (max-width: 600px) { padding: 0 16px; gap: 10px; }
+  @media (max-width: 600px) { padding: 0 14px; gap: 8px; height: 60px; }
 `
 
 const LogoText = styled.div`
@@ -125,13 +125,19 @@ const LogoText = styled.div`
 const TopBarRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 `
 
 const ClienteName = styled.div`
   font-size: 13px;
   color: rgba(255,255,255,0.85);
   font-weight: 500;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  @media (max-width: 480px) { display: none; }
 `
 
 const TopBarBtn = styled.button`
@@ -171,6 +177,7 @@ const GreetingTitle = styled.h1`
   color: ${({ theme }) => theme.text};
   margin-bottom: 6px;
   em { font-style: italic; color: ${({ theme }) => theme.green}; }
+  @media (max-width: 480px) { font-size: 22px; }
 `
 
 const GreetingMeta = styled.div`
@@ -489,6 +496,13 @@ const TabRow = styled.div`
   display: flex;
   gap: 8px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
+  @media (max-width: 480px) {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
 `
 
 const Tab = styled.button<{ $active: boolean }>`
@@ -600,6 +614,7 @@ const GuiaPortalItem = styled.div`
   padding: 14px 18px;
   border-bottom: 1px solid ${({ theme }) => theme.border};
   &:last-child { border-bottom: none; }
+  @media (max-width: 480px) { flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
 `
 
 const GuiaTipoTag = styled.div`
@@ -656,6 +671,7 @@ const DocPortalItem = styled.div`
   padding: 14px 18px;
   border-bottom: 1px solid ${({ theme }) => theme.border};
   &:last-child { border-bottom: none; }
+  @media (max-width: 480px) { flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
 `
 
 const DocPortalIconWrap = styled.div<{ $recebido: boolean }>`
@@ -898,7 +914,7 @@ export function ClientePortalPage() {
   return (
     <Wrapper>
       <TopBar>
-        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 120, width: 'auto', display: 'block' }} />
+        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 52, width: 'auto', display: 'block', flexShrink: 0 }} />
         <TopBarRight>
           <ClienteName>{session.razao_social}</ClienteName>
           <TopBarBtn onClick={toggleTheme} title={isDark ? 'Modo Claro' : 'Modo Escuro'}>

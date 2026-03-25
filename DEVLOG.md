@@ -5,6 +5,24 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-25 (fix responsividade mobile ClientePortalPage)
+
+### Fix: responsividade mobile do portal do cliente
+
+**Arquivos alterados:**
+- `app/src/features/cliente-portal/ClientePortalPage.tsx`
+
+**O que mudou:**
+- `TopBar`: altura ajustada para 72px (desktop) / 60px (mobile) para acomodar logo
+- Logo no TopBar: reduzida de `height: 120` para `height: 52` para caber na barra
+- `ClienteName`: truncamento com `text-overflow: ellipsis`, oculta em telas < 480px
+- `TopBarRight`: adicionado `flex-shrink: 0` para não comprimir os botões
+- `TabRow`: adicionado `flex-wrap: wrap` + scroll horizontal em mobile
+- `GreetingTitle`: `font-size` reduzido para 22px em mobile (< 480px)
+- `GuiaPortalItem` e `DocPortalItem`: `flex-wrap: wrap` em mobile para itens não cortarem
+
+---
+
 ## Sessão — 2026-03-25 (redesign landing page — estilo emitte)
 
 ### Feat: landing page redesenhada — azul primário + verde acento
