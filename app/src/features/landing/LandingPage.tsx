@@ -696,6 +696,149 @@ const FooterCert = styled.span`
   font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(241,245,249,.3);
 `
 
+// ─── Person Section ───────────────────────────────────────────────────────────
+const PersonSection = styled.section`
+  padding: 96px 48px;
+  background: ${C.white};
+  @media(max-width:768px){padding:64px 20px}
+`
+const PersonInner = styled.div`
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  @media(max-width:900px){grid-template-columns:1fr;gap:48px}
+`
+const PersonImgWrap = styled(motion.div)`
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(26,86,219,.18), 0 8px 24px rgba(0,0,0,.1);
+  aspect-ratio: 4/3;
+`
+const PersonImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`
+const PersonImgOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(12,26,58,.55) 100%);
+`
+const PersonBadge = styled.div`
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(8px);
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+`
+const PersonBadgeIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg,${C.blue},${C.blueDark});
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`
+const PersonBadgeText = styled.div`
+  strong { font-size: 15px; font-weight: 700; color: ${C.textPrimary}; display: block; }
+  span { font-size: 12px; color: ${C.textSecond}; }
+`
+const PersonBadge2 = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg,${C.green},#15803d);
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(22,163,74,.4);
+`
+const PersonContent = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`
+const PersonQuote = styled.blockquote`
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: ${C.textPrimary};
+  letter-spacing: -0.3px;
+  border-left: 4px solid ${C.blue};
+  padding-left: 20px;
+  margin: 0;
+  em { color: ${C.blue}; font-style: normal; }
+  @media(max-width:600px){font-size:18px}
+`
+const PersonAuthor = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+`
+const PersonAvatar = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,${C.blue},${C.blueDark});
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+`
+const PersonAuthorInfo = styled.div`
+  strong { font-size: 14px; font-weight: 700; color: ${C.textPrimary}; display: block; }
+  span { font-size: 12px; color: ${C.textSecond}; }
+`
+const PersonStats = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  @media(max-width:480px){grid-template-columns:1fr 1fr}
+`
+const PersonStat = styled.div`
+  background: ${C.blueLight};
+  border: 1px solid ${C.bluePale};
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+`
+const PersonStatVal = styled.div`
+  font-size: 26px;
+  font-weight: 800;
+  color: ${C.blue};
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 4px;
+`
+const PersonStatLabel = styled.div`
+  font-size: 11px;
+  font-weight: 600;
+  color: ${C.textSecond};
+  text-transform: uppercase;
+  letter-spacing: .6px;
+`
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const features = [
   { icon: BarChart2,  bg:'#eff6ff', ic:C.blue,     accent:`linear-gradient(90deg,${C.blue},#3b82f6)`,   title:'Lançamentos Contábeis', desc:'Partidas dobradas com plano de contas CFC. Exporte DRE, Balanço e Razão em segundos.', tags:['DRE','Balanço','Razão'] },
@@ -987,6 +1130,71 @@ export function LandingPage() {
           </TrustBadges>
         </TrustInner>
       </TrustSection>
+
+      {/* ── Person / Social Proof ── */}
+      <PersonSection>
+        <PersonInner>
+          <PersonImgWrap
+            initial={{opacity:0,x:-40}} whileInView={{opacity:1,x:0}}
+            transition={{duration:.8,ease:[.22,1,.36,1]}} viewport={{once:true}}
+          >
+            <PersonImg
+              src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=900&q=80"
+              alt="Contador usando o TEUcontador"
+            />
+            <PersonImgOverlay />
+            <PersonBadge>
+              <PersonBadgeIcon><TrendingUp size={18} color="#fff" /></PersonBadgeIcon>
+              <PersonBadgeText>
+                <strong>−68% de retrabalho</strong>
+                <span>em média após 30 dias</span>
+              </PersonBadgeText>
+            </PersonBadge>
+            <PersonBadge2>
+              <CheckCircle size={13} /> Aprovado pelo CFC
+            </PersonBadge2>
+          </PersonImgWrap>
+
+          <PersonContent
+            initial={{opacity:0,x:40}} whileInView={{opacity:1,x:0}}
+            transition={{duration:.8,ease:[.22,1,.36,1]}} viewport={{once:true}}
+          >
+            <div>
+              <Eyebrow>Feito por contadores, para contadores</Eyebrow>
+              <SectionTitle style={{marginBottom:0}}>
+                Tecnologia que <em>respeita</em><br />o seu tempo
+              </SectionTitle>
+            </div>
+
+            <PersonQuote>
+              "Antes gastava uma tarde inteira no SPED. Hoje faço em <em>menos de 40 minutos</em>. O TEUcontador mudou completamente minha rotina."
+            </PersonQuote>
+
+            <PersonAuthor>
+              <PersonAvatar>RS</PersonAvatar>
+              <PersonAuthorInfo>
+                <strong>Ricardo Sousa</strong>
+                <span>CRC/MG-87.432 · Sousa & Parceiros Contabilidade</span>
+              </PersonAuthorInfo>
+            </PersonAuthor>
+
+            <PersonStats>
+              <PersonStat>
+                <PersonStatVal>−68%</PersonStatVal>
+                <PersonStatLabel>Retrabalho</PersonStatLabel>
+              </PersonStat>
+              <PersonStat>
+                <PersonStatVal>3×</PersonStatVal>
+                <PersonStatLabel>Mais clientes</PersonStatLabel>
+              </PersonStat>
+              <PersonStat>
+                <PersonStatVal>40min</PersonStatVal>
+                <PersonStatLabel>SPED completo</PersonStatLabel>
+              </PersonStat>
+            </PersonStats>
+          </PersonContent>
+        </PersonInner>
+      </PersonSection>
 
       {/* ── Pain / Solution ── */}
       <PainSection>
