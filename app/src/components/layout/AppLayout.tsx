@@ -482,7 +482,7 @@ export function AppLayout() {
             <img
               src={isDark ? '/img/logo.png' : '/img/logoazul.png'}
               alt="TEUcontador"
-              style={{ width: '85%', height: '85%', objectFit: 'contain', display: 'block' }}
+              style={{ width: '120%', height: '120%', objectFit: 'contain', display: 'block' }}
             />
           </LogoImgWrap>
         </LogoWrap>
