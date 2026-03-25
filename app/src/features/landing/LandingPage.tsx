@@ -1358,7 +1358,7 @@ export function LandingPage() {
           <FooterGrid>
             <div>
               <Logo style={{cursor:'default'}}>
-                <img src="/img/logo.png" alt="TEUcontador" style={{ height: 100, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
+                <img src="/img/logo.png" alt="TEUcontador" style={{ height: 100, width: 'auto', display: 'block' }} />
               </Logo>
               <FooterBrandDesc>O sistema contábil completo para escritórios modernos. SPED, eSocial, Open Finance e muito mais.</FooterBrandDesc>
             </div>
