@@ -737,9 +737,9 @@ const faqs = [
 ]
 
 const screenshots = [
-  { label:'Dashboard',            img:'/img/Screenshot_1.png', caption:'KPIs financeiros, honorários e gráfico de receitas × despesas em tempo real.' },
-  { label:'Clientes & Empresas',  img:'/img/Screenshot_2.png', caption:'Gerencie toda a carteira com filtros por regime tributário, honorários e situação.' },
-  { label:'Lançamentos Contábeis',img:'/img/Screenshot_3.png', caption:'Partidas dobradas com plano CFC — exporte PDF ou Excel em segundos.' },
+  { label:'Dashboard',            img:'/img/dashboarddesktop.png', caption:'KPIs financeiros em tempo real: receita mensal, clientes ativos, pendências e indicadores customizáveis.' },
+  { label:'Clientes & Empresas',  img:'/img/desk.png',             caption:'Gerencie toda a carteira com filtros por regime tributário, honorários e situação de cada cliente.' },
+  { label:'Conciliação Bancária', img:'/img/dashh.png',            caption:'Importe OFX, visualize extratos e concilie lançamentos bancários com poucos cliques.' },
 ]
 
 const painItems    = [
@@ -891,7 +891,7 @@ export function LandingPage() {
               <BrowserDot $c="#ff5f57" /><BrowserDot $c="#febc2e" /><BrowserDot $c="#28c840" />
               <BrowserUrl>app.teucontador.com.br/dashboard</BrowserUrl>
             </BrowserBar>
-            <ScreenshotImg src="/img/Screenshot_1.png" alt="Dashboard TEUcontador" loading="eager" />
+            <ScreenshotImg src="/img/dashboarddesktop.png" alt="Dashboard TEUcontador" loading="eager" />
           </BrowserChrome>
           <HeroGradientFade />
         </HeroScreenshot>
