@@ -40,90 +40,103 @@ interface DataState {
 }
 
 async function fetchClientes(escId: string) {
-  const { data } = await supabase.from('clientes').select('*').eq('escritorio_id', escId).order('created_at', { ascending: false }).limit(500)
+  const { data, error } = await supabase.from('clientes').select('*').eq('escritorio_id', escId).order('created_at', { ascending: false }).limit(500)
+  if (error) console.error('[dataStore] fetchClientes:', error.message)
   return data || []
 }
 async function fetchLancamentos(escId: string) {
-  const { data } = await supabase.from('lancamentos').select('*,clientes(razao_social)').eq('escritorio_id', escId).order('data_lanc', { ascending: false }).limit(500)
+  const { data, error } = await supabase.from('lancamentos').select('*,clientes(razao_social)').eq('escritorio_id', escId).order('data_lanc', { ascending: false }).limit(500)
+  if (error) console.error('[dataStore] fetchLancamentos:', error.message)
   return data || []
 }
 async function fetchObrigacoes(escId: string) {
-  const { data } = await supabase.from('obrigacoes').select('*,clientes(razao_social)').eq('escritorio_id', escId).order('vencimento').limit(300)
+  const { data, error } = await supabase.from('obrigacoes').select('*,clientes(razao_social)').eq('escritorio_id', escId).order('vencimento').limit(300)
+  if (error) console.error('[dataStore] fetchObrigacoes:', error.message)
   return data || []
 }
 async function fetchColaboradores(escId: string) {
-  const { data } = await supabase.from('colaboradores').select('*,clientes(razao_social)').eq('escritorio_id', escId).order('nome').limit(300)
+  const { data, error } = await supabase.from('colaboradores').select('*,clientes(razao_social)').eq('escritorio_id', escId).order('nome').limit(300)
+  if (error) console.error('[dataStore] fetchColaboradores:', error.message)
   return data || []
 }
 async function fetchPlanoContas(escId: string) {
-  const { data } = await supabase.from('plano_contas').select('*').eq('escritorio_id', escId).order('codigo').limit(500)
+  const { data, error } = await supabase.from('plano_contas').select('*').eq('escritorio_id', escId).order('codigo').limit(500)
+  if (error) console.error('[dataStore] fetchPlanoContas:', error.message)
   return data || []
 }
 async function fetchTransacoes(escId: string) {
-  const { data } = await supabase.from('transacoes_bancarias').select('*').eq('escritorio_id', escId).order('data_transacao', { ascending: false }).limit(300)
+  const { data, error } = await supabase.from('transacoes_bancarias').select('*').eq('escritorio_id', escId).order('data_transacao', { ascending: false }).limit(300)
+  if (error) console.error('[dataStore] fetchTransacoes:', error.message)
   return data || []
 }
 async function fetchTarefas(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('tarefas')
     .select('id,titulo,status,prioridade,data_vencimento,responsavel,cliente_id,clientes(razao_social)')
     .eq('escritorio_id', escId)
     .order('data_vencimento', { ascending: true, nullsFirst: false })
     .limit(100)
+  if (error) console.error('[dataStore] fetchTarefas:', error.message)
   return data || []
 }
 async function fetchHonorarios(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('honorarios')
     .select('*,clientes(razao_social,honorarios)')
     .eq('escritorio_id', escId)
     .order('mes_ref', { ascending: false })
     .limit(500)
+  if (error) console.error('[dataStore] fetchHonorarios:', error.message)
   return data || []
 }
 async function fetchAtendimentos(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('atendimentos')
     .select('*,clientes(razao_social)')
     .eq('escritorio_id', escId)
     .order('data_atendimento', { ascending: false })
     .limit(300)
+  if (error) console.error('[dataStore] fetchAtendimentos:', error.message)
   return data || []
 }
 async function fetchRegistrosTempo(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('registros_tempo')
     .select('*,clientes(razao_social)')
     .eq('escritorio_id', escId)
     .order('inicio', { ascending: false })
     .limit(300)
+  if (error) console.error('[dataStore] fetchRegistrosTempo:', error.message)
   return data || []
 }
 async function fetchNotasServico(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('notas_servico')
     .select('*,clientes(razao_social)')
     .eq('escritorio_id', escId)
     .order('data_emissao', { ascending: false })
     .limit(300)
+  if (error) console.error('[dataStore] fetchNotasServico:', error.message)
   return data || []
 }
 async function fetchGuias(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('guias')
     .select('*,clientes(razao_social)')
     .eq('escritorio_id', escId)
     .order('data_vencimento', { ascending: true })
     .limit(300)
+  if (error) console.error('[dataStore] fetchGuias:', error.message)
   return data || []
 }
 async function fetchChecklistDocumentos(escId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('checklist_documentos')
     .select('*,clientes(razao_social)')
     .eq('escritorio_id', escId)
     .order('created_at', { ascending: false })
     .limit(300)
+  if (error) console.error('[dataStore] fetchChecklistDocumentos:', error.message)
   return data || []
 }
 
@@ -177,6 +190,8 @@ export const useDataStore = create<DataState>((set, get) => ({
         loadedEscId: escId,
       })
       get().subscribe(escId)
+    } catch (err) {
+      console.error('[dataStore] preload falhou:', err)
     } finally {
       set({ preloading: false })
     }

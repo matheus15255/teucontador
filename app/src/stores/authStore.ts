@@ -25,9 +25,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   loadEscritorio: async (user: User) => {
     // 1. Escritório próprio (dono)
-    const { data: escs } = await supabase
+    const { data: escs, error: escErr } = await supabase
       .from('escritorios').select('*')
       .eq('user_id', user.id).order('created_at', { ascending: true }).limit(1)
+
+    if (escErr) console.error('[authStore] loadEscritorio escritorios:', escErr.message)
 
     if (escs?.[0]) {
       // Aceita convites pendentes com o mesmo email (criou conta após convite)
