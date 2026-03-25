@@ -5,6 +5,34 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-25 (redesign landing page — estilo emitte)
+
+### Feat: landing page redesenhada — azul primário + verde acento
+
+**Arquivos alterados:**
+- `app/src/features/landing/LandingPage.tsx` — redesign completo
+- `app/index.html` — removida fonte Playfair Display, carrega Inter 300–900
+
+**O que mudou:**
+- **Paleta**: verde escuro `#1a7a4a` → azul primário `#1a56db` + verde acento `#22c55e`
+- **Tipografia**: removida Playfair Display serif; Inter 800/900 em todos os headings (estilo SaaS moderno)
+- **Hero**: gradiente navy/azul `#080f1e → #0c1a3a → #0f2060` com glow azul
+- **Marquee**: gradiente azul `#1a56db → #1240b3`
+- **Seções claras**: fundo `#f8fafc` ao invés de bege `#f8f6f1`; bordas `#e2e8f0`
+- **Botões primários**: azul com sombra `rgba(26,86,219,.45)` ao invés de verde
+- **Feature cards**: tags azuis (`#eff6ff / #dbeafe`) ao invés de bege
+- **BigFeatureCard**: gradiente navy/azul com glow azul
+- **StatsSection**: navy/azul ao invés de verde escuro
+- **Pricing featured**: navy/azul com sombra azul
+- **CTA section**: navy/azul ao invés de verde escuro
+- **Footer**: `#060c1a` navy profundo ao invés de `#080f09`
+- **FAQ ativo**: fundo `#eff6ff` ao invés de `#fafaf7`
+- **Testimonials**: ícone VERIFICADO em azul ao invés de verde
+
+**Estilo inspirado em:** emitte.com.br (SaaS B2B brasileiro)
+
+---
+
 ## Sessão — 2026-03-19 (workflow de aprovação de lançamentos)
 
 ### Feat: workflow de aprovação de lançamentos contábeis
