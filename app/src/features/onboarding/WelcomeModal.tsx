@@ -223,8 +223,7 @@ export function WelcomeModal({ nome, onClose }: Props) {
         <CloseBtn onClick={handleClose}><X size={14} /></CloseBtn>
 
         <LogoRow>
-          <LogoIcon>T</LogoIcon>
-          <LogoName>TEU<span>contador</span></LogoName>
+          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 32, width: 'auto', display: 'block' }} />
         </LogoRow>
 
         <Title>

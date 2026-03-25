@@ -462,8 +462,7 @@ export function AppLayout() {
 
       <Sidebar $open={sidebarOpen}>
         <LogoWrap>
-          <LogoIcon>T</LogoIcon>
-          <LogoName>TEU<span>contador</span></LogoName>
+          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 34, width: 'auto', display: 'block' }} />
         </LogoWrap>
 
         <NavSection>

@@ -686,13 +686,7 @@ export function LoginPage() {
         <LeftContent>
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}>
             <Brand>
-              <BrandMark>T</BrandMark>
-              <div>
-                <BrandName>TEU<span>contador</span></BrandName>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: 2 }}>
-                  Sistema Contábil
-                </div>
-              </div>
+              <img src="/img/logo.png" alt="TEUcontador" style={{ height: 40, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
             </Brand>
           </motion.div>
 
