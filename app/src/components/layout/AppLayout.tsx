@@ -462,7 +462,7 @@ export function AppLayout() {
 
       <Sidebar $open={sidebarOpen}>
         <LogoWrap>
-          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 90, width: 'auto', maxWidth: '100%', display: 'block' }} />
+          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 200, width: 'auto', maxWidth: '100%', display: 'block' }} />
         </LogoWrap>
 
         <NavSection>
