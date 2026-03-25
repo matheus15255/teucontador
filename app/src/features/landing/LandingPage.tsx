@@ -58,10 +58,9 @@ const Page = styled.div`
 const Navbar = styled(motion.header)<{$scrolled:boolean}>`
   position:fixed;top:0;left:0;right:0;z-index:1000;
   display:flex;align-items:center;padding:0 48px;height:64px;
-  background:${({$scrolled})=>$scrolled?'rgba(255,255,255,0.97)':'transparent'};
-  backdrop-filter:${({$scrolled})=>$scrolled?'blur(20px)':'none'};
-  border-bottom:${({$scrolled})=>$scrolled?`1px solid ${C.grayBorder}`:'1px solid transparent'};
-  transition:all 0.3s ease;
+  background:#ffffff;
+  border-bottom:1px solid ${C.grayBorder};
+  box-shadow:0 1px 8px rgba(0,0,0,0.06);
   @media(max-width:768px){padding:0 20px}
 `
 const Logo = styled.div`
