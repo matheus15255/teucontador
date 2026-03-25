@@ -105,12 +105,14 @@ const Overlay = styled.div<{ $visible: boolean }>`
 `
 
 const LogoWrap = styled.div`
-  padding: 16px;
+  height: 80px;
+  padding: 10px 16px;
   border-bottom: 1px solid ${({ theme }) => theme.border};
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 `
 
 const LogoIcon = styled.div`
@@ -462,7 +464,7 @@ export function AppLayout() {
 
       <Sidebar $open={sidebarOpen}>
         <LogoWrap>
-          <img src="/img/logo.png" alt="TEUcontador" style={{ width: '100%', maxWidth: 300, height: 'auto', display: 'block' }} />
+          <img src="/img/logo.png" alt="TEUcontador" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         </LogoWrap>
 
         <NavSection>
