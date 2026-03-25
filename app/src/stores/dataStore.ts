@@ -122,7 +122,7 @@ async function fetchNotasServico(escId: string) {
 async function fetchGuias(escId: string) {
   const { data, error } = await supabase
     .from('guias')
-    .select('*,clientes(razao_social)')
+    .select('*')
     .eq('escritorio_id', escId)
     .order('data_vencimento', { ascending: true })
     .limit(300)
@@ -132,7 +132,7 @@ async function fetchGuias(escId: string) {
 async function fetchChecklistDocumentos(escId: string) {
   const { data, error } = await supabase
     .from('checklist_documentos')
-    .select('*,clientes(razao_social)')
+    .select('*')
     .eq('escritorio_id', escId)
     .order('created_at', { ascending: false })
     .limit(300)
@@ -162,12 +162,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     if (get().preloading || get().loadedEscId === escId) return
     set({ preloading: true })
     try {
-      const [
-        clientes, lancamentos, obrigacoes, colaboradores,
-        planoContas, transacoes, tarefas,
-        honorarios, atendimentos, registrosTempo, notasServico,
-        guias, checklistDocumentos,
-      ] = await Promise.all([
+      const results = await Promise.allSettled([
         fetchClientes(escId),
         fetchLancamentos(escId),
         fetchObrigacoes(escId),
@@ -182,6 +177,18 @@ export const useDataStore = create<DataState>((set, get) => ({
         fetchGuias(escId),
         fetchChecklistDocumentos(escId),
       ])
+      const [
+        clientes, lancamentos, obrigacoes, colaboradores,
+        planoContas, transacoes, tarefas,
+        honorarios, atendimentos, registrosTempo, notasServico,
+        guias, checklistDocumentos,
+      ] = results.map((r, i) => {
+        if (r.status === 'rejected') {
+          console.error(`[dataStore] fetch[${i}] rejeitado:`, r.reason)
+          return []
+        }
+        return r.value
+      })
       set({
         clientes, lancamentos, obrigacoes, colaboradores,
         planoContas, transacoes, tarefas,
