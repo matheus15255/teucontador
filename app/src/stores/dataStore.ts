@@ -120,24 +120,22 @@ async function fetchNotasServico(escId: string) {
   return data || []
 }
 async function fetchGuias(escId: string) {
-  const { data, error } = await supabase
-    .from('guias')
-    .select('*')
-    .eq('escritorio_id', escId)
-    .order('data_vencimento', { ascending: true })
-    .limit(300)
-  if (error) console.error('[dataStore] fetchGuias:', error.message)
-  return data || []
+  try {
+    const { data, error } = await supabase
+      .from('guias')
+      .select('*')
+      .eq('escritorio_id', escId)
+      .order('data_vencimento', { ascending: true })
+      .limit(300)
+    if (error) console.error('[dataStore] fetchGuias:', error.message)
+    return data || []
+  } catch {
+    return []
+  }
 }
-async function fetchChecklistDocumentos(escId: string) {
-  const { data, error } = await supabase
-    .from('checklist_documentos')
-    .select('*')
-    .eq('escritorio_id', escId)
-    .order('created_at', { ascending: false })
-    .limit(300)
-  if (error) console.error('[dataStore] fetchChecklistDocumentos:', error.message)
-  return data || []
+async function fetchChecklistDocumentos(_escId: string) {
+  // tabela ainda não criada no banco — retorna vazio sem query
+  return []
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
