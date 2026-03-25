@@ -115,17 +115,6 @@ const LogoWrap = styled.div`
   overflow: hidden;
 `
 
-const LogoImgWrap = styled.div`
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  background: ${({ theme }) => theme.surface2};
-  border: 2px solid ${({ theme }) => theme.border};
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-`
 
 const LogoIcon = styled.div`
   width: 36px;
@@ -476,13 +465,7 @@ export function AppLayout() {
 
       <Sidebar $open={sidebarOpen}>
         <LogoWrap>
-          <LogoImgWrap>
-            <img
-              src={isDark ? '/img/logoescuro.png' : '/img/logoazul.png'}
-              alt="TEUcontador"
-              style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center center', display: 'block', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-            />
-          </LogoImgWrap>
+          <img src="/img/logo.png" alt="TEUcontador" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         </LogoWrap>
 
         <NavSection>
