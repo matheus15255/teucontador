@@ -898,7 +898,7 @@ export function ClientePortalPage() {
   return (
     <Wrapper>
       <TopBar>
-        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 44, width: 'auto', display: 'block' }} />
+        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 250, width: 'auto', display: 'block' }} />
         <TopBarRight>
           <ClienteName>{session.razao_social}</ClienteName>
           <TopBarBtn onClick={toggleTheme} title={isDark ? 'Modo Claro' : 'Modo Escuro'}>

@@ -455,7 +455,7 @@ export function ClienteLoginPage() {
         <LeftContent>
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}>
             <Brand>
-              <img src="/img/logo.png" alt="TEUcontador" style={{ height: 64, width: 'auto', display: 'block' }} />
+              <img src="/img/logo.png" alt="TEUcontador" style={{ height: 250, width: 'auto', display: 'block' }} />
             </Brand>
           </motion.div>
 
