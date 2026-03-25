@@ -105,8 +105,8 @@ const Overlay = styled.div<{ $visible: boolean }>`
 `
 
 const LogoWrap = styled.div`
-  height: 80px;
-  padding: 10px 16px;
+  height: 140px;
+  padding: 12px 16px;
   border-bottom: 1px solid ${({ theme }) => theme.border};
   flex-shrink: 0;
   display: flex;
