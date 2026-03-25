@@ -789,7 +789,7 @@ export function LandingPage() {
       {/* ── Navbar ── */}
       <Navbar $scrolled={scrolled} initial={{y:-24,opacity:0}} animate={{y:0,opacity:1}} transition={{duration:.5}}>
         <Logo onClick={() => navigate('/')}>
-          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 36, width: 'auto', display: 'block' }} />
+          <img src="/img/logo.png" alt="TEUcontador" style={{ height: 52, width: 'auto', display: 'block' }} />
         </Logo>
         <NavLinks>
           <NavLink href="#features">Funcionalidades</NavLink>
@@ -1233,7 +1233,7 @@ export function LandingPage() {
           <FooterGrid>
             <div>
               <Logo style={{cursor:'default'}}>
-                <img src="/img/logo.png" alt="TEUcontador" style={{ height: 34, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
+                <img src="/img/logo.png" alt="TEUcontador" style={{ height: 48, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
               </Logo>
               <FooterBrandDesc>O sistema contábil completo para escritórios modernos. SPED, eSocial, Open Finance e muito mais.</FooterBrandDesc>
             </div>

@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS centros_custo (
   created_at timestamptz DEFAULT now()
 );
 ALTER TABLE centros_custo ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "centros_escritorio" ON centros_custo FOR ALL
+DROP POLICY IF EXISTS "centros_escritorio" ON centros_custo;
+CREATE POLICY "centros_escritorio" ON centros_custo FOR ALL
   USING (escritorio_id = (SELECT id FROM escritorios WHERE user_id = auth.uid() LIMIT 1));
 
 -- ─── Audit Log ──────────────────────────────────────────────────────────────
@@ -24,7 +25,8 @@ CREATE TABLE IF NOT EXISTS audit_log (
   created_at timestamptz DEFAULT now()
 );
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "audit_escritorio" ON audit_log FOR ALL
+DROP POLICY IF EXISTS "audit_escritorio" ON audit_log;
+CREATE POLICY "audit_escritorio" ON audit_log FOR ALL
   USING (escritorio_id = (SELECT id FROM escritorios WHERE user_id = auth.uid() LIMIT 1));
 
 -- ─── Webhooks ───────────────────────────────────────────────────────────────
@@ -38,5 +40,6 @@ CREATE TABLE IF NOT EXISTS webhooks (
   created_at timestamptz DEFAULT now()
 );
 ALTER TABLE webhooks ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "webhooks_escritorio" ON webhooks FOR ALL
+DROP POLICY IF EXISTS "webhooks_escritorio" ON webhooks;
+CREATE POLICY "webhooks_escritorio" ON webhooks FOR ALL
   USING (escritorio_id = (SELECT id FROM escritorios WHERE user_id = auth.uid() LIMIT 1));
