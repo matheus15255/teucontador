@@ -102,7 +102,7 @@ const Wrapper = styled.div`
 const TopBar = styled.div`
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   padding: 0 32px;
-  height: 72px;
+  height: 130px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -110,7 +110,7 @@ const TopBar = styled.div`
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 16px rgba(0,0,0,0.2);
-  @media (max-width: 600px) { padding: 0 14px; gap: 8px; height: 60px; }
+  @media (max-width: 600px) { padding: 0 14px; gap: 8px; height: 90px; }
 `
 
 const LogoText = styled.div`
@@ -914,7 +914,7 @@ export function ClientePortalPage() {
   return (
     <Wrapper>
       <TopBar>
-        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 52, width: 'auto', display: 'block', flexShrink: 0 }} />
+        <img src="/img/logo.png" alt="TEUcontador" style={{ height: 130, width: 'auto', display: 'block', flexShrink: 0 }} />
         <TopBarRight>
           <ClienteName>{session.razao_social}</ClienteName>
           <TopBarBtn onClick={toggleTheme} title={isDark ? 'Modo Claro' : 'Modo Escuro'}>
