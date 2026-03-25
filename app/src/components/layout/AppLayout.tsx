@@ -142,7 +142,7 @@ const LogoIcon = styled.div`
   font-size: 19px;
   font-weight: 700;
   color: #fff;
-  box-shadow: 0 2px 10px rgba(26,122,74,0.3);
+  box-shadow: 0 2px 10px rgba(0,123,255,0.3);
   flex-shrink: 0;
 `
 
@@ -186,7 +186,7 @@ const NavItem = styled(motion.button)<{ $active?: boolean }>`
   font-weight: ${({ $active }) => $active ? '500' : '400'};
   font-family: 'Inter', sans-serif;
   margin-bottom: 1px;
-  border: 1px solid ${({ theme, $active }) => $active ? `rgba(26,122,74,0.15)` : 'transparent'};
+  border: 1px solid ${({ theme, $active }) => $active ? `rgba(0,123,255,0.15)` : 'transparent'};
   background: ${({ theme, $active }) => $active ? theme.greenLight : 'transparent'};
   text-align: left;
   transition: all 0.2s;
@@ -225,7 +225,7 @@ const Avatar = styled.div`
   height: 32px;
   border-radius: 50%;
   background: ${({ theme }) => theme.green};
-  border: 2px solid rgba(26,122,74,0.2);
+  border: 2px solid rgba(0,123,255,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
