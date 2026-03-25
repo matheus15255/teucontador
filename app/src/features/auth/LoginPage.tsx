@@ -499,9 +499,7 @@ const BackBtn = styled(SubmitBtn)`
 `
 
 const plans = [
-  { id: 'starter', name: 'Starter', price: 'R$ 197', period: '/mês' },
-  { id: 'pro', name: 'Pro', price: 'R$ 397', period: '/mês' },
-  { id: 'enterprise', name: 'Enterprise', price: 'R$ 897', period: '/mês' },
+  { id: 'pro', name: 'Pro', price: 'R$ 197', period: '/mês' },
 ]
 
 const features = [
@@ -609,14 +607,14 @@ export function LoginPage() {
     const { data, error } = await supabase.auth.signUp({
       email: regEmail,
       password: regPwd,
-      options: { data: { nome_completo: `${regNome} ${regSobrenome}`.trim(), plano: selectedPlan } }
+      options: { data: { nome_completo: `${regNome} ${regSobrenome}`.trim(), plano: 'pro' } }
     })
     if (error) { toast.error(error.message); setLoading(false); return }
     if (data.user) {
       const { error: insertError } = await supabase.from('escritorios').insert({
         user_id: data.user.id,
         nome: regEscritorio || `${regNome} ${regSobrenome}`.trim(),
-        plano: selectedPlan,
+        plano: 'pro',
         email: regEmail,
         cpf_cnpj: regCpfCnpj.replace(/\D/g, '')
       })
@@ -804,7 +802,7 @@ export function LoginPage() {
                 <FormHeader>
                   <FormEyebrow>Criar conta</FormEyebrow>
                   <FormTitle>Comece <em>gratuitamente</em></FormTitle>
-                  <FormSub>14 dias grátis, sem cartão de crédito.</FormSub>
+                  <FormSub>3 dias grátis, sem cartão de crédito.</FormSub>
                 </FormHeader>
 
                 <Steps>
@@ -890,16 +888,13 @@ export function LoginPage() {
                           />
                         </InputWrap>
                       </Field>
-                      <FieldLabel>Escolha seu plano</FieldLabel>
-                      <PlanGrid>
-                        {plans.map(p => (
-                          <PlanCard key={p.id} $selected={selectedPlan === p.id} onClick={() => setSelectedPlan(p.id)}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{p.name}</div>
-                            <div style={{ fontSize: 15, fontWeight: 700, color: '#007bff', margin: '3px 0' }}>{p.price}</div>
-                            <div style={{ fontSize: 9, color: '#8a8a8a' }}>{p.period}</div>
-                          </PlanCard>
-                        ))}
-                      </PlanGrid>
+                      <div style={{ background: '#e8f1ff', border: '1px solid #bfdbfe', borderRadius: 11, padding: '14px 16px', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Plano Pro</div>
+                          <div style={{ fontSize: 12, color: '#374151', marginTop: 2 }}>3 dias grátis · após R$ 197/mês</div>
+                        </div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#007bff', background: '#fff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '4px 10px' }}>Único plano</div>
+                      </div>
                       <BtnRow>
                         <BackBtn type="button" onClick={() => setRegStep(1)} whileTap={{ scale: 0.98 }}>
                           Voltar
@@ -931,7 +926,7 @@ export function LoginPage() {
                         <div>📧 {regEmail}</div>
                         <div>🏢 {regEscritorio || `${regNome} ${regSobrenome}`}</div>
                         <div>🪪 {regCpfCnpj}</div>
-                        <div>📦 Plano {plans.find(p => p.id === selectedPlan)?.name} — {plans.find(p => p.id === selectedPlan)?.price}/mês</div>
+                        <div>📦 Plano Pro — R$ 197/mês (3 dias grátis)</div>
                       </div>
                       <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
                         <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)} style={{ marginTop: 3, accentColor: '#007bff', width: 15, height: 15 }} />

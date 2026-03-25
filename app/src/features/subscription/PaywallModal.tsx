@@ -239,7 +239,7 @@ export function PaywallModal({ onSignOut, expired = 'trial' }: Props) {
         <Sub>
           {isSubscription
             ? 'Sua assinatura expirou. Renove agora para recuperar o acesso completo à plataforma e não perder seus dados.'
-            : 'Seu período gratuito de 14 dias terminou. Assine para continuar com acesso completo à plataforma.'
+            : 'Seu período gratuito de 3 dias terminou. Assine para continuar com acesso completo à plataforma.'
           }
         </Sub>
 

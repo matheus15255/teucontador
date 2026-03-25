@@ -866,13 +866,13 @@ const plans = [
 const testimonials = [
   { text:'Migramos do sistema antigo em 2 dias. A folha de pagamento caiu de 8 horas para menos de 1 hora por mês. O eSocial nunca foi tão simples.', name:'Marina Santos',  role:'CRC/SP-123.456 · Santos & Associados', ini:'MS', color:C.blue },
   { text:'Fechamos o mês de fevereiro sem nenhum retrabalho de conciliação. O que levava 3 horas por semana agora leva 10 minutos. Liberou mais 2 clientes novos.', name:'Carlos Mendes',  role:'CRC/RJ-098.765 · Mendes Contabilidade',  ini:'CM', color:C.green },
-  { text:'Testamos por 14 dias e assinamos no mesmo dia em que o trial acabou. Os relatórios CFC prontos são o diferencial que a gente precisava.', name:'Ana Oliveira',   role:'CRC/MG-234.567 · Oliveira & Lima',        ini:'AO', color:'#7c3aed' },
+  { text:'Testamos por 3 dias e assinamos no mesmo dia em que o trial acabou. Os relatórios CFC prontos são o diferencial que a gente precisava.', name:'Ana Oliveira',   role:'CRC/MG-234.567 · Oliveira & Lima',        ini:'AO', color:'#7c3aed' },
 ]
 
 const faqs = [
   { q:'O TEUcontador é homologado pelo CFC?', a:'Sim. Nossa plataforma foi desenvolvida em total conformidade com as normas NBC TG emitidas pelo Conselho Federal de Contabilidade (CFC), incluindo NBC TG 26, NBC TG 1000 e demais normas aplicáveis.' },
   { q:'Posso importar dados do meu sistema atual?', a:'Sim. Oferecemos importação via planilha Excel, arquivos SPED, OFX e integrações diretas com os principais sistemas do mercado. Nosso time auxilia na migração completa sem custo adicional.' },
-  { q:'Como funciona o período de 14 dias grátis?', a:'Você tem acesso completo a todas as funcionalidades, sem precisar inserir cartão de crédito. Após o período, assine por R$197/mês. Se não gostar, não cobra nada.' },
+  { q:'Como funciona o período de 3 dias grátis?', a:'Você tem acesso completo a todas as funcionalidades, sem precisar inserir cartão de crédito. Após o período, assine por R$197/mês. Se não gostar, não cobra nada.' },
   { q:'Os dados dos meus clientes estão seguros?', a:'Utilizamos criptografia AES-256 em repouso, TLS 1.3 em trânsito, backups automáticos diários com retenção de 90 dias, conformes com LGPD e ISO 27001.' },
   { q:'Posso ter múltiplos colaboradores?', a:'Sim. O TEUcontador suporta múltiplos usuários com controle de permissões por módulo, tudo incluso no plano único. Sem custo extra por usuário.' },
   { q:'Se eu cancelar, perco meus dados?', a:'Não. Ao cancelar, você tem 30 dias para exportar todos os dados (clientes, lançamentos, relatórios) em Excel ou PDF. Seus dados sempre pertencem a você.' },
@@ -1008,7 +1008,7 @@ export function LandingPage() {
           <NavLink href="#faq">FAQ</NavLink>
         </NavLinks>
         <NavRight>
-          <NavBadge><NavBadgeDot />14 dias grátis · Sem cartão</NavBadge>
+          <NavBadge><NavBadgeDot />3 dias grátis · Sem cartão</NavBadge>
           <BtnOutline onClick={() => navigate('/login')}>Entrar</BtnOutline>
           <BtnPrimary onClick={() => navigate('/login')} whileTap={{scale:.97}}>
             Teste grátis <ArrowRight size={14} />
@@ -1065,7 +1065,7 @@ export function LandingPage() {
 
           <HeroCtas initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:.65}}>
             <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{scale:.97}}>
-              Começar 14 dias grátis <ArrowRight size={16} />
+              Começar 3 dias grátis <ArrowRight size={16} />
             </HeroBtnPrimary>
             <HeroBtnOutline whileTap={{scale:.97}} onClick={() => document.getElementById('produto')?.scrollIntoView({behavior:'smooth'})}>
               <BookOpen size={15} /> Ver o sistema em ação
@@ -1232,7 +1232,7 @@ export function LandingPage() {
         </PainVsGrid>
         <div style={{textAlign:'center',marginTop:48}}>
           <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{scale:.97}} style={{display:'inline-flex'}}>
-            Resolver isso agora — 14 dias grátis <ArrowRight size={16} />
+            Resolver isso agora — 3 dias grátis <ArrowRight size={16} />
           </HeroBtnPrimary>
         </div>
       </PainSection>
@@ -1460,11 +1460,11 @@ export function LandingPage() {
                     </>
                   )}
                   <PricingBtn $featured={p.featured} onClick={() => navigate('/login')} whileTap={{scale:.97}}>
-                    Começar 14 dias grátis <ArrowRight size={14} />
+                    Começar 3 dias grátis <ArrowRight size={14} />
                   </PricingBtn>
                   {p.featured && (
                     <GuaranteeRow>
-                      {['Sem cartão','14 dias grátis','Cancele quando quiser','Suporte WhatsApp'].map(g => (
+                      {['Sem cartão','3 dias grátis','Cancele quando quiser','Suporte WhatsApp'].map(g => (
                         <GuaranteePill key={g}><CheckCircle size={11} color="rgba(96,165,250,.6)" /> {g}</GuaranteePill>
                       ))}
                     </GuaranteeRow>
@@ -1543,7 +1543,7 @@ export function LandingPage() {
             COMECE HOJE MESMO
           </div>
           <CtaTitle>Comece agora e recupere<br /><em>12 horas por semana</em></CtaTitle>
-          <CtaSub>14 dias grátis, acesso completo, sem cartão de crédito. Se não gostar, não cobra nada.</CtaSub>
+          <CtaSub>3 dias grátis, acesso completo, sem cartão de crédito. Se não gostar, não cobra nada.</CtaSub>
           <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap'}}>
             <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{scale:.97}}>
               Criar conta gratuita agora <ArrowRight size={16} />

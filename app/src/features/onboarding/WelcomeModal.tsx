@@ -230,7 +230,7 @@ export function WelcomeModal({ nome, onClose }: Props) {
           Bem-vindo, <em>{firstName}!</em>
         </Title>
         <Sub>
-          Seu período gratuito de 14 dias começou. Veja o que você pode fazer agora mesmo:
+          Seu período gratuito de 3 dias começou. Veja o que você pode fazer agora mesmo:
         </Sub>
 
         <StepsGrid>
@@ -248,7 +248,7 @@ export function WelcomeModal({ nome, onClose }: Props) {
         </CTABtn>
 
         <TrialNote>
-          14 dias grátis · Sem cartão de crédito · Cancele quando quiser
+          3 dias grátis · Sem cartão de crédito · Cancele quando quiser
         </TrialNote>
       </Card>
     </Overlay>
