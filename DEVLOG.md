@@ -5,6 +5,59 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-25 (trial 3 dias + plano único no cadastro)
+
+### Feat: trial reduzido e seleção de planos removida
+
+**Arquivos alterados:**
+- `app/src/features/auth/LoginPage.tsx`
+- `app/src/features/landing/LandingPage.tsx`
+- `app/src/features/subscription/PaywallModal.tsx`
+- `app/src/features/onboarding/WelcomeModal.tsx`
+
+**O que mudou:**
+- Todo o site: "14 dias grátis" → "3 dias grátis"
+- Cadastro step 2: grade de 3 planos removida, exibe apenas "Plano Pro — R$ 197/mês"
+- Cadastro step 3: resumo mostra plano fixo "📦 Plano Pro — R$ 197/mês (3 dias grátis)"
+- Backend: `plano: 'pro'` hardcoded no signUp e insert do escritório
+
+---
+
+## Sessão — 2026-03-25 (seção pessoa na landing)
+
+### Feat: seção com foto de profissional na landing page
+
+**Arquivos alterados:**
+- `app/src/features/landing/LandingPage.tsx`
+
+**O que mudou:**
+- Nova seção `PersonSection` entre TrustBadges e PainSection
+- Foto de profissional via Unsplash CDN
+- Badge flutuante "−68% de retrabalho"
+- Selo "Aprovado pelo CFC"
+- Quote de testemunho com borda azul
+- 3 stats: retrabalho, clientes, tempo no SPED
+- Layout responsivo (grid 2 colunas → 1 coluna em mobile)
+
+---
+
+## Sessão — 2026-03-25 (fix RLS Supabase + dataStore resiliente)
+
+### Fix: erro "more than one row" nas queries Supabase
+
+**Arquivos alterados:**
+- `app/src/stores/dataStore.ts`
+- `app/src/stores/authStore.ts`
+- `supabase/fix_rls_guias_checklist.sql` (novo)
+
+**O que mudou:**
+- `fetchGuias` e `fetchChecklistDocumentos`: removido join `clientes(razao_social)` que causava HTTP 500
+- `Promise.all` → `Promise.allSettled`: falha em um fetch não derruba os demais
+- Error logging adicionado em todos os fetch functions e authStore
+- SQL criado para corrigir RLS policies com LIMIT 1 e deletar escritórios duplicados
+
+---
+
 ## Sessão — 2026-03-25 (redesign LoginPage — tema azul)
 
 ### Feat: LoginPage atualizada para tema azul
