@@ -25,8 +25,8 @@ function formatCpfCnpj(value: string) {
 type View = 'login' | 'register' | 'forgot' | 'forgot-ok' | 'success' | 'mfa'
 
 const glow = keyframes`
-  0%, 100% { box-shadow: 0 0 6px rgba(255,255,255,0.5); }
-  50% { box-shadow: 0 0 18px rgba(255,255,255,0.9), 0 0 36px rgba(255,255,255,0.3); }
+  0%, 100% { box-shadow: 0 0 6px rgba(96,165,250,0.5); }
+  50% { box-shadow: 0 0 18px rgba(96,165,250,0.9), 0 0 36px rgba(96,165,250,0.3); }
 `
 
 const spin = keyframes`to { transform: rotate(360deg); }`
@@ -35,12 +35,12 @@ const Page = styled.div`
   display: flex;
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
-  background: #f8f6f1;
+  background: #f0f4ff;
 `
 
 const Left = styled(motion.div)`
   width: 52%;
-  background: linear-gradient(160deg, #1a7a4a 0%, #0d3d24 55%, #081a10 100%);
+  background: linear-gradient(160deg, #007bff 0%, #0050c8 55%, #001f6b 100%);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -55,7 +55,7 @@ const LeftGlow1 = styled.div`
   left: -10%;
   width: 70%;
   height: 70%;
-  background: radial-gradient(circle, rgba(26,122,74,0.35) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,123,255,0.4) 0%, transparent 70%);
   pointer-events: none;
 `
 
@@ -65,7 +65,7 @@ const LeftGlow2 = styled.div`
   right: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(26,122,74,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,80,200,0.25) 0%, transparent 70%);
   pointer-events: none;
 `
 
@@ -73,7 +73,7 @@ const LeftPattern = styled.div`
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 75% 15%, rgba(74,222,128,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 75% 15%, rgba(96,165,250,0.12) 0%, transparent 40%),
     radial-gradient(circle at 20% 85%, rgba(0,0,0,0.25) 0%, transparent 50%);
 `
 
@@ -101,29 +101,10 @@ const Brand = styled.div`
   gap: 14px;
 `
 
-const BrandMark = styled.div`
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-`
-
-const BrandName = styled.div`
-  font-family: 'Playfair Display', serif;
-  font-size: 26px;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: -0.3px;
-  span { color: rgba(255,255,255,0.5); }
+const BrandLogo = styled.img`
+  height: 64px;
+  width: auto;
+  display: block;
 `
 
 const HeroArea = styled.div`
@@ -151,14 +132,14 @@ const BadgeDot = styled.div`
 `
 
 const HeroTitle = styled.h1`
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(44px, 5vw, 64px);
-  line-height: 1.04;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(36px, 4vw, 56px);
+  line-height: 1.08;
   letter-spacing: -2px;
-  font-weight: 400;
+  font-weight: 800;
   margin-bottom: 22px;
   color: #fff;
-  em { font-style: italic; color: #4ade80; opacity: 0.9; }
+  em { font-style: normal; color: #93c5fd; }
 `
 
 const HeroDesc = styled.p`
@@ -242,7 +223,7 @@ const Right = styled.div`
   align-items: center;
   justify-content: center;
   padding: 40px;
-  background: #f8f6f1;
+  background: #f0f4ff;
   overflow-y: auto;
   @media (max-width: 600px) { padding: 24px 20px; align-items: flex-start; }
 `
@@ -254,19 +235,19 @@ const FormEyebrow = styled.div`
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #22a062;
+  color: #007bff;
   margin-bottom: 10px;
 `
 
 const FormTitle = styled.h2`
-  font-family: 'Playfair Display', serif;
-  font-size: 36px;
-  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
   letter-spacing: -1px;
   margin-bottom: 8px;
   line-height: 1.1;
-  color: #1a1a1a;
-  em { font-style: italic; color: #1a7a4a; }
+  color: #111827;
+  em { font-style: normal; color: #007bff; }
 `
 
 const FormSub = styled.p`
@@ -304,18 +285,18 @@ const Input = styled.input<{ $error?: boolean }>`
   width: 100%;
   padding: 12px 14px 12px 42px;
   background: #fff;
-  border: 1.5px solid ${({ $error }) => $error ? '#d94040' : '#e2ddd6'};
+  border: 1.5px solid ${({ $error }) => $error ? '#d94040' : '#d1d5db'};
   border-radius: 11px;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #111827;
   outline: none;
   font-family: 'Inter', sans-serif;
   transition: all 0.25s;
   &:focus {
-    border-color: #22a062;
-    box-shadow: 0 0 0 4px rgba(34,160,98,0.1);
+    border-color: #007bff;
+    box-shadow: 0 0 0 4px rgba(0,123,255,0.1);
   }
-  &::placeholder { color: #8a8a8a; }
+  &::placeholder { color: #9ca3af; }
 `
 
 const PwdToggle = styled.button`
@@ -348,13 +329,13 @@ const StrengthBar = styled.div<{ $active: boolean; $color: string }>`
   height: 3px;
   flex: 1;
   border-radius: 2px;
-  background: ${({ $active, $color }) => $active ? $color : '#e2ddd6'};
+  background: ${({ $active, $color }) => $active ? $color : '#e5e7eb'};
   transition: background 0.3s;
 `
 
 const ForgotLink = styled.button`
   font-size: 12px;
-  color: #22a062;
+  color: #007bff;
   cursor: pointer;
   font-weight: 500;
   background: none;
@@ -367,8 +348,8 @@ const Divider = styled.div`
   align-items: center;
   gap: 12px;
   margin: 20px 0;
-  div { flex: 1; height: 1px; background: #e2ddd6; }
-  span { font-size: 11px; color: #8a8a8a; font-weight: 500; }
+  div { flex: 1; height: 1px; background: #e5e7eb; }
+  span { font-size: 11px; color: #9ca3af; font-weight: 500; }
 `
 
 const OAuthRow = styled.div`display: flex; gap: 10px;`
@@ -378,7 +359,7 @@ const OAuthBtn = styled.button`
   padding: 10px;
   border-radius: 10px;
   background: #fff;
-  border: 1.5px solid #e2ddd6;
+  border: 1.5px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -387,16 +368,16 @@ const OAuthBtn = styled.button`
   font-family: 'Inter', sans-serif;
   font-size: 12.5px;
   font-weight: 500;
-  color: #4a4a4a;
+  color: #374151;
   transition: all 0.2s;
-  &:hover { border-color: #22a062; color: #1a7a4a; }
+  &:hover { border-color: #007bff; color: #007bff; }
 `
 
 const SubmitBtn = styled(motion.button)<{ $loading?: boolean }>`
   width: 100%;
   padding: 14px;
   border-radius: 11px;
-  background: linear-gradient(135deg, #1a7a4a 0%, #0f5233 100%);
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: #fff;
   border: none;
   font-size: 14px;
@@ -407,11 +388,11 @@ const SubmitBtn = styled(motion.button)<{ $loading?: boolean }>`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 24px rgba(26,122,74,0.35);
+  box-shadow: 0 4px 24px rgba(0,123,255,0.35);
   transition: all 0.25s;
   opacity: ${({ $loading }) => $loading ? 0.7 : 1};
   pointer-events: ${({ $loading }) => $loading ? 'none' : 'auto'};
-  &:hover { background: linear-gradient(135deg, #22a062 0%, #1a7a4a 100%); box-shadow: 0 6px 28px rgba(26,122,74,0.45); }
+  &:hover { background: linear-gradient(135deg, #3395ff 0%, #007bff 100%); box-shadow: 0 6px 28px rgba(0,123,255,0.45); }
 `
 
 const Spinner = styled.div`
@@ -434,13 +415,13 @@ const PlanGrid = styled.div`
 const PlanCard = styled.div<{ $selected: boolean }>`
   padding: 13px 10px;
   border-radius: 11px;
-  background: ${({ $selected }) => $selected ? '#e8f5ee' : '#fff'};
-  border: 1.5px solid ${({ $selected }) => $selected ? '#1a7a4a' : '#e2ddd6'};
+  background: ${({ $selected }) => $selected ? '#e8f1ff' : '#fff'};
+  border: 1.5px solid ${({ $selected }) => $selected ? '#007bff' : '#e5e7eb'};
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
-  box-shadow: ${({ $selected }) => $selected ? '0 0 0 3px rgba(26,122,74,0.1)' : 'none'};
-  &:hover { border-color: #22a062; }
+  box-shadow: ${({ $selected }) => $selected ? '0 0 0 3px rgba(0,123,255,0.1)' : 'none'};
+  &:hover { border-color: #007bff; }
 `
 
 const Steps = styled.div`display: flex; align-items: center; margin-bottom: 28px;`
@@ -454,9 +435,9 @@ const StepDot = styled.div<{ $active: boolean; $done: boolean }>`
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  background: ${({ $active, $done }) => $active ? '#1a7a4a' : $done ? '#e8f5ee' : '#e2ddd6'};
-  color: ${({ $active, $done }) => $active ? '#fff' : $done ? '#1a7a4a' : '#8a8a8a'};
-  box-shadow: ${({ $active }) => $active ? '0 0 0 4px rgba(26,122,74,0.15)' : 'none'};
+  background: ${({ $active, $done }) => $active ? '#007bff' : $done ? '#e8f1ff' : '#e5e7eb'};
+  color: ${({ $active, $done }) => $active ? '#fff' : $done ? '#007bff' : '#9ca3af'};
+  box-shadow: ${({ $active }) => $active ? '0 0 0 4px rgba(0,123,255,0.15)' : 'none'};
   flex-shrink: 0;
   transition: all 0.3s;
 `
@@ -464,18 +445,18 @@ const StepDot = styled.div<{ $active: boolean; $done: boolean }>`
 const StepLine = styled.div<{ $done: boolean }>`
   flex: 1;
   height: 1px;
-  background: ${({ $done }) => $done ? '#1a7a4a' : '#e2ddd6'};
+  background: ${({ $done }) => $done ? '#007bff' : '#e5e7eb'};
   margin: 0 8px;
   transition: background 0.3s;
 `
 
 const SwitchLink = styled.div`
   font-size: 13px;
-  color: #8a8a8a;
+  color: #9ca3af;
   text-align: center;
   margin-top: 22px;
   button {
-    color: #22a062;
+    color: #007bff;
     font-weight: 600;
     cursor: pointer;
     background: none;
@@ -489,8 +470,8 @@ const SuccessIcon = styled.div`
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #e8f5ee;
-  border: 2px solid #1a7a4a;
+  background: #e8f1ff;
+  border: 2px solid #007bff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -508,13 +489,13 @@ const BtnRow = styled.div`display: flex; gap: 10px;`
 
 const BackBtn = styled(SubmitBtn)`
   background: transparent;
-  color: #4a4a4a;
-  border: 1.5px solid #e2ddd6;
+  color: #374151;
+  border: 1.5px solid #e5e7eb;
   box-shadow: none;
   flex: 0 0 auto;
   width: auto;
   padding: 14px 20px;
-  &:hover { background: #f0ede8; }
+  &:hover { background: #f0f4ff; }
 `
 
 const plans = [
@@ -539,7 +520,7 @@ function getStrength(pwd: string) {
   return s
 }
 
-const strengthColors = ['#d94040', '#e87d1a', '#e8c91a', '#1a7a4a']
+const strengthColors = ['#d94040', '#e87d1a', '#e8c91a', '#007bff']
 const strengthLabels = ['Muito fraca', 'Fraca', 'Boa', 'Forte 🔒']
 
 export function LoginPage() {
@@ -686,7 +667,7 @@ export function LoginPage() {
         <LeftContent>
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}>
             <Brand>
-              <img src="/img/logo.png" alt="TEUcontador" style={{ height: 100, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
+              <img src="/img/logo.png" alt="TEUcontador" style={{ height: 100, width: 'auto', display: 'block' }} />
             </Brand>
           </motion.div>
 
@@ -914,7 +895,7 @@ export function LoginPage() {
                         {plans.map(p => (
                           <PlanCard key={p.id} $selected={selectedPlan === p.id} onClick={() => setSelectedPlan(p.id)}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{p.name}</div>
-                            <div style={{ fontSize: 15, fontWeight: 700, color: '#1a7a4a', margin: '3px 0' }}>{p.price}</div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: '#007bff', margin: '3px 0' }}>{p.price}</div>
                             <div style={{ fontSize: 9, color: '#8a8a8a' }}>{p.period}</div>
                           </PlanCard>
                         ))}
@@ -944,7 +925,7 @@ export function LoginPage() {
 
                   {regStep === 3 && (
                     <motion.div key="s3" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                      <div style={{ background: '#f8f6f1', border: '1px solid #e2ddd6', borderRadius: 11, padding: '16px', marginBottom: 16, fontSize: 13, color: '#4a4a4a', lineHeight: 1.6 }}>
+                      <div style={{ background: '#f0f4ff', border: '1px solid #d1d5db', borderRadius: 11, padding: '16px', marginBottom: 16, fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
                         <strong style={{ color: '#1a1a1a', display: 'block', marginBottom: 8 }}>Resumo da conta</strong>
                         <div>👤 {regNome} {regSobrenome}</div>
                         <div>📧 {regEmail}</div>
@@ -953,9 +934,9 @@ export function LoginPage() {
                         <div>📦 Plano {plans.find(p => p.id === selectedPlan)?.name} — {plans.find(p => p.id === selectedPlan)?.price}/mês</div>
                       </div>
                       <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
-                        <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)} style={{ marginTop: 3, accentColor: '#1a7a4a', width: 15, height: 15 }} />
+                        <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)} style={{ marginTop: 3, accentColor: '#007bff', width: 15, height: 15 }} />
                         <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: 1.5 }}>
-                          Li e concordo com os <a href="#" style={{ color: '#22a062' }}>Termos de Uso</a> e <a href="#" style={{ color: '#22a062' }}>Política de Privacidade</a> do TEUcontador.
+                          Li e concordo com os <a href="#" style={{ color: '#007bff' }}>Termos de Uso</a> e <a href="#" style={{ color: '#007bff' }}>Política de Privacidade</a> do TEUcontador.
                         </span>
                       </label>
                       <BtnRow>
@@ -1044,7 +1025,7 @@ export function LoginPage() {
 
             {view === 'success' && (
               <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center' }}>
-                <SuccessIcon><Check size={28} color="#1a7a4a" /></SuccessIcon>
+                <SuccessIcon><Check size={28} color="#007bff" /></SuccessIcon>
                 <FormTitle style={{ textAlign: 'center', fontSize: 28 }}>Conta <em>criada!</em></FormTitle>
                 <FormSub style={{ textAlign: 'center', marginTop: 8 }}>Bem-vindo ao TEUcontador! Verifique seu e-mail para confirmar seu cadastro.</FormSub>
                 <SubmitBtn type="button" onClick={() => navigate('/app/dashboard')} whileTap={{ scale: 0.98 }} style={{ marginTop: 28 }}>

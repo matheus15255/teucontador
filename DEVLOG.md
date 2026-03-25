@@ -5,6 +5,26 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-25 (redesign LoginPage — tema azul)
+
+### Feat: LoginPage atualizada para tema azul
+
+**Arquivos alterados:**
+- `app/src/features/auth/LoginPage.tsx`
+
+**O que mudou:**
+- Painel esquerdo: gradiente verde `#1a7a4a` → azul `#007bff → #0050c8 → #001f6b`
+- Fundo direito: `#f8f6f1` (bege) → `#f0f4ff` (azul claro)
+- Tipografia: `Playfair Display` → `Inter` em todos os títulos
+- Logo: removido `filter: brightness(0) invert(1)` (era branco demais)
+- Botão submit: verde → azul `#007bff`
+- Inputs focus: verde → azul `#007bff`
+- PlanCard selecionado: verde → azul
+- StepDot/StepLine: verde → azul
+- Inline styles: todas as cores `#1a7a4a`, `#22a062` → `#007bff`
+
+---
+
 ## Sessão — 2026-03-25 (fix responsividade mobile ClientePortalPage)
 
 ### Fix: responsividade mobile do portal do cliente
