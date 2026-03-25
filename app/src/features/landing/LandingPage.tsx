@@ -59,17 +59,8 @@ const Navbar = styled(motion.header)<{$scrolled:boolean}>`
   position:fixed;top:0;left:0;right:0;z-index:1000;
   display:flex;align-items:center;padding:0 48px;height:64px;
   background:#ffffff;
-  box-shadow:0 2px 12px rgba(0,0,0,0.06);
-  &::after {
-    content:'';
-    position:absolute;
-    bottom:-14px;
-    left:0;right:0;
-    height:14px;
-    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 14' preserveAspectRatio='none'%3E%3Cpath d='M0,7 C100,14 200,0 300,7 C400,14 500,0 600,7 C700,14 800,0 900,7 C1000,14 1100,0 1200,7 L1200,14 L0,14 Z' fill='%23e2e8f0'/%3E%3C/svg%3E") repeat-x;
-    background-size:600px 14px;
-    pointer-events:none;
-  }
+  border-bottom:1px solid ${C.grayBorder};
+  box-shadow:0 1px 8px rgba(0,0,0,0.06);
   @media(max-width:768px){padding:0 20px}
 `
 const Logo = styled.div`
