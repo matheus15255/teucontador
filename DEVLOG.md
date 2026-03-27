@@ -5,6 +5,24 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-27b (fix: botão salvar travado em 'Salvando...')
+
+### Fix: segundo fetch após INSERT travava o botão
+
+**Arquivo alterado:**
+- `app/src/features/tempo/ControleTempo.tsx`
+
+**Problema:**
+Após o INSERT, o código fazia um SELECT separado para recarregar todos os registros.
+Esse segundo request ficava travado indefinidamente, mantendo `saving=true` para sempre.
+
+**O que mudou:**
+- Unificou INSERT + SELECT em um único request usando `.insert({...}).select('*, clientes(razao_social)').single()`
+- Novo registro é adicionado diretamente no início da lista local (`[novo, ...registrosTempo]`)
+- Elimina o roundtrip extra em `handleSave` e `handleTimer`
+
+---
+
 ## Sessão — 2026-03-27 (fix: salvamento do timer no ControleTempo)
 
 ### Fix: timer não salvava ao parar
