@@ -251,7 +251,7 @@ export function ControleTempo() {
       const fim = new Date()
       const minutos = Math.max(1, differenceInMinutes(fim, capturedStart))
       try {
-        const { data: novo, error } = await supabase
+        const { error } = await supabase
           .from('registros_tempo')
           .insert({
             escritorio_id: escId,
@@ -261,10 +261,21 @@ export function ControleTempo() {
             fim: fim.toISOString(),
             minutos,
           })
-          .select('*, clientes(razao_social)')
-          .single()
         if (error) throw error
-        setRegistrosTempo([novo, ...registrosTempo])
+        const clienteObj = clientes.find((c: any) => c.id === capturedCliente)
+        const novoRegistro = {
+          id: crypto.randomUUID(),
+          escritorio_id: escId,
+          cliente_id: capturedCliente || null,
+          descricao: capturedDesc,
+          inicio: capturedStart.toISOString(),
+          fim: fim.toISOString(),
+          minutos,
+          responsavel: null,
+          created_at: new Date().toISOString(),
+          clientes: clienteObj ? { razao_social: clienteObj.razao_social } : null,
+        }
+        setRegistrosTempo([novoRegistro, ...registrosTempo])
         toast.success(`Tempo salvo: ${formatMinutes(minutos)}`)
         setTimerDesc(''); setTimerCliente(''); setTimerStart(null)
       } catch (e: any) {
@@ -286,7 +297,7 @@ export function ControleTempo() {
       const inicio = new Date(form.inicio)
       const fim    = new Date(form.fim)
       const minutos = Math.max(1, differenceInMinutes(fim, inicio))
-      const { data: novo, error } = await supabase
+      const { error } = await supabase
         .from('registros_tempo')
         .insert({
           escritorio_id: escId,
@@ -297,10 +308,21 @@ export function ControleTempo() {
           minutos,
           responsavel: form.responsavel || null,
         })
-        .select('*, clientes(razao_social)')
-        .single()
       if (error) throw error
-      setRegistrosTempo([novo, ...registrosTempo])
+      const clienteObj = clientes.find((c: any) => c.id === form.cliente_id)
+      const novoRegistro = {
+        id: crypto.randomUUID(),
+        escritorio_id: escId,
+        cliente_id: form.cliente_id || null,
+        descricao: form.descricao,
+        inicio: inicio.toISOString(),
+        fim: fim.toISOString(),
+        minutos,
+        responsavel: form.responsavel || null,
+        created_at: new Date().toISOString(),
+        clientes: clienteObj ? { razao_social: clienteObj.razao_social } : null,
+      }
+      setRegistrosTempo([novoRegistro, ...registrosTempo])
       toast.success('Registro salvo')
       setShowModal(false); setForm(blank())
     } catch (e: any) {
