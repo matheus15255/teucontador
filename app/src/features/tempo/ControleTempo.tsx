@@ -210,6 +210,7 @@ export function ControleTempo() {
   const [timerDisplay, setTimerDisplay]   = useState('00:00:00')
   const [timerCliente, setTimerCliente]   = useState('')
   const [timerDesc, setTimerDesc]         = useState('')
+  const [timerSaving, setTimerSaving]     = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Manual form
@@ -240,27 +241,42 @@ export function ControleTempo() {
       toast.success('Timer iniciado')
     } else {
       // Parar e salvar
-      if (!escId || !timerStart) return
+      if (!escId || !timerStart) { toast.error('Erro interno: reinicie o timer'); return }
+      if (timerSaving) return
+      const capturedStart = timerStart
+      const capturedDesc  = timerDesc
+      const capturedCliente = timerCliente
       setTimerRunning(false)
+      setTimerSaving(true)
       const fim = new Date()
-      const minutos = Math.max(1, differenceInMinutes(fim, timerStart))
-      const { error } = await supabase
-        .from('registros_tempo')
-        .insert({
-          escritorio_id: escId,
-          cliente_id: timerCliente || null,
-          descricao: timerDesc,
-          inicio: timerStart.toISOString(),
-          fim: fim.toISOString(),
-          minutos,
-        })
-      if (error) { toast.error('Erro ao salvar tempo'); return }
-      const { data: fresh } = await supabase
-        .from('registros_tempo').select('*,clientes(razao_social)')
-        .eq('escritorio_id', escId).order('inicio', { ascending: false }).limit(300)
-      setRegistrosTempo(fresh || [])
-      toast.success(`Tempo salvo: ${formatMinutes(minutos)}`)
-      setTimerDesc(''); setTimerCliente('')
+      const minutos = Math.max(1, differenceInMinutes(fim, capturedStart))
+      try {
+        const { error } = await supabase
+          .from('registros_tempo')
+          .insert({
+            escritorio_id: escId,
+            cliente_id: capturedCliente || null,
+            descricao: capturedDesc,
+            inicio: capturedStart.toISOString(),
+            fim: fim.toISOString(),
+            minutos,
+          })
+        if (error) throw error
+        const { data: fresh, error: fetchErr } = await supabase
+          .from('registros_tempo').select('*,clientes(razao_social)')
+          .eq('escritorio_id', escId).order('inicio', { ascending: false }).limit(300)
+        if (fetchErr) console.error('[ControleTempo] fetch após salvar:', fetchErr)
+        if (fresh) setRegistrosTempo(fresh)
+        toast.success(`Tempo salvo: ${formatMinutes(minutos)}`)
+        setTimerDesc(''); setTimerCliente(''); setTimerStart(null)
+      } catch (e: any) {
+        console.error('[ControleTempo] erro ao salvar tempo:', e)
+        toast.error(e?.message || 'Erro ao salvar tempo')
+        // Reativa o timer para o usuário tentar novamente
+        setTimerRunning(true)
+      } finally {
+        setTimerSaving(false)
+      }
     }
   }
 
@@ -356,8 +372,8 @@ export function ControleTempo() {
             disabled={timerRunning}
           />
         </TimerFields>
-        <PlayBtn $running={timerRunning} onClick={handleTimer}>
-          {timerRunning ? <><Square size={14} />Parar</> : <><Play size={14} />Iniciar</>}
+        <PlayBtn $running={timerRunning} onClick={handleTimer} disabled={timerSaving}>
+          {timerSaving ? 'Salvando...' : timerRunning ? <><Square size={14} />Parar</> : <><Play size={14} />Iniciar</>}
         </PlayBtn>
       </TimerCard>
 
