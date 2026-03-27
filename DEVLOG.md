@@ -5,6 +5,25 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-27 (fix: salvamento do timer no ControleTempo)
+
+### Fix: timer não salvava ao parar
+
+**Arquivo alterado:**
+- `app/src/features/tempo/ControleTempo.tsx`
+
+**Problema:**
+O `handleTimer` não tinha try-catch — qualquer exceção do Supabase era silenciada sem feedback ao usuário. Também não havia guard contra duplo-clique.
+
+**O que mudou:**
+- Adicionado try-catch ao caminho de stop (igual ao padrão de `handleSave`)
+- Valores de `timerStart`, `timerDesc`, `timerCliente` capturados em variáveis locais antes do `await` para evitar stale closures
+- Adicionado estado `timerSaving` para bloquear duplo-clique e exibir "Salvando..."
+- Em caso de erro: toast com mensagem real do Supabase + timer reativado para nova tentativa
+- Fetch pós-insert agora verifica erro separadamente e não apaga dados se falhar
+
+---
+
 ## Sessão — 2026-03-25 (trial 3 dias + plano único no cadastro)
 
 ### Feat: trial reduzido e seleção de planos removida
