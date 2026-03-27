@@ -251,7 +251,7 @@ export function ControleTempo() {
       const fim = new Date()
       const minutos = Math.max(1, differenceInMinutes(fim, capturedStart))
       try {
-        const { error } = await supabase
+        const { data: novo, error } = await supabase
           .from('registros_tempo')
           .insert({
             escritorio_id: escId,
@@ -261,18 +261,15 @@ export function ControleTempo() {
             fim: fim.toISOString(),
             minutos,
           })
+          .select('*, clientes(razao_social)')
+          .single()
         if (error) throw error
-        const { data: fresh, error: fetchErr } = await supabase
-          .from('registros_tempo').select('*,clientes(razao_social)')
-          .eq('escritorio_id', escId).order('inicio', { ascending: false }).limit(300)
-        if (fetchErr) console.error('[ControleTempo] fetch após salvar:', fetchErr)
-        if (fresh) setRegistrosTempo(fresh)
+        setRegistrosTempo([novo, ...registrosTempo])
         toast.success(`Tempo salvo: ${formatMinutes(minutos)}`)
         setTimerDesc(''); setTimerCliente(''); setTimerStart(null)
       } catch (e: any) {
         console.error('[ControleTempo] erro ao salvar tempo:', e)
         toast.error(e?.message || 'Erro ao salvar tempo')
-        // Reativa o timer para o usuário tentar novamente
         setTimerRunning(true)
       } finally {
         setTimerSaving(false)
@@ -289,7 +286,7 @@ export function ControleTempo() {
       const inicio = new Date(form.inicio)
       const fim    = new Date(form.fim)
       const minutos = Math.max(1, differenceInMinutes(fim, inicio))
-      const { error } = await supabase
+      const { data: novo, error } = await supabase
         .from('registros_tempo')
         .insert({
           escritorio_id: escId,
@@ -300,14 +297,14 @@ export function ControleTempo() {
           minutos,
           responsavel: form.responsavel || null,
         })
+        .select('*, clientes(razao_social)')
+        .single()
       if (error) throw error
-      const { data: fresh } = await supabase
-        .from('registros_tempo').select('*,clientes(razao_social)')
-        .eq('escritorio_id', escId).order('inicio', { ascending: false }).limit(300)
-      setRegistrosTempo(fresh || [])
+      setRegistrosTempo([novo, ...registrosTempo])
       toast.success('Registro salvo')
       setShowModal(false); setForm(blank())
     } catch (e: any) {
+      console.error('[ControleTempo] handleSave:', e)
       toast.error(e.message || 'Erro ao salvar')
     } finally {
       savingRef.current = false; setSaving(false)
