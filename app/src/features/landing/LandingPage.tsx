@@ -1583,6 +1583,7 @@ export function LandingPage() {
               <FooterLink>Blog</FooterLink>
               <FooterLink>Parceiros</FooterLink>
               <FooterLink>Contato</FooterLink>
+              <FooterLink href="https://www.instagram.com/tecontador/" target="_blank" rel="noopener">Instagram</FooterLink>
             </div>
             <div>
               <FooterColTitle>Suporte</FooterColTitle>
