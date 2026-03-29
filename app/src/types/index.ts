@@ -250,6 +250,22 @@ export interface ChecklistDocumento {
   clientes?: { razao_social: string }
 }
 
+export interface ContaPagarReceber {
+  id: string
+  escritorio_id?: string
+  cliente_id?: string
+  tipo: 'pagar' | 'receber'
+  descricao: string
+  valor: number
+  data_vencimento: string
+  status: 'pendente' | 'pago' | 'atrasado'
+  data_pagamento?: string
+  categoria?: string
+  observacoes?: string
+  created_at?: string
+  clientes?: { razao_social: string }
+}
+
 export interface NotaServico {
   id: string
   escritorio_id?: string

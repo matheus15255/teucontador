@@ -28,6 +28,7 @@ const NfsePage           = lazy(() => import('./features/nfse/NfsePage').then(m 
 const ImportPage         = lazy(() => import('./features/import/ImportPage').then(m => ({ default: m.ImportPage })))
 const AuditPage          = lazy(() => import('./features/audit/AuditPage').then(m => ({ default: m.AuditPage })))
 const CentroCustoPage    = lazy(() => import('./features/centro-custo/CentroCustoPage').then(m => ({ default: m.CentroCustoPage })))
+const ContasPage         = lazy(() => import('./features/contas/ContasPage').then(m => ({ default: m.ContasPage })))
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
@@ -80,6 +81,7 @@ function App() {
         <Route path="importar"     element={<Suspense fallback={<PageLoader />}><ImportPage /></Suspense>} />
         <Route path="audit"        element={<Suspense fallback={<PageLoader />}><AuditPage /></Suspense>} />
         <Route path="centro-custo" element={<Suspense fallback={<PageLoader />}><CentroCustoPage /></Suspense>} />
+        <Route path="contas"       element={<Suspense fallback={<PageLoader />}><ContasPage /></Suspense>} />
       </Route>
       <Route path="/portal" element={<ClienteLoginPage />} />
       <Route path="/portal/dashboard" element={<Suspense fallback={<PageLoader />}><ClientePortalPage /></Suspense>} />

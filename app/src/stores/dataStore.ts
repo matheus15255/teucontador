@@ -16,6 +16,7 @@ interface DataState {
   notasServico: any[]
   guias: any[]
   checklistDocumentos: any[]
+  contasPagarReceber: any[]
   loadedEscId: string | null
   preloading: boolean
   realtimeChannel: RealtimeChannel | null
@@ -36,6 +37,7 @@ interface DataState {
   setNotasServico: (d: any[]) => void
   setGuias: (d: any[]) => void
   setChecklistDocumentos: (d: any[]) => void
+  setContasPagarReceber: (d: any[]) => void
   invalidate: () => void
 }
 
@@ -137,6 +139,20 @@ async function fetchChecklistDocumentos(_escId: string) {
   // tabela ainda não criada no banco — retorna vazio sem query
   return []
 }
+async function fetchContasPagarReceber(escId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('contas_pagar_receber')
+      .select('*,clientes(razao_social)')
+      .eq('escritorio_id', escId)
+      .order('data_vencimento', { ascending: true })
+      .limit(500)
+    if (error) console.error('[dataStore] fetchContasPagarReceber:', error.message)
+    return data || []
+  } catch {
+    return []
+  }
+}
 
 export const useDataStore = create<DataState>((set, get) => ({
   clientes: [],
@@ -152,6 +168,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   notasServico: [],
   guias: [],
   checklistDocumentos: [],
+  contasPagarReceber: [],
   loadedEscId: null,
   preloading: false,
   realtimeChannel: null,
@@ -174,12 +191,13 @@ export const useDataStore = create<DataState>((set, get) => ({
         fetchNotasServico(escId),
         fetchGuias(escId),
         fetchChecklistDocumentos(escId),
+        fetchContasPagarReceber(escId),
       ])
       const [
         clientes, lancamentos, obrigacoes, colaboradores,
         planoContas, transacoes, tarefas,
         honorarios, atendimentos, registrosTempo, notasServico,
-        guias, checklistDocumentos,
+        guias, checklistDocumentos, contasPagarReceber,
       ] = results.map((r, i) => {
         if (r.status === 'rejected') {
           console.error(`[dataStore] fetch[${i}] rejeitado:`, r.reason)
@@ -191,7 +209,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         clientes, lancamentos, obrigacoes, colaboradores,
         planoContas, transacoes, tarefas,
         honorarios, atendimentos, registrosTempo, notasServico,
-        guias, checklistDocumentos,
+        guias, checklistDocumentos, contasPagarReceber,
         loadedEscId: escId,
       })
       get().subscribe(escId)
@@ -219,6 +237,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notas_servico',         filter: `escritorio_id=eq.${escId}` }, async () => { set({ notasServico:    await fetchNotasServico(escId) }) })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'guias',                 filter: `escritorio_id=eq.${escId}` }, async () => { set({ guias:            await fetchGuias(escId) }) })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'checklist_documentos',  filter: `escritorio_id=eq.${escId}` }, async () => { set({ checklistDocumentos: await fetchChecklistDocumentos(escId) }) })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contas_pagar_receber',  filter: `escritorio_id=eq.${escId}` }, async () => { set({ contasPagarReceber: await fetchContasPagarReceber(escId) }) })
       .subscribe()
     set({ realtimeChannel: channel })
   },
@@ -241,5 +260,6 @@ export const useDataStore = create<DataState>((set, get) => ({
   setNotasServico:        (d) => set({ notasServico: d }),
   setGuias:               (d) => set({ guias: d }),
   setChecklistDocumentos: (d) => set({ checklistDocumentos: d }),
+  setContasPagarReceber:  (d) => set({ contasPagarReceber: d }),
   invalidate:        ()  => set({ loadedEscId: null }),
 }))

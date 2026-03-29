@@ -44,6 +44,7 @@ const navGroups = [
   {
     label: 'Gestão',
     items: [
+      { id: 'contas',       label: 'Contas a Pagar/Receber', icon: DollarSign, path: '/app/contas' },
       { id: 'fluxo',        label: 'Fluxo de Caixa',   icon: TrendingUp,      path: '/app/fluxo' },
       { id: 'atendimentos', label: 'Atendimentos',      icon: Phone,           path: '/app/atendimentos' },
       { id: 'tempo',        label: 'Controle de Tempo', icon: Timer,           path: '/app/tempo' },
@@ -403,6 +404,7 @@ const pageTitles: Record<string, string> = {
   nfse:         'Notas de Serviço (NFS-e)',
   audit:        'Audit Trail',
   'centro-custo': 'Centro de Custo',
+  contas:         'Contas a Pagar / Receber',
 }
 
 export function AppLayout() {

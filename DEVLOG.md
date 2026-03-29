@@ -5,6 +5,35 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-29 (feat: módulo Contas a Pagar / Receber)
+
+### Novo módulo completo de gestão financeira
+
+**Arquivos criados:**
+- `app/src/features/contas/ContasPage.tsx` — página principal
+
+**Arquivos alterados:**
+- `app/src/types/index.ts` — interface `ContaPagarReceber`
+- `app/src/stores/dataStore.ts` — fetch, state, realtime e setter para `contasPagarReceber`
+- `app/src/App.tsx` — rota `/app/contas`
+- `app/src/components/layout/AppLayout.tsx` — item no menu Gestão + título na topbar
+
+**SQL criado no Supabase:**
+- Tabela `contas_pagar_receber` com campos: tipo, descricao, valor, data_vencimento, status, data_pagamento, categoria, observacoes, cliente_id
+- RLS configurado (acesso por escritorio_id)
+- Índices em escritorio_id e data_vencimento
+
+**Funcionalidades:**
+- 4 cards de stats: A Pagar, A Receber, Saldo Previsto, Em Atraso
+- Filtros por tipo (Todos / A Pagar / A Receber) e por status
+- Tabela com badge de tipo, descrição, cliente/fornecedor, valor, vencimento e status
+- Ações: marcar pago, marcar atrasado, editar, excluir
+- Modal de criação/edição completo com categorias separadas por tipo
+- Export para Excel
+- Realtime via Supabase (atualização automática)
+
+---
+
 ## Sessão — 2026-03-27b (fix: botão salvar travado em 'Salvando...')
 
 ### Fix: segundo fetch após INSERT travava o botão
