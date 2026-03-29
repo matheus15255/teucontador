@@ -2312,7 +2312,7 @@ async function gerarDCTF(){
 
 // CHATBOT
 let chatOpen=false,chatHistory=[],isTyping=false;
-const SYSTEM_PROMPT=`Você é o TEUBot, assistente de suporte do TEUcontador — o sistema contábil SaaS mais completo do Brasil.\n\nVocê auxilia contadores e escritórios de contabilidade com dúvidas sobre:\n- Uso do sistema TEUcontador (navegação, funcionalidades, módulos)\n- Obrigações fiscais: SPED Fiscal (EFD ICMS/IPI), SPED Contábil (ECD), ECF, DCTF, PGDAS, EFD Contribuições\n- eSocial e folha de pagamento\n- Conciliação bancária e importação de OFX\n- Plano de Contas CFC e lançamentos em partida dobrada\n- Regimes tributários: Simples Nacional, Lucro Presumido, Lucro Real\n- Planos e preços: Starter R$149, Pro R$349, Enterprise R$699\n\nPersonalidade: profissional, objetivo e acolhedor. Respostas concisas (3–5 linhas no máximo). Use emojis com moderação. Sempre ofereça próximos passos concretos. Responda sempre em português brasileiro.\n\nSe não souber algo, oriente o usuário a contatar: suporte@teucontador.com.br`;
+const SYSTEM_PROMPT=`Você é o TEUBot, assistente de suporte do TEUcontador — o sistema contábil SaaS mais completo do Brasil.\n\nVocê auxilia contadores e escritórios de contabilidade com dúvidas sobre:\n- Uso do sistema TEUcontador (navegação, funcionalidades, módulos)\n- Obrigações fiscais: SPED Fiscal (EFD ICMS/IPI), SPED Contábil (ECD), ECF, DCTF, PGDAS, EFD Contribuições\n- eSocial e folha de pagamento\n- Conciliação bancária e importação de OFX\n- Plano de Contas CFC e lançamentos em partida dobrada\n- Regimes tributários: Simples Nacional, Lucro Presumido, Lucro Real\n- Planos e preços: Starter R$149, Pro R$349, Enterprise R$699\n\nPersonalidade: profissional, objetivo e acolhedor. Respostas concisas (3–5 linhas no máximo). Use emojis com moderação. Sempre ofereça próximos passos concretos. Responda sempre em português brasileiro.\n\nSe não souber algo, oriente o usuário a contatar: WhatsApp (11) 91312-7582`;
 
 function toggleChat(){
   chatOpen=!chatOpen;
@@ -2374,8 +2374,8 @@ function respostaLocal(q){
   if(q.match(/obrigado|obrigada|valeu|thanks/))
     return 'Fico feliz em ajudar! 😊 Se tiver mais dúvidas, é só perguntar.';
   if(q.match(/preço|plano|quanto.*custa|valor.*plano/))
-    return '💳 Planos do TEUcontador:\n- **Starter** R$ 149/mês — até 10 clientes\n- **Pro** R$ 349/mês — até 50 clientes\n- **Enterprise** R$ 699/mês — clientes ilimitados\n\nPara contratar: **suporte@teucontador.com.br**';
-  return 'Não encontrei uma resposta específica para isso. 🤔\n\nPosso ajudar com: **SPED**, **DCTF**, **Conciliação OFX**, **Lançamentos**, **NFS-e**, **eSocial**, **Plano de Contas**, **Relatórios** ou **Folha de Pagamento**.\n\nOu entre em contato: **suporte@teucontador.com.br**';
+    return '💳 Planos do TEUcontador:\n- **Starter** R$ 149/mês — até 10 clientes\n- **Pro** R$ 349/mês — até 50 clientes\n- **Enterprise** R$ 699/mês — clientes ilimitados\n\nPara contratar: **WhatsApp (11) 91312-7582**';
+  return 'Não encontrei uma resposta específica para isso. 🤔\n\nPosso ajudar com: **SPED**, **DCTF**, **Conciliação OFX**, **Lançamentos**, **NFS-e**, **eSocial**, **Plano de Contas**, **Relatórios** ou **Folha de Pagamento**.\n\nOu entre em contato: **WhatsApp (11) 91312-7582**';
 }
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
