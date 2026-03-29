@@ -5,6 +5,20 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-29 (fix: atualização número WhatsApp)
+
+### Atualização do número de suporte WhatsApp
+
+**Número novo:** (11) 91312-7582 → `https://wa.me/5511913127582`
+
+**Arquivos alterados (React — fonte real do Vercel):**
+- `app/src/components/ChatbotWidget.tsx` — link e número exibido no card de suporte
+- `app/src/features/landing/LandingPage.tsx` — botão "Falar com especialista" (hero) e link WhatsApp no footer
+
+**Observação:** alterações feitas inicialmente nos HTMLs estáticos da raiz (`landing.html`, `dashboard.html`, `js/dashboard.js`) foram inválidas pois o Vercel serve apenas o build React em `app/dist`. Nunca editar apenas os HTMLs da raiz.
+
+---
+
 ## Sessão — 2026-03-29 (feat: módulo Contas a Pagar / Receber)
 
 ### Novo módulo completo de gestão financeira
