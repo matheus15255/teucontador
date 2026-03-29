@@ -216,10 +216,10 @@ export function ChatbotWidget() {
                 </MsgRow>
                 {m.showSupport && (
                   <div style={{ paddingLeft: 34 }}>
-                    <SupportCard href="https://wa.me/5513991169000" target="_blank" rel="noopener noreferrer">
+                    <SupportCard href="https://wa.me/5511913127582" target="_blank" rel="noopener noreferrer">
                       <SupportIcon><Phone size={15} color="#1a7a4a" /></SupportIcon>
                       <SupportText>
-                        <strong>(13) 99116-9000</strong>
+                        <strong>(11) 91312-7582</strong>
                         Suporte via WhatsApp · Clique para abrir
                       </SupportText>
                     </SupportCard>

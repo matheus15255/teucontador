@@ -1548,7 +1548,7 @@ export function LandingPage() {
             <HeroBtnPrimary onClick={() => navigate('/login')} whileTap={{scale:.97}}>
               Criar conta gratuita agora <ArrowRight size={16} />
             </HeroBtnPrimary>
-            <HeroBtnOutline as="a" href="https://wa.me/5513991169000?text=Olá, tenho interesse no TEUcontador" target="_blank" rel="noopener" whileTap={{scale:.97}} style={{textDecoration:'none'}}>
+            <HeroBtnOutline as="a" href="https://wa.me/5511913127582?text=Olá, tenho interesse no TEUcontador" target="_blank" rel="noopener" whileTap={{scale:.97}} style={{textDecoration:'none'}}>
               Falar com um especialista
             </HeroBtnOutline>
           </div>
@@ -1588,7 +1588,7 @@ export function LandingPage() {
               <FooterColTitle>Suporte</FooterColTitle>
               <FooterLink>Central de Ajuda</FooterLink>
               <FooterLink>Documentação</FooterLink>
-              <FooterLink href="https://wa.me/5513991169000" target="_blank">WhatsApp</FooterLink>
+              <FooterLink href="https://wa.me/5511913127582" target="_blank">WhatsApp</FooterLink>
               <FooterLink>Política de Privacidade</FooterLink>
             </div>
           </FooterGrid>
