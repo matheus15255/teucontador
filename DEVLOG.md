@@ -5,6 +5,16 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-29 (feat: botão flutuante Cadastre-se Agora)
+
+### Botão flutuante de cadastro na landing page
+
+**Arquivos alterados:**
+- `app/src/features/landing/LandingPage.tsx` — botão fixo canto inferior esquerdo com ícone UserPlus, navega para `/login?tab=register`
+- `app/src/features/auth/LoginPage.tsx` — lê `?tab=register` via `useSearchParams` para abrir direto na view de cadastro
+
+---
+
 ## Sessão — 2026-03-29 (feat: Instagram na landing)
 
 ### Adição do Instagram no footer da landing
