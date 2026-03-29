@@ -5,6 +5,17 @@ Arquivo de log de todas as alterações feitas pelo Claude.
 
 ---
 
+## Sessão — 2026-03-29 (feat: Instagram na landing)
+
+### Adição do Instagram no footer da landing
+
+**Arquivos alterados:**
+- `app/src/features/landing/LandingPage.tsx` — link Instagram adicionado na coluna "Empresa" do footer
+
+**Link:** https://www.instagram.com/tecontador/
+
+---
+
 ## Sessão — 2026-03-29 (fix: atualização número WhatsApp)
 
 ### Atualização do número de suporte WhatsApp
