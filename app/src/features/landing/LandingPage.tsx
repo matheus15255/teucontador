@@ -7,7 +7,7 @@ import { TypeAnimation } from 'react-type-animation'
 import {
   ArrowRight, Check, ChevronDown, Star, Shield, BarChart2,
   Users, FileText, TrendingUp, Clock, Lock, Award, CheckCircle,
-  BookOpen, DollarSign, RefreshCw, Menu, X, Zap, Globe,
+  BookOpen, DollarSign, RefreshCw, Menu, X, Zap, Globe, UserPlus,
 } from 'lucide-react'
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
@@ -690,6 +690,16 @@ const FooterBottom = styled.div`
   font-size:12px;color:rgba(241,245,249,.2);
 `
 const FooterCerts = styled.div`display:flex;gap:14px;align-items:center;`
+const RegisterFab = styled(motion.button)`
+  position:fixed;bottom:28px;left:28px;z-index:9999;
+  background:linear-gradient(135deg,#2563eb,#1a40a8);
+  color:#fff;border:none;border-radius:999px;
+  padding:14px 24px;font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 20px rgba(37,99,235,.5);
+  font-family:Inter,sans-serif;letter-spacing:.2px;
+  &:hover{background:linear-gradient(135deg,#1d4ed8,#1e3a8a);}
+`
 const FooterCert = styled.span`
   padding:3px 8px;border-radius:5px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
@@ -1604,6 +1614,18 @@ export function LandingPage() {
           </FooterBottom>
         </FooterInner>
       </Footer>
+
+      <RegisterFab
+        onClick={() => navigate('/login?tab=register')}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        initial={{ y: 80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1, type: 'spring', stiffness: 200 }}
+      >
+        <UserPlus size={16} />
+        Cadastre-se Agora
+      </RegisterFab>
     </Page>
   )
 }

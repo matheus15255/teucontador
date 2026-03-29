@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Lock, User, Building2, Eye, EyeOff, Check, ChevronRight, Hash } from 'lucide-react'
@@ -523,8 +523,9 @@ const strengthLabels = ['Muito fraca', 'Fraca', 'Boa', 'Forte 🔒']
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useAuthStore()
-  const [view, setView] = useState<View>('login')
+  const [view, setView] = useState<View>(searchParams.get('tab') === 'register' ? 'register' : 'login')
   const [loading, setLoading] = useState(false)
   const [showPwd, setShowPwd] = useState(false)
   const [regStep, setRegStep] = useState(1)
